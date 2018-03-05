@@ -4,6 +4,7 @@ import pickle
 import regex as re
 from sklearn.metrics import classification_report, confusion_matrix
 import os
+import argparse
 
 def get_data(name):
     index_list = []
@@ -50,9 +51,13 @@ def merge_changes(word, changes):
 
 
 if __name__ == '__main__':
-    path = os.path.dirname(os.path.realpath(__file__))
+    parser = argparse.ArgumentParser()
+    parser.add_argument('name', type=str, help='Name')
+    args = parser.parse_args()
+    
+    name = args.name.lower()
 
-    name = "Gadsbøllevej".lower()
+    path = os.path.dirname(os.path.realpath(__file__))
 
     char_dict = pickle.load( open( path+"/char_dict.p", "rb" ) )
     map_dict = {}
