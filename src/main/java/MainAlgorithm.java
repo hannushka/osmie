@@ -2,7 +2,7 @@
 public class MainAlgorithm {
 
     public void run() {
-        SpellObject so = new SpellObject("Gadsbøllevej");
+        SpellObject so = new SpellObject("Lundsgårdsvej");
         SCorrecter.run(so);
         so.print();
     }

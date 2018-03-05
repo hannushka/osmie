@@ -77,16 +77,22 @@ if __name__ == '__main__':
     predicts = clf.predict_proba(test_data)
 
     filtered_predicts = []
+    mean_prob = []
     for x in range(0, len(predicts)):
-        if abs(predicts[x][0]-predicts[x][1]) > 0:
+        diff = abs(predicts[x][0]-predicts[x][1])
+        if diff > 0:
             if predicts[x][0] < predicts[x][1]: #ss
                 filtered_predicts.append('ss')
-                print(predicts[x][1])
+                mean_prob.append(diff)
             else:
                 filtered_predicts.append('s')
-                print(predicts[x][0])
+                mean_prob.append(diff)
         else:
             filtered_predicts.append(-1)
+    if len(mean_prob) > 0:
+        print(sum(mean_prob)/len(mean_prob))
+    else:
+        print(0)
 
     if len(index_list) > 0:
         for x in range(0, len(filtered_predicts)):
