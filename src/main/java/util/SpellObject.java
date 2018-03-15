@@ -1,17 +1,17 @@
 package util;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 public class SpellObject {
     public long osmId;
     public Optional<String> currentName;
-    public List<String> corrections;
+    public Set<String> corrections;
 
     public SpellObject(long osmId) {
         this.osmId = osmId;
-        corrections = new ArrayList<>();
+        corrections = new HashSet<>();
         currentName = Optional.empty();
     }
 
@@ -24,10 +24,12 @@ public class SpellObject {
     }
 
     public void print() {
+        if (corrections.isEmpty())
+            return;
         StringBuilder sb = new StringBuilder();
-        sb.append(osmId);
+        sb.append(osmId).append(",,,");
         if (currentName.isPresent())
-            sb.append(",,,").append(currentName.get());
+            sb.append(currentName.get());
         corrections.forEach(c -> sb.append(",,,").append(c));
         System.out.println(sb.toString());
     }

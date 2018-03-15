@@ -8,24 +8,37 @@ import spellchecker.random_forest.SCorrector;
 import util.SpellObject;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public class Main {
+    Map<Long, SpellObject> edges;
 
+    public Main() {
+        edges = new HashMap<>();
+    }
 
-    private void processEdge(Edge e) {
-        SpellObject so = new SpellObject(e.getOsmIdentifier());
-        SCorrector.run(so, e);
+    private void processEdge(SpellObject so, Edge e) {
+//        SCorrector.run(so, e);
         GraphConnectivityCorrector.run(so, e);
-        so.print();
     }
 
     public void run() {
         final File atlasFile = new File("data/POINT (7.9321289 55.4665832)=POINT (8.0998535 55.5783983).atlas");
         final Atlas atlasLoad = new AtlasResourceLoader().load(atlasFile);
+        SpellObject so;
         for (Edge e : atlasLoad.edges()) {
-            processEdge(e);
+            long id = Math.abs(e.getIdentifier());
+            if (edges.containsKey(id)) {
+                so = edges.get(id);
+            } else {
+                so = new SpellObject(id);
+                edges.put(id, so);
+            }
+            processEdge(so, e);
         }
+        edges.values().forEach(spo -> spo.print());
     }
 
     public static void main(String[] args) {
