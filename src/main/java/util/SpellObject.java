@@ -2,29 +2,33 @@ package util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class SpellObject {
-    public String name;
+    public long osmId;
+    public Optional<String> currentName;
     public List<String> corrections;
 
-    public SpellObject(String name) {
-        this.name = name;
+    public SpellObject(long osmId) {
+        this.osmId = osmId;
         corrections = new ArrayList<>();
+        currentName = Optional.empty();
     }
 
-    public void addCorrection(String correctedName) {
-        corrections.add(correctedName);
+    public void addSuggestion(String suggestion) {
+        corrections.add(suggestion);
+    }
+
+    public void addName(String name) {
+        currentName = Optional.of(name);
     }
 
     public void print() {
         StringBuilder sb = new StringBuilder();
-        sb.append(name);
-        for (int i = 0 ; i < corrections.size() ; i++) {
-            sb.append(",,,");
-            sb.append(corrections.get(i));
-            if (i < corrections.size()-1)
-                sb.append(",,,");
-        }
+        sb.append(osmId);
+        if (currentName.isPresent())
+            sb.append(",,,").append(currentName.get());
+        corrections.forEach(c -> sb.append(",,,").append(c));
         System.out.println(sb.toString());
     }
 }

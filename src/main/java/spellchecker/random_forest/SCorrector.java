@@ -1,21 +1,27 @@
 package spellchecker.random_forest;
 
 import org.apache.commons.io.IOUtils;
+import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.tags.names.NameTag;
 import util.SpellObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class SCorrector {
 
-    public void run(SpellObject so) {
-        if (!so.name.contains("s"))
+    public static void run(SpellObject so, Edge edge) {
+        Optional<String> nameTag = edge.getTag(NameTag.KEY);
+        if (!nameTag.isPresent() || !nameTag.get().contains("s"))
             return;
+        String name = nameTag.get().trim().toLowerCase();
+        so.addName(name);
         List<String> commands = new ArrayList<>();
         commands.add("python3");
         commands.add("src/main/java/spellchecker/random_forest/s_corrector.py");
-        commands.add(so.name.trim().toLowerCase());
+        commands.add(name);
         ProcessBuilder pb = new ProcessBuilder(commands);
         try {
             Process p = pb.start();
@@ -24,19 +30,11 @@ public class SCorrector {
             if (outputList.size() < 1)
                 throw new IOException("No output from S corrector.");
             String correctedName = outputList.get(1);
-            so.addCorrection(correctedName);
+            so.addSuggestion(correctedName);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-    }
-
-    public static void main(String[] args) throws IOException {
-        if (args.length < 1 || args[0].isEmpty())
-            throw new IOException("No String argument to Spellcorrector.");
-        SpellObject so = new SpellObject(args[0]);
-        new SCorrector().run(so);
-        so.print();
     }
 }

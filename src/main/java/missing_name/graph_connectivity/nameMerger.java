@@ -32,7 +32,7 @@ public class nameMerger {
         Set<Long> idsLeft = new HashSet<>(idsChecked);
         Set<Long> idsRight = new HashSet<>(idsChecked);
         // TODO make sure that idsLeft&idsRight isn't checked. Because they're checked by using DP
-        // TODO make check if only one name possible? Propagate others too..!
+        // TODO make check if only one currentName possible? Propagate others too..!
 
         Set<String> names = edges.stream()
                 .map(it -> it.getTag(NameTag.KEY).orElse(""))
@@ -108,7 +108,7 @@ public class nameMerger {
         return "";
     }
 
-    public static String generateNameSuggestion(Edge edge){     //	motorway_link --> name of motorway
+    public static String generateNameSuggestion(Edge edge){     //	motorway_link --> currentName of motorway
         String name = edge.getTag(NameTag.KEY).orElse("");
         String noname = edge.getTag("noname").orElse("");
         if(name.isEmpty() && noname.isEmpty()){
