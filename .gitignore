@@ -5,3 +5,4 @@ out/
 .vscode/
 data/
 src/main/java/spellchecker/random_forest/__pycache__/
+.gradle/

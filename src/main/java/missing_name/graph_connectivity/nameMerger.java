@@ -52,9 +52,6 @@ public class nameMerger {
         inEdges.removeIf(edge::isReversedEdge);
         outEdges.removeIf(edge::isReversedEdge);
         if(inEdges.size() != 1 && outEdges.size() != 1) return "";
-
-
-
         return "";
     }
 
@@ -68,7 +65,7 @@ public class nameMerger {
             String name = "";
             for(Edge edgeConnect: connectedEdges) name = edgeConnect.getTag(NameTag.KEY).orElse(name);
             return name;
-        }else{
+        } else{
             return "";
         }
     }
