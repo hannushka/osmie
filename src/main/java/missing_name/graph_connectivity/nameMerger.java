@@ -55,20 +55,20 @@ public class nameMerger {
         return "";
     }
 
-    private static String smallTailCase(Edge edge){   // TODO improve check to not include noname that leads somewhere!
-        Set<Edge> connectedEdges = edge.connectedEdges();
-        Set<Long> edgeIds = new HashSet<>();
-        connectedEdges.forEach(it -> edgeIds.add(Math.abs(it.getIdentifier())));
-        edgeIds.add(Math.abs(edge.getIdentifier()));
-
-        if(edgeIds.size() == 2 && edge.hasReverseEdge()){        // Only return edge & start-edge present.
-            String name = "";
-            for(Edge edgeConnect: connectedEdges) name = edgeConnect.getTag(NameTag.KEY).orElse(name);
-            return name;
-        } else{
-            return "";
-        }
-    }
+//    private static String smallTailCase(Edge edge){   // TODO improve check to not include noname that leads somewhere!
+//        Set<Edge> connectedEdges = edge.connectedEdges();
+//        Set<Long> edgeIds = new HashSet<>();
+//        connectedEdges.forEach(it -> edgeIds.add(Math.abs(it.getIdentifier())));
+//        edgeIds.add(Math.abs(edge.getIdentifier()));
+//
+//        if(edgeIds.size() == 2 && edge.hasReverseEdge()){        // Only return edge & start-edge present.
+//            String name = "";
+//            for(Edge edgeConnect: connectedEdges) name = edgeConnect.getTag(NameTag.KEY).orElse(name);
+//            return name;
+//        } else{
+//            return "";
+//        }
+//    }
 //
 //    private static String inBetweenNamedEdges(Edge edge){      // Starting with ONLY the case of MASVAGEN -> __ -> MASVAGEN
 //        Set<Edge> inEdges = edge.inEdges();

@@ -24,8 +24,8 @@ public class Main {
         GraphConnectivityCorrector.run(so, e);
     }
 
-    public void run() {
-        final File atlasFile = new File("data/POINT (7.9321289 55.4665832)=POINT (8.0998535 55.5783983).atlas");
+    public void run(String filename) {
+        final File atlasFile = new File(filename);
         final Atlas atlasLoad = new AtlasResourceLoader().load(atlasFile);
         SpellObject so;
         for (Edge e : atlasLoad.edges()) {
@@ -42,6 +42,6 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        new Main().run();
+        new Main().run("data/POINT (7.9321289 55.4665832)=POINT (8.0998535 55.5783983).atlas");
     }
 }
