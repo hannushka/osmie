@@ -69,25 +69,25 @@ public class nameMerger {
             return "";
         }
     }
-
-    private static String inBetweenNamedEdges(Edge edge){      // Starting with ONLY the case of MASVAGEN -> __ -> MASVAGEN
-        Set<Edge> inEdges = edge.inEdges();
-        Set<Edge> outEdges = edge.outEdges();
-        inEdges.removeIf(it -> it.isReversedEdge(edge) || it.connectedEdges().stream().anyMatch(inEdges::contains));
-        outEdges.removeIf(it -> it.isReversedEdge(edge) || it.connectedEdges().stream().anyMatch(outEdges::contains));
-        Set<String> inNames = inEdges.stream()
-                .map(it -> it.getTag(NameTag.KEY).orElse(""))
-                .collect(Collectors.toSet());
-        inNames.remove("");
-        Set<String> outNames = inEdges.stream()
-                .map(it -> it.getTag(NameTag.KEY).orElse(""))
-                .collect(Collectors.toSet());
-        outNames.remove("");
-        if(inNames.size() == 1 && outNames.size() == 1
-                && inNames.toArray()[0].equals(outNames.toArray()[0]))
-            return (String) inNames.toArray()[0];
-        else return "";
-    }
+//
+//    private static String inBetweenNamedEdges(Edge edge){      // Starting with ONLY the case of MASVAGEN -> __ -> MASVAGEN
+//        Set<Edge> inEdges = edge.inEdges();
+//        Set<Edge> outEdges = edge.outEdges();
+//        inEdges.removeIf(it -> it.isReversedEdge(edge) || it.connectedEdges().stream().anyMatch(inEdges::contains));
+//        outEdges.removeIf(it -> it.isReversedEdge(edge) || it.connectedEdges().stream().anyMatch(outEdges::contains));
+//        Set<String> inNames = inEdges.stream()
+//                .map(it -> it.getTag(NameTag.KEY).orElse(""))
+//                .collect(Collectors.toSet());
+//        inNames.remove("");
+//        Set<String> outNames = inEdges.stream()
+//                .map(it -> it.getTag(NameTag.KEY).orElse(""))
+//                .collect(Collectors.toSet());
+//        outNames.remove("");
+//        if(inNames.size() == 1 && outNames.size() == 1
+//                && inNames.toArray()[0].equals(outNames.toArray()[0]))
+//            return (String) inNames.toArray()[0];
+//        else return "";
+//    }
 
     private static String changeOfPathType(Edge edge){
         Set<Edge> connectedEdges = edge.connectedEdges();
@@ -103,62 +103,62 @@ public class nameMerger {
         return "";
     }
 
-    public static String isRoundAbout(Edge edge){
-        if(edge.getTag("junction").orElse("").equals("roundabout")) return "Add noname=true tag";
-        return "";
-    }
+//    public static String isRoundAbout(Edge edge){
+//        if(edge.getTag("junction").orElse("").equals("roundabout")) return "Add noname=true tag";
+//        return "";
+//    }
 
-    public static String generateNameSuggestion(Edge edge){     //	motorway_link --> currentName of motorway
-        String name = edge.getTag(NameTag.KEY).orElse("");
-        String noname = edge.getTag("noname").orElse("");
-        if(name.isEmpty() && noname.isEmpty()){
-            String changeOfPathType = changeOfPathType(edge);
-//            if(!changeOfPathType.isEmpty()) {
-//                System.out.println("changeOfPathType found!");
-//                return changeOfPathType;
+//    public static String generateNameSuggestion(Edge edge){     //	motorway_link --> currentName of motorway
+//        String name = edge.getTag(NameTag.KEY).orElse("");
+//        String noname = edge.getTag("noname").orElse("");
+//        if(name.isEmpty() && noname.isEmpty()){
+//            String changeOfPathType = changeOfPathType(edge);
+////            if(!changeOfPathType.isEmpty()) {
+////                System.out.println("changeOfPathType found!");
+////                return changeOfPathType;
+////            }
+//
+//            String roundabout = isRoundAbout(edge);
+//            if(!roundabout.isEmpty()){
+//                System.out.println("roundabout found!");
+//                return roundabout;
 //            }
-
-            String roundabout = isRoundAbout(edge);
-            if(!roundabout.isEmpty()){
-                System.out.println("roundabout found!");
-                return roundabout;
-            }
-
-            String smallTail = smallTailCase(edge);
-            if(!smallTail.isEmpty()){
-                System.out.println("smallTail found!");
-                return smallTail;
-            }
-
-
-            String inBetween = inBetweenNamedEdges(edge);
-            if(!inBetween.isEmpty()){
-                System.out.println("inBetween found!");
-                return inBetween;
-            }
-
-            Set<Edge> inEdges = edge.inEdges();
-            Set<Edge> outEdges = edge.outEdges();
-            System.out.println(edge.getMasterEdgeIdentifier());
-            System.out.println(smallTailCase(edge));
-            inEdges.forEach(it -> System.out.println("in: " + it.getTag(NameTag.KEY).orElse("(empty)") + ", id: " + it.getMasterEdgeIdentifier()));
-            outEdges.forEach(it -> System.out.println("out: " + it.getTag(NameTag.KEY).orElse("(empty)") + ", id: " + it.getMasterEdgeIdentifier()));
-            System.out.println("=======================================================");
-        }
-
-        return "";
-    }
-
-    public static void main(String[] args) {
-        Atlas atlas = new AtlasResourceLoader().load(new File(ATLAS_FILE));
-        int i = 0, j = 0;
-        for(Edge edge: atlas.edges()){
-            String suggestion = generateNameSuggestion(edge);
-            i++;
-            j++;
-            if(!suggestion.isEmpty()) System.out.println("Suggestion: " + suggestion + " (" + edge.getIdentifier() + ")");
-            else j--;
-        }
-        System.out.println("Edited " + j + " items (of " + i + ")");
-    }
+//
+//            String smallTail = smallTailCase(edge);
+//            if(!smallTail.isEmpty()){
+//                System.out.println("smallTail found!");
+//                return smallTail;
+//            }
+//
+//
+//            String inBetween = inBetweenNamedEdges(edge);
+//            if(!inBetween.isEmpty()){
+//                System.out.println("inBetween found!");
+//                return inBetween;
+//            }
+//
+//            Set<Edge> inEdges = edge.inEdges();
+//            Set<Edge> outEdges = edge.outEdges();
+//            System.out.println(edge.getMasterEdgeIdentifier());
+//            System.out.println(smallTailCase(edge));
+//            inEdges.forEach(it -> System.out.println("in: " + it.getTag(NameTag.KEY).orElse("(empty)") + ", id: " + it.getMasterEdgeIdentifier()));
+//            outEdges.forEach(it -> System.out.println("out: " + it.getTag(NameTag.KEY).orElse("(empty)") + ", id: " + it.getMasterEdgeIdentifier()));
+//            System.out.println("=======================================================");
+//        }
+//
+//        return "";
+//    }
+//
+//    public static void main(String[] args) {
+//        Atlas atlas = new AtlasResourceLoader().load(new File(ATLAS_FILE));
+//        int i = 0, j = 0;
+//        for(Edge edge: atlas.edges()){
+//            String suggestion = generateNameSuggestion(edge);
+//            i++;
+//            j++;
+//            if(!suggestion.isEmpty()) System.out.println("Suggestion: " + suggestion + " (" + edge.getIdentifier() + ")");
+//            else j--;
+//        }
+//        System.out.println("Edited " + j + " items (of " + i + ")");
+//    }
 }
