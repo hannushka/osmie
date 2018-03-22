@@ -1,10 +1,12 @@
 package speed.neural_net;
 
+import spellchecker.neural_net.Seq2Seq;
+
 public class DLSpeedTester {
     public static void main(String[] args) {
-        SpeedNetwork model;
+        Seq2Seq model;
         try {
-            model = SpeedNetwork.Builder().setCharacterIterator(SpeedNetwork.IteratorType.TRANSLATER, 4000, true)
+            model = SpeedNetwork.Builder().setCharacterIterator(SpeedNetwork.IteratorType.TRANSLATER, true)
                     .loadModel(String.format("data/models/model%s.bin", 490));
 //                    .loadModel("data/models/BiLSTM.bin");
             //            System.out.println(model.generateSuggestion("holstebrovej"));

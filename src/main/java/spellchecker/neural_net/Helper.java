@@ -1,6 +1,7 @@
 package spellchecker.neural_net;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
+import speed.neural_net.ChSpeedIterator;
 
 import java.nio.charset.Charset;
 
@@ -8,16 +9,26 @@ public class Helper {
     public static CharacterIterator getCharacterIterator(int miniBatchSize, int sequenceLength, int epochSize,
                                                          boolean minimized) throws Exception {
         String fileLocation = "data/autoNameData.csv";
+        String testFileLocation = "data/manualNameData.csv";
         char[] validCharacters = CharacterIterator.getDanishCharacterSet();
-        return new CharacterIterator(fileLocation, Charset.forName("UTF-8"),
+        return new CharacterIterator(fileLocation, testFileLocation, Charset.forName("UTF-8"),
                 miniBatchSize, sequenceLength, validCharacters, epochSize, minimized);
     }
 
     public static CharacterIterator getEmbeddedIterator(int miniBatchSize, int sequenceLength, int epochSize,
                                                            boolean minimized) throws Exception {
         String fileLocation = "data/autoNameData.csv";
+        String testFileLocation = "data/manualNameData.csv";
         char[] validCharacters = CharacterIterator.getDanishCharacterSet();
-        return new EmbeddedCharacterIterator(fileLocation, Charset.forName("UTF-8"),
+        return new EmbeddedCharacterIterator(fileLocation, testFileLocation, Charset.forName("UTF-8"),
+                miniBatchSize, sequenceLength, validCharacters, epochSize, minimized);
+    }
+
+    public static CharacterIterator getSpeedIterator(int miniBatchSize, int sequenceLength, int epochSize,
+                                                        boolean minimized) throws Exception {
+        String fileLocation = "data/nameDataUnique.csv";
+        char[] validCharacters = CharacterIterator.getDanishCharacterSet();
+        return new ChSpeedIterator(fileLocation, Charset.forName("UTF-8"),
                 miniBatchSize, sequenceLength, validCharacters, epochSize, minimized);
     }
 

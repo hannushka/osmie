@@ -5,6 +5,7 @@ import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.DataSetPreProcessor;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.factory.Nd4j;
+import spellchecker.neural_net.CharacterIterator;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -24,7 +25,7 @@ import java.util.*;
  * Feature vectors and labels are both one-hot vectors of same length
  * @author Alex Black
  */
-public class ChSpeedIterator implements DataSetIterator {
+public class ChSpeedIterator extends CharacterIterator{
     private char[] validCharacters;
     //Maps each character to an index in the input/output
     private Map<Character,Integer> charToIdxMap;
@@ -74,22 +75,28 @@ public class ChSpeedIterator implements DataSetIterator {
             j++;
             String[] inputOutput = s.split(",,,");
 
-            if(inputOutput.length < 3) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
+            if(inputOutput.length < 3) continue;
 
             char[] inputLine = inputOutput[1].toLowerCase().toCharArray();
-            int output = Integer.parseInt(inputOutput[2]);
+            try{
+                int output = Integer.parseInt(inputOutput[2]);
+                for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
 
-            for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
-
-            if(j < splitSize){
-                inputLines.add(inputLine);
-                ogInput.add(inputLine);
-                outputLines.add(output);
-                ogOutput.add(output);
-            }else{
-                inputTest.add(inputLine);
-                outputTest.add(output);
+                if(j < splitSize){
+                    inputLines.add(inputLine);
+                    ogInput.add(inputLine);
+                    outputLines.add(output);
+                    ogOutput.add(output);
+                }else{
+                    inputTest.add(inputLine);
+                    outputTest.add(output);
+                }
+            }catch (NumberFormatException ex){
+                ex.printStackTrace();
+                continue;
             }
+
+
         }
         numExamples = inputLines.size();
     }

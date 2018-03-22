@@ -21,15 +21,15 @@ public abstract class Seq2Seq {
     }
     public enum IteratorType{
         TRANSLATER,
-        EMBEDDING
+        EMBEDDING,
+        SPEED
     }
-    int[] lstmLayerSize = new int[]{10};                    //Number of units in each GravesLSTM layer
-    int miniBatchSize = 32;                        //Size of mini batch to use when training
-    int numEpochs = 50;                            //Total number of training epochs
+    protected int[] lstmLayerSize = new int[]{10};                    //Number of units in each GravesLSTM layer
+    protected int miniBatchSize = 32, numEpochs = 50;                        //Size of mini batch to use when training
     private int nCharactersToSample = 50;
-    double learningRate = 0.1;
-    MultiLayerNetwork net;
-    CharacterIterator itr;
+    protected double learningRate = 0.1;
+    protected MultiLayerNetwork net;
+    protected CharacterIterator itr;
     private int noChangeCorrect = 0, noChangeIncorrect = 0, changedCorrectly = 0, changedIncorrectly = 0;
     private int wrongChangeType = 0;
 
@@ -61,6 +61,9 @@ public abstract class Seq2Seq {
                 break;
             case EMBEDDING:
                 itr = Helper.getEmbeddedIterator(miniBatchSize, exampleLength, numEpochs, minimized);
+                break;
+            case SPEED:
+                itr = Helper.getSpeedIterator(miniBatchSize, exampleLength, numEpochs, minimized);
                 break;
         }
         return this;

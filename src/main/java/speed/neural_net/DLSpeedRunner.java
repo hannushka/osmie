@@ -1,15 +1,19 @@
 package speed.neural_net;
 
+import spellchecker.neural_net.Seq2Seq;
+import spellchecker.neural_net.Seq2Seq.IteratorType;
+
 public class DLSpeedRunner {
     public static void main(String[] args) {
         try {
-            SpeedNetwork model = SpeedNetwork.Builder()
+            Seq2Seq model = SpeedNetwork.Builder()
                     .setBatchSize(32)
                     .setNbrEpochs(500)
                     .setNbrLayers(6) // params Integer int... (#lager, Size, Size)
                     .setLearningRate(.1)
-                    .setCharacterIterator(SpeedNetwork.IteratorType.TRANSLATER, 4000, true)
-                    .buildBiNetwork()
+                    .setBatchSize(4000)
+                    .setCharacterIterator(IteratorType.SPEED, false)
+                    .buildNetwork()
                     //.loadModel(String.format("data/models/model%s.bin", 260))
                     .setScoreListener(SpeedNetwork.ScoreListener.VISUALIZE);
 

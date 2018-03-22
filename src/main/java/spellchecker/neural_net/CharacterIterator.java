@@ -45,7 +45,7 @@ public class CharacterIterator implements DataSetIterator {
      * @throws IOException If text file cannot  be loaded
      */
 
-    public CharacterIterator(String textFilePath, Charset textFileEncoding, int miniBatchSize, int exampleLength,
+    public CharacterIterator(String textFilePath, String testFilePath, Charset textFileEncoding, int miniBatchSize, int exampleLength,
                              char[] validCharacters, int epochSize, boolean minimized) throws IOException {
         if(!new File(textFilePath).exists()) throw new IOException("Could not access file (does not exist): " + textFilePath);
         if(miniBatchSize <= 0) throw new IllegalArgumentException("Invalid miniBatchSize (must be > 0)");
@@ -65,11 +65,8 @@ public class CharacterIterator implements DataSetIterator {
         //Load file and convert contents to a char[] -- ALSO filter out characters not in alphabet.
         List<String> lines = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
         int j = 0;
-        double splitSize = lines.size() * 0.95;
-        if(minimized) splitSize = 950;
         for(String s : lines){
-            if(s.isEmpty()) continue;
-            if(minimized && j > 1000) continue;
+            if(s.isEmpty() || (minimized && j > 1000)) continue;
             j++;
             String[] inputOutput = s.split(",,,");
 
@@ -81,16 +78,30 @@ public class CharacterIterator implements DataSetIterator {
             for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
             for(int i = 0; i < outputLine.length; i++) if(!charToIdxMap.containsKey(outputLine[i])) outputLine[i] = '!';
 
-            if(j < splitSize){
-                inputLines.add(inputLine);
-                outputLines.add(outputLine);
-                ogInput.add(inputLine);
-                ogOutput.add(outputLine);
-            }else{
-                inputTest.add(inputLine);
-                outputTest.add(outputLine);
-            }
+            inputLines.add(inputLine);
+            outputLines.add(outputLine);
+            ogInput.add(inputLine);
+            ogOutput.add(outputLine);
         }
+
+        lines = Files.readAllLines(new File(testFilePath).toPath(), textFileEncoding);
+        for(String s : lines){
+            if(s.isEmpty() || (minimized && j > 1000)) continue;
+            j++;
+            String[] inputOutput = s.split(",,,");
+
+            if(inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
+
+            char[] inputLine = inputOutput[0].toLowerCase().toCharArray();
+            char[] outputLine = ("\t" + inputOutput[1].toLowerCase() + "\n").toCharArray();  // Start and end character
+
+            for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
+            for(int i = 0; i < outputLine.length; i++) if(!charToIdxMap.containsKey(outputLine[i])) outputLine[i] = '!';
+
+            inputTest.add(inputLine);
+            outputTest.add(outputLine);
+        }
+
         if(!minimized){
             lines = Files.readAllLines(new File("data/korpus_freq_dict.txt.mini.noised").toPath(), textFileEncoding);
             for(String s : lines) {         // TODO check if \n is included or not!!
@@ -115,7 +126,10 @@ public class CharacterIterator implements DataSetIterator {
             }
         }
         numExamples = inputLines.size();
+        System.out.println(numExamples);
     }
+
+    public CharacterIterator() { }
 
     /** A minimal character set, with a-z, A-Z, 0-9 and common punctuation etc */
     private static char[] getMinimalCharacterSet(){
