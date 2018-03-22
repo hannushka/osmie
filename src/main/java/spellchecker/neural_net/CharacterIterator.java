@@ -86,8 +86,7 @@ public class CharacterIterator implements DataSetIterator {
 
         lines = Files.readAllLines(new File(testFilePath).toPath(), textFileEncoding);
         for(String s : lines){
-            if(s.isEmpty() || (minimized && j > 1000)) continue;
-            j++;
+            if(s.isEmpty()) continue;
             String[] inputOutput = s.split(",,,");
 
             if(inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
@@ -106,7 +105,6 @@ public class CharacterIterator implements DataSetIterator {
             lines = Files.readAllLines(new File("data/korpus_freq_dict.txt.mini.noised").toPath(), textFileEncoding);
             for(String s : lines) {         // TODO check if \n is included or not!!
                 if(s.isEmpty()) continue;  // TODO 10k as limit as in the KERAS example..!
-                j++;
                 String[] inputOutput = s.split(",,,");
                 if(inputOutput.length != 2){
                     throw new IOException("Fileformat error: '<old> <nbr>' is to be used compared to " + s);
@@ -126,9 +124,8 @@ public class CharacterIterator implements DataSetIterator {
             }
         }
         numExamples = inputLines.size();
-        System.out.println(numExamples);
     }
-
+*
     public CharacterIterator() { }
 
     /** A minimal character set, with a-z, A-Z, 0-9 and common punctuation etc */
