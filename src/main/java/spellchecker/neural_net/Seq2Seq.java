@@ -27,7 +27,7 @@ public abstract class Seq2Seq {
     protected int[] lstmLayerSize = new int[]{10};                    //Number of units in each GravesLSTM layer
     protected int miniBatchSize = 32, numEpochs = 50;                        //Size of mini batch to use when training
     private int nCharactersToSample = 50;
-    protected double learningRate = 0.1;
+    protected double learningRate = 0.01;
     protected MultiLayerNetwork net;
     protected CharacterIterator itr;
     private int noChangeCorrect = 0, noChangeIncorrect = 0, changedCorrectly = 0, changedIncorrectly = 0;

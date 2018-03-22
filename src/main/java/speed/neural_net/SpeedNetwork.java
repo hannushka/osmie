@@ -6,8 +6,11 @@ import org.deeplearning4j.nn.conf.BackpropType;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.Updater;
+import org.deeplearning4j.nn.conf.layers.EmbeddingLayer;
 import org.deeplearning4j.nn.conf.layers.GravesLSTM;
 import org.deeplearning4j.nn.conf.layers.RnnOutputLayer;
+import org.deeplearning4j.nn.conf.preprocessor.FeedForwardToRnnPreProcessor;
+import org.deeplearning4j.nn.conf.preprocessor.RnnToFeedForwardPreProcessor;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.util.ModelSerializer;
@@ -42,7 +45,7 @@ public class SpeedNetwork extends Seq2Seq {
                 }
             }
             if(i % 5 == 0) System.out.println("Finished EPOCH #" + i);
-            if(i % 10 == 0)  ModelSerializer.writeModel(net, String.format("data/models/model%s.bin", i), true);
+            if(i % 10 == 0)  ModelSerializer.writeModel(net, String.format("data/model_speed/model%s.bin", i), true);
             itr.reset();    //Reset iterator for another epoch
         }
         ModelSerializer.writeModel(net, "model.bin", true);
@@ -63,7 +66,7 @@ public class SpeedNetwork extends Seq2Seq {
 
     @Override
     public Seq2Seq buildNetwork() throws Exception{
-        int tbpttLength = 50, idx = 1, nOut = itr.totalOutcomes(), nIn = itr.inputColumns();
+        int tbpttLength = 50, idx = 2, nOut = itr.totalOutcomes(), nIn = itr.inputColumns();
         NeuralNetConfiguration.ListBuilder builder = new NeuralNetConfiguration.Builder()
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).iterations(1)
                 .learningRate(learningRate)
@@ -72,18 +75,18 @@ public class SpeedNetwork extends Seq2Seq {
                 .weightInit(WeightInit.XAVIER)
                 .updater(Updater.ADAM)   // TODO swap fro ADAM? RMSPROP?
                 .list()
-                .layer(0, new GravesLSTM.Builder().nIn(nIn).nOut(lstmLayerSize[0])
+                .layer(0, new EmbeddingLayer.Builder().nIn(nIn).nOut(20).build())
+                .layer(1, new GravesLSTM.Builder().nIn(20).nOut(lstmLayerSize[0])
                         .activation(Activation.SOFTSIGN).build());
 
         for(int i = 1; i < lstmLayerSize.length; i++, idx++)
             builder.layer(idx, new GravesLSTM.Builder().nIn(lstmLayerSize[i-1]).nOut(lstmLayerSize[i]).activation(Activation.SOFTSIGN).build());  //10->5,5->2
 
-        for(int i = lstmLayerSize.length - 1; i > 0; i--, idx++)
-            builder.layer(idx, new GravesLSTM.Builder().nIn(lstmLayerSize[i]).nOut(lstmLayerSize[i-1]).activation(Activation.SOFTSIGN).build());
-
         MultiLayerConfiguration config = builder.layer(idx, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT).activation(Activation.SOFTMAX)
                 .nIn(lstmLayerSize[0]).nOut(nOut).build())
                 .backpropType(BackpropType.TruncatedBPTT).tBPTTForwardLength(tbpttLength).tBPTTBackwardLength(tbpttLength)
+                .inputPreProcessor(0, new RnnToFeedForwardPreProcessor())
+                .inputPreProcessor(1, new FeedForwardToRnnPreProcessor())
                 .pretrain(false).backprop(true)
                 .build();
         net = new MultiLayerNetwork(config);
