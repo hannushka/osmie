@@ -75,6 +75,24 @@ public class ChSpeedIterator extends CharacterIterator{
             if(inputOutput.length < 3) continue;
 
             char[] inputLine = inputOutput[1].toLowerCase().toCharArray();
+            try{
+                int output = Integer.parseInt(inputOutput[2]);
+                if(output == -1) continue;
+                for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
+
+                if(j < splitSize){
+                    inputLines.add(inputLine);
+                    ogInput.add(inputLine);
+                    outputLines.add(output);
+                    ogOutput.add(output);
+                }else{
+                    inputTest.add(inputLine);
+                    outputTest.add(output);
+                }
+            }catch (NumberFormatException ex){
+                ex.printStackTrace();
+                continue;
+            }
 
             Integer output = tryParse(inputOutput[2]);
             if (output == null || output < 0) continue;
