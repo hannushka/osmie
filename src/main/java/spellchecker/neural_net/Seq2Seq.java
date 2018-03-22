@@ -25,7 +25,7 @@ public abstract class Seq2Seq {
         SPEED
     }
     protected int[] lstmLayerSize = new int[]{10};                    //Number of units in each GravesLSTM layer
-    protected int miniBatchSize = 32, numEpochs = 50;                        //Size of mini batch to use when training
+    protected int miniBatchSize = 32, numEpochs = 50, epochSize = Integer.MAX_VALUE; //Size of mini batch to use when training
     private int nCharactersToSample = 50;
     protected double learningRate = 0.1;
     protected MultiLayerNetwork net;
@@ -50,6 +50,11 @@ public abstract class Seq2Seq {
 
     public Seq2Seq setNbrEpochs(int numEpochs){
         this.numEpochs = numEpochs;
+        return this;
+    }
+
+    public Seq2Seq setEpochSize(int epochSize){
+        this.epochSize = epochSize;
         return this;
     }
 
