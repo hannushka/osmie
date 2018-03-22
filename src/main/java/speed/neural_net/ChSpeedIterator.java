@@ -80,6 +80,7 @@ public class ChSpeedIterator extends CharacterIterator{
             char[] inputLine = inputOutput[1].toLowerCase().toCharArray();
             try{
                 int output = Integer.parseInt(inputOutput[2]);
+                if(output == -1) continue;
                 for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
 
                 if(j < splitSize){
