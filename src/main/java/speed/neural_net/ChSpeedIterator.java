@@ -34,10 +34,7 @@ public class ChSpeedIterator extends CharacterIterator{
     private ArrayList<Integer> outputLines, ogOutput, outputTest;
     //Length of each example/minibatch (number of characters)
     private int exampleLength, miniBatchSize, numExamples, pointer = 0, epochSize, currEx = 0;
-    private static final int THIRTY = 0, FIFTY = 1, SIXTY = 2, SEVENTY = 3, EIGHTY = 4, NINETY = 5, HOUNDRED = 6,
-    HOUNDREDTWENTY = 7, BIG = 8, SMALL = 9, FOURTY = 10, MISSING = 11;
-    private static final int nrSpeeds = 12;
-
+    private Map<Integer, Integer> speedToIdx;
     /**
      * @param textFilePath Path to text file to use for generating samples
      * @param textFileEncoding Encoding of the text file. Can try Charset.defaultCharset()
@@ -97,35 +94,48 @@ public class ChSpeedIterator extends CharacterIterator{
                 continue;
             }
 
+            Integer output = tryParse(inputOutput[2]);
+            if (output == null || output < 0) continue;
+            for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
+
+            if(j < splitSize){
+                inputLines.add(inputLine);
+                ogInput.add(inputLine);
+                outputLines.add(output);
+                ogOutput.add(output);
+            }else {
+                inputTest.add(inputLine);
+                outputTest.add(output);
+            }
 
         }
         numExamples = inputLines.size();
+        speedToIdx = new HashMap<>();
+        String line = Files.newBufferedReader(Paths.get("data/speedAlphabet.csv")).readLine();
+        String[] splitLine = line.split(",,,");
+        int index = 0;
+        for (int i = 0 ; i < splitLine.length ; i++) {
+            Integer intVal = tryParse(splitLine[i]);
+            if (intVal != null) {
+                speedToIdx.put(intVal, index);
+                index++;
+            }
+        }
+    }
+
+    private static Integer tryParse(String text) {
+        try {
+            return Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private int intToIdx(int speed){
-        switch (speed){
-            case 30:
-                return THIRTY;
-            case 40:
-                return FOURTY;
-            case 50:
-                return FIFTY;
-            case 60:
-                return SIXTY;
-            case 70:
-                return SEVENTY;
-            case 80:
-                return EIGHTY;
-            case 90:
-                return NINETY;
-            case 100:
-                return HOUNDRED;
-            case 120:
-                return HOUNDREDTWENTY;
-        }
-        if(speed == -1) return MISSING;
-        if(speed > 120) return BIG;
-        return SMALL;
+        Integer ind = speedToIdx.get(speed);
+        if (ind == null)
+            throw new NumberFormatException("Speed " + speed + " not in speed alphabet.");
+        return ind;
     }
 
     /** A minimal character set, with a-z, A-Z, 0-9 and common punctuation etc */
@@ -161,7 +171,7 @@ public class ChSpeedIterator extends CharacterIterator{
     }
 
     public int getNbrClasses(){
-        return nrSpeeds;
+        return speedToIdx.size();
     }
 
     public boolean hasNext() {
@@ -187,9 +197,8 @@ public class ChSpeedIterator extends CharacterIterator{
         // dimension 1 = size of each vector (i.e., number of characters)
         // dimension 2 = length of each time series/example
         // 'f' (fortran) ordering = must for optimized custom iterator.
-        INDArray input = Nd4j.create(new int[]{currMinibatchSize, validCharacters.length, exampleLength}, 'f');
-        INDArray labels = Nd4j.create(new int[]{currMinibatchSize, nrSpeeds, exampleLength}, 'f');
-//        INDArray labels = Nd4j.create(new int[]{currMinibatchSize, validCharacters.length, exampleLength*2}, 'f');
+        INDArray input = Nd4j.create(new int[]{currMinibatchSize, 1, exampleLength}, 'f');
+        INDArray labels = Nd4j.create(new int[]{currMinibatchSize, speedToIdx.size(), exampleLength}, 'f');
 
         INDArray inputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
         INDArray outputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
@@ -203,19 +212,14 @@ public class ChSpeedIterator extends CharacterIterator{
             // 1 = exist, 0 = should be masked. INDArray should init with zeros?
             for(int j = 0; j < inputChars.length + 1; j++)
                 inputMask.putScalar(new int[]{i,j}, 1f);
-//            for(int j = inputChars.length; j < (inputChars.length+outputChars.length + 1); j++)
-//                outputMask.putScalar(new int[]{i,j}, 1f);
             labels.putScalar(new int[]{i, intToIdx(output), exampleLength-1}, 1f);
-
             for(int j = 0; j < exampleLength; j++){
-                int currCharIdx = charToIdxMap.get('\n'), corrCharIdx = charToIdxMap.get('\n');
+                int currCharIdx = charToIdxMap.get('\n');
                 if(inputChars.length > j) currCharIdx = charToIdxMap.get(inputChars[j]);
-                input.putScalar(new int[]{i,currCharIdx,j}, 1f);
-                //labels.putScalar(new int[]{i,corrCharIdx,(j+inputChars.length)}, 1.0);
+                input.putScalar(new int[]{i,0,j}, currCharIdx);
             }
         }
-
-        return new DataSet(input,labels, inputMask, outputMask);
+        return new DataSet(input, labels, inputMask, outputMask);
     }
 
     public DataSet nextTest() {
@@ -231,7 +235,7 @@ public class ChSpeedIterator extends CharacterIterator{
     }
 
     public int totalOutcomes() {
-        return nrSpeeds;
+        return speedToIdx.size();
     }
 
     public void reset() {
