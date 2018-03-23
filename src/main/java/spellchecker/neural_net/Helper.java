@@ -71,6 +71,15 @@ public class Helper {
         for(char c : extras) mergedArray[i++] = c;
         for(char c : second) mergedArray[i++] = c;
         return mergedArray;
-
+    }
+    public static char[] mergeOutArrays(char[] first, char[] second, char... extras){
+        char[] mergedArray = new char[first.length +  second.length + extras.length + 2];
+        int i = 1;
+        for(char c : first) mergedArray[i++] = c;
+        for(char c : extras) mergedArray[i++] = c;
+        for(char c : second) mergedArray[i++] = c;
+        mergedArray[0] = '\t';
+        mergedArray[mergedArray.length-1] = '\n';
+        return mergedArray;
     }
 }
