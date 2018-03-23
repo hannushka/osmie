@@ -81,8 +81,6 @@ public class CharacterIterator implements DataSetIterator {
 
             inputLines.add(inputLine);
             outputLines.add(outputLine);
-            ogInput.add(inputLine);
-            ogOutput.add(outputLine);
         }
 
         lines = Files.readAllLines(new File(testFilePath).toPath(), textFileEncoding);
@@ -101,9 +99,9 @@ public class CharacterIterator implements DataSetIterator {
             inputTest.add(inputLine);
             outputTest.add(outputLine);
         }
-        ArrayList<char []> inputToMerge = new ArrayList<>();
-        ArrayList<char []> outputToMerge = new ArrayList<>();
-        if(false){
+
+        ArrayList<char []> inputToMerge = new ArrayList<>(), outputToMerge = new ArrayList<>();
+        if(!minimized){
             lines = Files.readAllLines(new File("data/korpus_freq_dict.txt.mini.noised").toPath(), textFileEncoding);
             for(String s : lines) {         // TODO check if \n is included or not!!
                 if(s.isEmpty()) continue;  // TODO 10k as limit as in the KERAS example..!
@@ -124,10 +122,11 @@ public class CharacterIterator implements DataSetIterator {
             }
         }
         char[] in, out;
+        boolean added;
         while(!inputToMerge.isEmpty()){
             in = inputToMerge.remove(0);
             out = outputToMerge.remove(0);
-            boolean added = false;
+            added = false;
 
             for(int i = 0; i < inputToMerge.size(); i++){
                 if(in.length + 1 + inputToMerge.get(i).length < exampleLength){
@@ -143,11 +142,13 @@ public class CharacterIterator implements DataSetIterator {
                 outputLines.add(out);
             }
         }
+        ogInput = new LinkedList<>(inputLines);
+        ogOutput = new LinkedList<>(outputLines);
 
         numExamples = inputLines.size();
     }
 
-    public CharacterIterator() { }
+    protected CharacterIterator() { }
 
     /** A minimal character set, with a-z, A-Z, 0-9 and common punctuation etc */
     private static char[] getMinimalCharacterSet(){
@@ -156,10 +157,10 @@ public class CharacterIterator implements DataSetIterator {
         for(char c='A'; c<='Z'; c++) validChars.add(c);
         for(char c='0'; c<='9'; c++) validChars.add(c);
         char[] temp = {'!', '&', '(', ')', '?', '-', '\'', '"', ',', '.', ':', ';', ' ', '\n', '\t'};
-        for( char c : temp ) validChars.add(c);
+        for(char c : temp) validChars.add(c);
         char[] out = new char[validChars.size()];
         int i=0;
-        for( Character c : validChars ) out[i++] = c;
+        for(Character c : validChars) out[i++] = c;
         return out;
     }
 
@@ -318,5 +319,4 @@ public class CharacterIterator implements DataSetIterator {
     public void remove() {
         throw new UnsupportedOperationException();
     }
-
 }
