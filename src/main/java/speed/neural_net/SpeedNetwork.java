@@ -1,5 +1,6 @@
 package speed.neural_net;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.BackpropType;
@@ -24,8 +25,19 @@ import java.io.IOException;
 
 public class SpeedNetwork extends Seq2Seq {
 
+    public static int embeddingLayerSize = 5;
+
     public static Seq2Seq Builder(){
         return new SpeedNetwork();
+    }
+
+    @Override
+    public Seq2Seq setNbrLayers(int... lstmLayerSize){
+        int[] tmp1 = new int[]{embeddingLayerSize};
+        int[] tmp2 = lstmLayerSize;
+        this.layerDimensions = ArrayUtils.addAll(tmp1, tmp2);
+        System.out.println(layerDimensions.length);
+        return this;
     }
 
     @Override
@@ -65,7 +77,7 @@ public class SpeedNetwork extends Seq2Seq {
 
     @Override
     public Seq2Seq buildNetwork() throws Exception{
-        int tbpttLength = 50, idx = 2, nOut = itr.totalOutcomes(), nIn = itr.inputColumns();
+        int tbpttLength = 50, nOut = itr.totalOutcomes(), nIn = itr.inputColumns();
         NeuralNetConfiguration.ListBuilder builder = new NeuralNetConfiguration.Builder()
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).iterations(1)
                 .learningRate(learningRate)
@@ -74,15 +86,13 @@ public class SpeedNetwork extends Seq2Seq {
                 .weightInit(WeightInit.XAVIER)
                 .updater(Updater.ADAM)   // TODO swap fro ADAM? RMSPROP?
                 .list()
-                .layer(0, new EmbeddingLayer.Builder().nIn(nIn).nOut(20).build())
-                .layer(1, new GravesLSTM.Builder().nIn(20).nOut(lstmLayerSize[0])
-                        .activation(Activation.SOFTSIGN).build());
+                .layer(0, new EmbeddingLayer.Builder().nIn(nIn).nOut(embeddingLayerSize).build());
 
-        for(int i = 1; i < lstmLayerSize.length; i++, idx++)
-            builder.layer(idx, new GravesLSTM.Builder().nIn(lstmLayerSize[i-1]).nOut(lstmLayerSize[i]).activation(Activation.SOFTSIGN).build());  //10->5,5->2
+        for(int i = 1; i < layerDimensions.length; i++)
+            builder.layer(i, new GravesLSTM.Builder().nIn(layerDimensions[i-1]).nOut(layerDimensions[i]).activation(Activation.SOFTSIGN).build());  //10->5,5->2
 
-        MultiLayerConfiguration config = builder.layer(idx, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT).activation(Activation.SOFTMAX)
-                .nIn(lstmLayerSize[0]).nOut(nOut).build())
+        MultiLayerConfiguration config = builder.layer(layerDimensions.length, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MSE).activation(Activation.SOFTMAX)
+                .nIn(layerDimensions[layerDimensions.length-1]).nOut(nOut).build())
                 .backpropType(BackpropType.TruncatedBPTT).tBPTTForwardLength(tbpttLength).tBPTTBackwardLength(tbpttLength)
                 .inputPreProcessor(0, new RnnToFeedForwardPreProcessor())
                 .inputPreProcessor(1, new FeedForwardToRnnPreProcessor())

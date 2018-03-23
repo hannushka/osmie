@@ -9,7 +9,7 @@ public class DLSpeedRunner {
         try {
             Seq2Seq model = SpeedNetwork.Builder()
                     .setBatchSize(64)
-                    .setEpochSize(6400)
+                    .setEpochSize(4000)
                     .setNbrEpochs(100)
                     .setNbrLayers(20, 20) // params Integer int... (#lager, Size, Size)
                     .setLearningRate(.1)

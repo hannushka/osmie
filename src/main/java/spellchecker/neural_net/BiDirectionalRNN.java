@@ -72,15 +72,15 @@ public class BiDirectionalRNN extends Seq2Seq {
                 .weightInit(WeightInit.XAVIER)
                 .updater(Updater.ADAM)   // TODO swap fro ADAM? RMSPROP?
                 .list()
-                .layer(0, new GravesBidirectionalLSTM.Builder().nIn(nOut).nOut(lstmLayerSize[0]).activation(Activation.SOFTSIGN).build());//
-        for(int i = 1; i < lstmLayerSize.length; i++, idx++)
-            builder.layer(idx, new GravesBidirectionalLSTM.Builder().nIn(lstmLayerSize[i-1]).nOut(lstmLayerSize[i]).activation(Activation.SOFTSIGN).build());  //10->5,5->2
+                .layer(0, new GravesBidirectionalLSTM.Builder().nIn(nOut).nOut(layerDimensions[0]).activation(Activation.SOFTSIGN).build());//
+        for(int i = 1; i < layerDimensions.length; i++, idx++)
+            builder.layer(idx, new GravesBidirectionalLSTM.Builder().nIn(layerDimensions[i-1]).nOut(layerDimensions[i]).activation(Activation.SOFTSIGN).build());  //10->5,5->2
 
-        for(int i = lstmLayerSize.length - 1; i > 0; i--, idx++)
-            builder.layer(idx, new GravesBidirectionalLSTM.Builder().nIn(lstmLayerSize[i]).nOut(lstmLayerSize[i-1]).activation(Activation.SOFTSIGN).build());
+        for(int i = layerDimensions.length - 1; i > 0; i--, idx++)
+            builder.layer(idx, new GravesBidirectionalLSTM.Builder().nIn(layerDimensions[i]).nOut(layerDimensions[i-1]).activation(Activation.SOFTSIGN).build());
 
         MultiLayerConfiguration config =  builder.layer(idx, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT).activation(Activation.SOFTMAX)
-                .nIn(lstmLayerSize[0]).nOut(nOut).build())
+                .nIn(layerDimensions[0]).nOut(nOut).build())
                 .build();
         net = new MultiLayerNetwork(config);
         return this;
