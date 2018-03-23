@@ -1,8 +1,7 @@
 package speed.neural_net;
 
-import spellchecker.neural_net.Helper;
-import spellchecker.neural_net.Seq2Seq;
-import spellchecker.neural_net.Seq2Seq.IteratorType;
+import util.Seq2Seq;
+import util.Seq2Seq.IteratorType;
 
 public class DLSpeedRunner {
     public static void main(String[] args) {

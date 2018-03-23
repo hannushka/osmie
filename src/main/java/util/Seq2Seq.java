@@ -1,4 +1,4 @@
-package spellchecker.neural_net;
+package util;
 
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
@@ -8,6 +8,8 @@ import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import spellchecker.neural_net.CharacterIterator;
+import spellchecker.neural_net.Helper;
 
 import java.io.IOException;
 
@@ -93,7 +95,7 @@ public abstract class Seq2Seq {
         return this;
     }
 
-    void createReadableStatistics(INDArray input, INDArray result, INDArray labels, boolean print){
+    public void createReadableStatistics(INDArray input, INDArray result, INDArray labels, boolean print){
         // No change correct
         // No change incorrect
         // Change correct
@@ -117,7 +119,7 @@ public abstract class Seq2Seq {
         }
     }
 
-    void printStats(){
+    public void printStats(){
         System.out.println("====");
         System.out.println("Correctly unchanged = " + noChangeCorrect);
         System.out.println("Incorrectly unchanged = " + noChangeIncorrect);
