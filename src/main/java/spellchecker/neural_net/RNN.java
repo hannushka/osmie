@@ -53,6 +53,8 @@ public class RNN extends Seq2Seq {
             DataSet ds = itr.nextTest();
             net.rnnClearPreviousState();
             INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
+            System.out.println(output);
+            System.exit(0);
             eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
             createReadableStatistics(ds.getFeatures(), output, ds.getLabels(), print);
         }

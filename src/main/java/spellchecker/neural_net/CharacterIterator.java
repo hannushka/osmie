@@ -73,7 +73,7 @@ public class CharacterIterator implements DataSetIterator {
 
             if(inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
 
-            char[] inputLine = inputOutput[0].toLowerCase().toCharArray();
+            char[] inputLine = (inputOutput[0].toLowerCase() + "\n").toLowerCase().toCharArray();
             char[] outputLine = ("\t" + inputOutput[1].toLowerCase() + "\n").toCharArray();  // Start and end character
 
             for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
@@ -90,7 +90,7 @@ public class CharacterIterator implements DataSetIterator {
 
             if(inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
 
-            char[] inputLine = inputOutput[0].toLowerCase().toCharArray();
+            char[] inputLine = (inputOutput[0] + "\n").toLowerCase().toCharArray();
             char[] outputLine = ("\t" + inputOutput[1].toLowerCase() + "\n").toCharArray();  // Start and end character
 
             for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
@@ -130,7 +130,7 @@ public class CharacterIterator implements DataSetIterator {
 
             for(int i = 0; i < inputToMerge.size(); i++){
                 if(in.length + 1 + inputToMerge.get(i).length < exampleLength){
-                    inputLines.add(Helper.mergeArrays(in, inputToMerge.remove(i), ' '));
+                    inputLines.add(Helper.mergeInArrays(in, inputToMerge.remove(i), ' '));
                     outputLines.add(Helper.mergeOutArrays(out, outputToMerge.remove(i), ' '));
                     added = true;
                     break;

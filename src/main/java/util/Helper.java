@@ -66,12 +66,13 @@ public class Helper {
         return idx;
     }
 
-    public static char[] mergeArrays(char[] first, char[] second, char... extras){
-        char[] mergedArray = new char[first.length +  second.length + extras.length];
+    public static char[] mergeInArrays(char[] first, char[] second, char... extras){
+        char[] mergedArray = new char[first.length +  second.length + extras.length + 1];
         int i = 0;
         for(char c : first) mergedArray[i++] = c;
         for(char c : extras) mergedArray[i++] = c;
         for(char c : second) mergedArray[i++] = c;
+        mergedArray[mergedArray.length-1] = '\n';
         return mergedArray;
     }
 
@@ -86,7 +87,7 @@ public class Helper {
         return mergedArray;
     }
 
-    public static Object[] mergeArrays(Object[]... arrays){
+    public static Object[] mergeInArrays(Object[]... arrays){
         int size = 0, i = 0;
         for(Object[] array : arrays) size += array.length;
         Object[] mergedArray = new Object[size];
