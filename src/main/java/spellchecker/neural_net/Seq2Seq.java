@@ -24,7 +24,8 @@ public abstract class Seq2Seq {
         EMBEDDING,
         SPEED
     }
-    protected int[] lstmLayerSize = new int[]{10};                    //Number of units in each GravesLSTM layer
+    int embeddingLayerSize = 10;
+    protected int[] lstmLayerSize = new int[]{embeddingLayerSize};                    //Number of units in each GravesLSTM layer
     protected int miniBatchSize = 32, numEpochs = 50, epochSize = Integer.MAX_VALUE; //Size of mini batch to use when training
     private int nCharactersToSample = 50;
     protected double learningRate = 0.01;

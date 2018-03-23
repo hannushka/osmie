@@ -196,20 +196,21 @@ public class ChSpeedIterator extends CharacterIterator{
         INDArray inputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
         INDArray outputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
 
-        for(int i=0; i < currMinibatchSize; i++) {  // Iterating each line
+        for (int i = 0; i < currMinibatchSize; i++) {  // Iterating each line
             char[] inputChars = in.get(currEx);
             int output = out.get(currEx);
             Integer outputToIdx = intToIdx(output);
             currEx++;
-            if(inputChars == null || outputToIdx == null) continue;
+            pointer++;
+            if (inputChars == null || outputToIdx == null) continue;
             outputMask.putScalar(new int[]{i, exampleLength-1}, 1f);
             // 1 = exist, 0 = should be masked. INDArray should init with zeros?
-            for(int j = 0; j < inputChars.length + 1; j++)
+            for (int j = 0; j < inputChars.length + 1; j++)
                 inputMask.putScalar(new int[]{i,j}, 1f);
             labels.putScalar(new int[]{i, outputToIdx, exampleLength-1}, 1f);
-            for(int j = 0; j < exampleLength; j++){
+            for (int j = 0; j < exampleLength; j++){
                 int currCharIdx = charToIdxMap.get('\n');
-                if(inputChars.length > j) currCharIdx = charToIdxMap.get(inputChars[j]);
+                if (inputChars.length > j) currCharIdx = charToIdxMap.get(inputChars[j]);
                 input.putScalar(new int[]{i,0,j}, currCharIdx);
             }
         }
@@ -238,8 +239,6 @@ public class ChSpeedIterator extends CharacterIterator{
             return;
         }
         currEx = 0;
-//        inputLines = new ArrayList<>(ogInput);
-//        outputLines = new ArrayList<>(ogOutput);
         pointer = 0;
     }
 
