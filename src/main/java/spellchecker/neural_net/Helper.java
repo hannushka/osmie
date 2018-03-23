@@ -68,8 +68,8 @@ public class Helper {
         char[] mergedArray = new char[first.length +  second.length + extras.length];
         int i = 0;
         for(char c : first) mergedArray[i++] = c;
-        for(char c : second) mergedArray[i++] = c;
         for(char c : extras) mergedArray[i++] = c;
+        for(char c : second) mergedArray[i++] = c;
         return mergedArray;
 
     }
