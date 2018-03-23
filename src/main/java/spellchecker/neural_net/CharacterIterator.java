@@ -1,5 +1,6 @@
 package spellchecker.neural_net;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.DataSetPreProcessor;
@@ -100,8 +101,9 @@ public class CharacterIterator implements DataSetIterator {
             inputTest.add(inputLine);
             outputTest.add(outputLine);
         }
-
-        if(!minimized){
+        ArrayList<char []> inputToMerge = new ArrayList<>();
+        ArrayList<char []> outputToMerge = new ArrayList<>();
+        if(false){
             lines = Files.readAllLines(new File("data/korpus_freq_dict.txt.mini.noised").toPath(), textFileEncoding);
             for(String s : lines) {         // TODO check if \n is included or not!!
                 if(s.isEmpty()) continue;  // TODO 10k as limit as in the KERAS example..!
@@ -117,15 +119,34 @@ public class CharacterIterator implements DataSetIterator {
                 for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
                 for(int i = 0; i < outputLine.length; i++) if(!charToIdxMap.containsKey(outputLine[i])) outputLine[i] = '!';
 
-                inputLines.add(inputLine);
-                outputLines.add(outputLine);
-                ogInput.add(inputLine);
-                ogOutput.add(outputLine);
+                inputToMerge.add(inputLine);
+                outputToMerge.add(outputLine);
             }
         }
+        char[] in, out;
+        while(!inputToMerge.isEmpty()){
+            in = inputToMerge.remove(0);
+            out = outputToMerge.remove(0);
+            boolean added = false;
+
+            for(int i = 0; i < inputToMerge.size(); i++){
+                if(in.length + 1 + inputToMerge.get(i).length < exampleLength){
+                    inputLines.add(Helper.mergeArrays(in, inputToMerge.remove(i), ' '));
+                    outputLines.add(Helper.mergeArrays(out, outputToMerge.remove(i), ' '));
+                    added = true;
+                    break;
+                }
+            }
+
+            if(!added){
+                inputLines.add(in);
+                outputLines.add(out);
+            }
+        }
+
         numExamples = inputLines.size();
     }
-*
+
     public CharacterIterator() { }
 
     /** A minimal character set, with a-z, A-Z, 0-9 and common punctuation etc */
@@ -208,6 +229,7 @@ public class CharacterIterator implements DataSetIterator {
             char[] inputChars = in.removeFirst();
             char[] outputChars = out.removeFirst();
             if(inputChars == null) continue;
+            pointer++;
 
             // 1 = exist, 0 = should be masked. INDArray should init with zeros?
             for(int j = 0; j < inputChars.length + 1; j++)
