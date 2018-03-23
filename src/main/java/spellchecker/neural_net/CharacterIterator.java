@@ -1,6 +1,5 @@
 package spellchecker.neural_net;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.DataSetPreProcessor;
@@ -73,7 +72,7 @@ public class CharacterIterator implements DataSetIterator {
 
             if(inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
 
-            char[] inputLine = inputOutput[0].toLowerCase().toCharArray();
+            char[] inputLine = (inputOutput[0] + "\n").toLowerCase().toCharArray();
             char[] outputLine = ("\t" + inputOutput[1].toLowerCase() + "\n").toCharArray();  // Start and end character
 
             for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
@@ -90,7 +89,7 @@ public class CharacterIterator implements DataSetIterator {
 
             if(inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
 
-            char[] inputLine = inputOutput[0].toLowerCase().toCharArray();
+            char[] inputLine = (inputOutput[0] + "\n").toLowerCase().toCharArray();
             char[] outputLine = ("\t" + inputOutput[1].toLowerCase() + "\n").toCharArray();  // Start and end character
 
             for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
@@ -130,7 +129,7 @@ public class CharacterIterator implements DataSetIterator {
 
             for(int i = 0; i < inputToMerge.size(); i++){
                 if(in.length + 1 + inputToMerge.get(i).length < exampleLength){
-                    inputLines.add(Helper.mergeArrays(in, inputToMerge.remove(i), ' '));
+                    inputLines.add(Helper.mergeInArrays(in, inputToMerge.remove(i), ' '));
                     outputLines.add(Helper.mergeOutArrays(out, outputToMerge.remove(i), ' '));
                     added = true;
                     break;
