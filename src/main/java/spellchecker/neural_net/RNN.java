@@ -57,7 +57,10 @@ public class RNN extends Seq2Seq {
         }
         //eval.stats().split("\n")
         printStats();
-        System.out.println(eval.stats());
+        String[] stats = eval.stats().split("\n");
+        StringBuilder statsSmall = new StringBuilder();
+        for(int i = 0; i < 10; i++) statsSmall.append(stats[stats.length - (i+1)]).append("\n");
+        System.out.println(statsSmall.toString());
 //        System.out.println(eval.confusionToString());
         //System.out.println(eval.f1(EvaluationAveraging.Micro));
     }
