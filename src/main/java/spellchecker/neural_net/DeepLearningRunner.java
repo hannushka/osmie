@@ -8,10 +8,10 @@ public class DeepLearningRunner {
             Seq2Seq model = RNN.Builder()
                     .setBatchSize(32)
                     .setNbrEpochs(500)
-                    .setEpochSize(4000)
-                    .setNbrLayers(10) // params Integer int... (#lager, Size, Size)
+                    .setEpochSize(10000)
+                    .setNbrLayers(10, 6) // params Integer int... (#lager, Size, Size)
                     .setLearningRate(.1)
-                    .setCharacterIterator(IteratorType.TRANSLATER,false)
+                    .setCharacterIterator(IteratorType.CLASSIC,false)
                     .buildNetwork()
                     //.loadModel(String.format("data/models/model%s.bin", 260))
                     .setScoreListener(ScoreListener.VISUALIZE);

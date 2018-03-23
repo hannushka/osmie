@@ -63,4 +63,14 @@ public class Helper {
         if(max == 0) return -1;
         return idx;
     }
+
+    public static char[] mergeArrays(char[] first, char[] second, char... extras){
+        char[] mergedArray = new char[first.length +  second.length + extras.length];
+        int i = 0;
+        for(char c : first) mergedArray[i++] = c;
+        for(char c : second) mergedArray[i++] = c;
+        for(char c : extras) mergedArray[i++] = c;
+        return mergedArray;
+
+    }
 }

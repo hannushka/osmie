@@ -20,7 +20,7 @@ public abstract class Seq2Seq {
         TERMINAL
     }
     public enum IteratorType{
-        TRANSLATER,
+        CLASSIC,
         EMBEDDING,
         SPEED
     }
@@ -61,14 +61,14 @@ public abstract class Seq2Seq {
     public Seq2Seq setCharacterIterator(IteratorType type, boolean minimized) throws Exception {
         int exampleLength = 50;
         switch (type){
-            case TRANSLATER:
-                itr = Helper.getCharacterIterator(miniBatchSize, exampleLength, numEpochs, minimized);
+            case CLASSIC:
+                itr = Helper.getCharacterIterator(miniBatchSize, exampleLength, epochSize, minimized);
                 break;
             case EMBEDDING:
-                itr = Helper.getEmbeddedIterator(miniBatchSize, exampleLength, numEpochs, minimized);
+                itr = Helper.getEmbeddedIterator(miniBatchSize, exampleLength, epochSize, minimized);
                 break;
             case SPEED:
-                itr = Helper.getSpeedIterator(miniBatchSize, exampleLength, numEpochs, minimized);
+                itr = Helper.getSpeedIterator(miniBatchSize, exampleLength, epochSize, minimized);
                 break;
         }
         return this;
