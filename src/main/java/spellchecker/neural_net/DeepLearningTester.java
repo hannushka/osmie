@@ -1,5 +1,7 @@
 package spellchecker.neural_net;
 
+import util.Seq2Seq;
+
 public class DeepLearningTester {
     public static void main(String[] args) {
         Seq2Seq model;

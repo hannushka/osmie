@@ -1,6 +1,6 @@
 package speed.neural_net;
 
-import spellchecker.neural_net.Seq2Seq;
+import util.Seq2Seq;
 
 public class DLSpeedTester {
     public static void main(String[] args) {

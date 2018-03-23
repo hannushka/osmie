@@ -1,6 +1,7 @@
 package spellchecker.neural_net;
-import spellchecker.neural_net.Seq2Seq.IteratorType;
-import spellchecker.neural_net.Seq2Seq.ScoreListener;
+import util.Seq2Seq;
+import util.Seq2Seq.IteratorType;
+import util.Seq2Seq.ScoreListener;
 
 public class DeepLearningRunner {
     public static void main(String[] args) {

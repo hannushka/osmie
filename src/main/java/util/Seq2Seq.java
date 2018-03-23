@@ -1,6 +1,5 @@
-package spellchecker.neural_net;
+package util;
 
-import com.google.common.primitives.Chars;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
@@ -9,10 +8,10 @@ import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.factory.Nd4j;
+import spellchecker.neural_net.CharacterIterator;
+import spellchecker.neural_net.Helper;
 
 import java.io.IOException;
-import java.util.Collections;
 
 public abstract class Seq2Seq {
     public enum ScoreListener{
@@ -24,8 +23,7 @@ public abstract class Seq2Seq {
         EMBEDDING,
         SPEED
     }
-    int embeddingLayerSize = 10;
-    protected int[] lstmLayerSize = new int[]{embeddingLayerSize};                    //Number of units in each GravesLSTM layer
+    protected int[] layerDimensions = new int[]{}; //Number of units in each GravesLSTM layer
     protected int miniBatchSize = 32, numEpochs = 50, epochSize = Integer.MAX_VALUE; //Size of mini batch to use when training
     private int nCharactersToSample = 50;
     protected double learningRate = 0.01;
@@ -34,8 +32,8 @@ public abstract class Seq2Seq {
     private int noChangeCorrect = 0, noChangeIncorrect = 0, changedCorrectly = 0, changedIncorrectly = 0;
     private int wrongChangeType = 0;
 
-    public Seq2Seq setNbrLayers(int... lstmLayerSize){
-        this.lstmLayerSize = lstmLayerSize;
+    public Seq2Seq setNbrLayers(int... layerDimensions){
+        this.layerDimensions = layerDimensions;
         return this;
     }
 
@@ -97,7 +95,7 @@ public abstract class Seq2Seq {
         return this;
     }
 
-    void createReadableStatistics(INDArray input, INDArray result, INDArray labels, boolean print){
+    public void createReadableStatistics(INDArray input, INDArray result, INDArray labels, boolean print){
         // No change correct
         // No change incorrect
         // Change correct
@@ -121,7 +119,7 @@ public abstract class Seq2Seq {
         }
     }
 
-    void printStats(){
+    public void printStats(){
         System.out.println("====");
         System.out.println("Correctly unchanged = " + noChangeCorrect);
         System.out.println("Incorrectly unchanged = " + noChangeIncorrect);
