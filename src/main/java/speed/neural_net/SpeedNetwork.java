@@ -60,7 +60,6 @@ public class SpeedNetwork extends Seq2Seq {
             INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
             eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
         }
-        //eval.stats().split("\n")
         System.out.println(eval.stats());
     }
 

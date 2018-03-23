@@ -65,49 +65,43 @@ public class ChSpeedIterator extends CharacterIterator{
         List<String> lines = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
         int j = 0;
         double splitSize = lines.size() * 0.95;
-        if(minimized) splitSize = 950;
-        for(String s : lines){
-            if(s.isEmpty()) continue;
-            if(minimized && j > 1000) continue;
+        if (minimized) splitSize = 950;
+        for (String s : lines){
+            if (s.isEmpty()) continue;
+            if (minimized && j > 1000) continue;
             j++;
             String[] inputOutput = s.split(",,,");
-
-            if(inputOutput.length < 3) continue;
-
+            if (inputOutput.length < 3) continue;
             char[] inputLine = inputOutput[1].toLowerCase().toCharArray();
-            try{
+            try {
                 int output = Integer.parseInt(inputOutput[2]);
-                if(output == -1) continue;
-                for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
-
-                if(j < splitSize){
+                if (output == -1) continue;
+                for (int i = 0; i < inputLine.length; i++) if (!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
+                if (j < splitSize){
                     inputLines.add(inputLine);
                     ogInput.add(inputLine);
                     outputLines.add(output);
                     ogOutput.add(output);
-                }else{
+                } else{
                     inputTest.add(inputLine);
                     outputTest.add(output);
                 }
-            }catch (NumberFormatException ex){
+            } catch (NumberFormatException ex){
                 ex.printStackTrace();
                 continue;
             }
-
             Integer output = tryParse(inputOutput[2]);
             if (output == null || output < 0) continue;
-            for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
-
-            if(j < splitSize){
+            for (int i = 0; i < inputLine.length; i++) if (!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
+            if (j < splitSize){
                 inputLines.add(inputLine);
                 ogInput.add(inputLine);
                 outputLines.add(output);
                 ogOutput.add(output);
-            }else {
+            } else {
                 inputTest.add(inputLine);
                 outputTest.add(output);
             }
-
         }
         numExamples = inputLines.size();
         speedToIdx = new HashMap<>();
@@ -131,7 +125,7 @@ public class ChSpeedIterator extends CharacterIterator{
         }
     }
 
-    private int intToIdx(int speed){
+    private Integer intToIdx(int speed){
         Integer ind = speedToIdx.get(speed);
         if (ind == null)
             throw new NumberFormatException("Speed " + speed + " not in speed alphabet.");
@@ -191,7 +185,7 @@ public class ChSpeedIterator extends CharacterIterator{
     }
 
     public DataSet createDataSet(int num, ArrayList<char[]> in, ArrayList<Integer> out){
-        if(in.isEmpty()) throw new NoSuchElementException();
+        if (in.isEmpty()) throw new NoSuchElementException();
         int currMinibatchSize = Math.min(num, in.size() - currEx);
         // dimension 0 = number of examples in minibatch
         // dimension 1 = size of each vector (i.e., number of characters)
@@ -199,20 +193,20 @@ public class ChSpeedIterator extends CharacterIterator{
         // 'f' (fortran) ordering = must for optimized custom iterator.
         INDArray input = Nd4j.create(new int[]{currMinibatchSize, 1, exampleLength}, 'f');
         INDArray labels = Nd4j.create(new int[]{currMinibatchSize, speedToIdx.size(), exampleLength}, 'f');
-
         INDArray inputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
         INDArray outputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
 
         for(int i=0; i < currMinibatchSize; i++) {  // Iterating each line
             char[] inputChars = in.get(currEx);
             int output = out.get(currEx);
+            Integer outputToIdx = intToIdx(output);
             currEx++;
-            if(inputChars == null) continue;
+            if(inputChars == null || outputToIdx == null) continue;
             outputMask.putScalar(new int[]{i, exampleLength-1}, 1f);
             // 1 = exist, 0 = should be masked. INDArray should init with zeros?
             for(int j = 0; j < inputChars.length + 1; j++)
                 inputMask.putScalar(new int[]{i,j}, 1f);
-            labels.putScalar(new int[]{i, intToIdx(output), exampleLength-1}, 1f);
+            labels.putScalar(new int[]{i, outputToIdx, exampleLength-1}, 1f);
             for(int j = 0; j < exampleLength; j++){
                 int currCharIdx = charToIdxMap.get('\n');
                 if(inputChars.length > j) currCharIdx = charToIdxMap.get(inputChars[j]);

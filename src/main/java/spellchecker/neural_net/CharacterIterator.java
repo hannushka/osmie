@@ -125,7 +125,6 @@ public class CharacterIterator implements DataSetIterator {
         }
         numExamples = inputLines.size();
     }
-*
     public CharacterIterator() { }
 
     /** A minimal character set, with a-z, A-Z, 0-9 and common punctuation etc */

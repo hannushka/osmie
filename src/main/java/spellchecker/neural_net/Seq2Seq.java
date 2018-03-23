@@ -96,46 +96,6 @@ public abstract class Seq2Seq {
         return this;
     }
 
-    public String generateSuggestion(String street){
-        INDArray initializationInput = Nd4j.zeros(1, itr.inputColumns(), street.length());
-//        INDArray inputMask = Nd4j.zeros(numSamples, initialization.length());
-
-        char[] init = street.toCharArray();
-        Collections.reverse(Chars.asList(init));
-        for(int i = 0; i < init.length; i++){
-            int idx = itr.convertCharacterToIndex(init[i]);
-            initializationInput.putScalar(new int[]{0,idx,i}, 1.0f);
-        }
-
-        StringBuilder sb = new StringBuilder(street);
-
-        //Sample from network (and feed samples back into input) one character at a time (for all samples)
-        //Sampling is done in parallel here
-        net.rnnClearPreviousState();
-//            INDArray output = net.output(initializationInput, false);
-//            System.out.println(convertTensorsToWords(output)[0]);
-
-        INDArray output = net.rnnTimeStep(initializationInput);
-        output = output.tensorAlongDimension(output.size(2)-1,1,0);
-        //Gets the last time step output
-
-        for(int i = 0; i < nCharactersToSample; i++){
-            //Set up next input (single time step) by sampling from previous output
-            INDArray nextInput = Nd4j.zeros(1, itr.inputColumns());
-            //Output is a probability distribution. Sample from this for each example we want to generate, and add it to the new input
-            double[] outputProbDistribution = new double[itr.totalOutcomes()];
-            for(int j = 0; j < outputProbDistribution.length; j++ ) outputProbDistribution[j] = output.getDouble(0,j);
-            int sampledCharacterIdx = Helper.getMax(outputProbDistribution);
-
-            nextInput.putScalar(new int[]{0,sampledCharacterIdx}, 1.0f);		//Prepare next time step input
-            if(sampledCharacterIdx == -1) sb.append("<NaN>");
-            else sb.append(itr.convertIndexToCharacter(sampledCharacterIdx));
-
-            output = net.rnnTimeStep(nextInput);	//Do one time step of forward pass
-        }
-        return sb.toString();
-    }
-
     void createReadableStatistics(INDArray input, INDArray result, INDArray labels, boolean print){
         // No change correct
         // No change incorrect
@@ -193,4 +153,46 @@ public abstract class Seq2Seq {
 //        printStats();
 //        //System.out.println(eval.stats(false));
 //    }
+
+
+//    public String generateSuggestion(String street){
+//        INDArray initializationInput = Nd4j.zeros(1, itr.inputColumns(), street.length());
+////        INDArray inputMask = Nd4j.zeros(numSamples, initialization.length());
+//
+//        char[] init = street.toCharArray();
+//        Collections.reverse(Chars.asList(init));
+//        for(int i = 0; i < init.length; i++){
+//            int idx = itr.convertCharacterToIndex(init[i]);
+//            initializationInput.putScalar(new int[]{0,idx,i}, 1.0f);
+//        }
+//
+//        StringBuilder sb = new StringBuilder(street);
+//
+//        //Sample from network (and feed samples back into input) one character at a time (for all samples)
+//        //Sampling is done in parallel here
+//        net.rnnClearPreviousState();
+////            INDArray output = net.output(initializationInput, false);
+////            System.out.println(convertTensorsToWords(output)[0]);
+//
+//        INDArray output = net.rnnTimeStep(initializationInput);
+//        output = output.tensorAlongDimension(output.size(2)-1,1,0);
+//        //Gets the last time step output
+//
+//        for(int i = 0; i < nCharactersToSample; i++){
+//            //Set up next input (single time step) by sampling from previous output
+//            INDArray nextInput = Nd4j.zeros(1, itr.inputColumns());
+//            //Output is a probability distribution. Sample from this for each example we want to generate, and add it to the new input
+//            double[] outputProbDistribution = new double[itr.totalOutcomes()];
+//            for(int j = 0; j < outputProbDistribution.length; j++ ) outputProbDistribution[j] = output.getDouble(0,j);
+//            int sampledCharacterIdx = Helper.getMax(outputProbDistribution);
+//
+//            nextInput.putScalar(new int[]{0,sampledCharacterIdx}, 1.0f);		//Prepare next time step input
+//            if(sampledCharacterIdx == -1) sb.append("<NaN>");
+//            else sb.append(itr.convertIndexToCharacter(sampledCharacterIdx));
+//
+//            output = net.rnnTimeStep(nextInput);	//Do one time step of forward pass
+//        }
+//        return sb.toString();
+//    }
+
 }

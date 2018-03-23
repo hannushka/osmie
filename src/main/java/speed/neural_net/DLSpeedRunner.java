@@ -12,7 +12,6 @@ public class DLSpeedRunner {
                     .setNbrEpochs(100)
                     .setNbrLayers(20) // params Integer int... (#lager, Size, Size)
                     .setLearningRate(.1)
-                    .setBatchSize(64)
                     .setCharacterIterator(IteratorType.SPEED, false)
                     .buildNetwork()
                     //.loadModel(String.format("data/models/model%s.bin", 260))
