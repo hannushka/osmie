@@ -1,7 +1,9 @@
-package spellchecker.neural_net;
+package util;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
 import speed.neural_net.ChSpeedIterator;
+import spellchecker.neural_net.CharacterIterator;
+import spellchecker.neural_net.EmbeddedCharacterIterator;
 
 import java.nio.charset.Charset;
 
@@ -26,7 +28,7 @@ public class Helper {
 
     public static CharacterIterator getSpeedIterator(int miniBatchSize, int sequenceLength, int epochSize,
                                                         boolean minimized) throws Exception {
-        String fileLocation = "data/nameDataUnique.csv";
+        String fileLocation = "data/speedData.csv";
         char[] validCharacters = CharacterIterator.getDanishCharacterSet();
         return new ChSpeedIterator(fileLocation, Charset.forName("UTF-8"),
                 miniBatchSize, sequenceLength, validCharacters, epochSize, minimized);

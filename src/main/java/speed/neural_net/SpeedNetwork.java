@@ -25,7 +25,8 @@ import java.io.IOException;
 
 public class SpeedNetwork extends Seq2Seq {
 
-    public static int embeddingLayerSize = 5;
+    public static int embeddingLayerSize = 20;
+    public static int nbrOfSpeedClasses = 3;
 
     public static Seq2Seq Builder(){
         return new SpeedNetwork();
@@ -36,7 +37,6 @@ public class SpeedNetwork extends Seq2Seq {
         int[] tmp1 = new int[]{embeddingLayerSize};
         int[] tmp2 = lstmLayerSize;
         this.layerDimensions = ArrayUtils.addAll(tmp1, tmp2);
-        System.out.println(layerDimensions.length);
         return this;
     }
 
@@ -53,13 +53,15 @@ public class SpeedNetwork extends Seq2Seq {
                     System.out.println("--------------------");
                     System.out.println("Completed " + miniBatchNumber + " minibatches of size "
                             + miniBatchSize + " words");
-//                    System.out.println("kabbelåjeløkken --> " + generateSuggestion("kabbelåjeløkken").trim() + "\n(kabbelejeløkken)");
                 }
             }
             if(i % 5 == 0) System.out.println("Finished EPOCH #" + i);
             if(i % 10 == 0)  ModelSerializer.writeModel(net, String.format("data/model_speed/model%s.bin", i), true);
             itr.reset();    //Reset iterator for another epoch
+
         }
+        itr.reset();
+        runTesting(true);
         ModelSerializer.writeModel(net, "model.bin", true);
     }
 
@@ -82,16 +84,17 @@ public class SpeedNetwork extends Seq2Seq {
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).iterations(1)
                 .learningRate(learningRate)
                 .seed(12345)
-                .regularization(true).l2(1e-4)// Dropout vs l2..!
+                .regularization(true)
+                .l2(1e-6)// Dropout vs l2..!
                 .weightInit(WeightInit.XAVIER)
-                .updater(Updater.ADAM)   // TODO swap fro ADAM? RMSPROP?
+                .updater(Updater.RMSPROP)   // TODO swap fro ADAM? RMSPROP?
                 .list()
                 .layer(0, new EmbeddingLayer.Builder().nIn(nIn).nOut(embeddingLayerSize).build());
 
         for(int i = 1; i < layerDimensions.length; i++)
-            builder.layer(i, new GravesLSTM.Builder().nIn(layerDimensions[i-1]).nOut(layerDimensions[i]).activation(Activation.SOFTSIGN).build());  //10->5,5->2
+            builder.layer(i, new GravesLSTM.Builder().nIn(layerDimensions[i-1]).nOut(layerDimensions[i]).activation(Activation.TANH).build());  //10->5,5->2
 
-        MultiLayerConfiguration config = builder.layer(layerDimensions.length, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MSE).activation(Activation.SOFTMAX)
+        MultiLayerConfiguration config = builder.layer(layerDimensions.length, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT).activation(Activation.SOFTMAX)
                 .nIn(layerDimensions[layerDimensions.length-1]).nOut(nOut).build())
                 .backpropType(BackpropType.TruncatedBPTT).tBPTTForwardLength(tbpttLength).tBPTTBackwardLength(tbpttLength)
                 .inputPreProcessor(0, new RnnToFeedForwardPreProcessor())

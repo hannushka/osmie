@@ -8,9 +8,9 @@ public class DLSpeedRunner {
         try {
             Seq2Seq model = SpeedNetwork.Builder()
                     .setBatchSize(64)
-                    .setEpochSize(4000)
+                    .setEpochSize(500)
                     .setNbrEpochs(100)
-                    .setNbrLayers(20, 20) // params Integer int... (#lager, Size, Size)
+                    .setNbrLayers(10, 10) // params Integer int... (#lager, Size, Size)
                     .setLearningRate(.1)
                     .setCharacterIterator(IteratorType.SPEED, false)
                     .buildNetwork()
@@ -18,8 +18,6 @@ public class DLSpeedRunner {
                     .setScoreListener(SpeedNetwork.ScoreListener.VISUALIZE);
             model.runTraining();
 //            model.runTestingOnTrain();
-            model.setCharacterIterator(IteratorType.SPEED, false);
-            model.runTesting(false);
             System.out.println("DONE");
             System.exit(0);
         } catch (Exception e) {

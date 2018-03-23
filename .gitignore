@@ -6,3 +6,7 @@ out/
 data/
 src/main/java/spellchecker/random_forest/__pycache__/
 .gradle/
+src/__init__.py
+src/main/__init__.py
+src/main/python/__init__.py
+model.bin

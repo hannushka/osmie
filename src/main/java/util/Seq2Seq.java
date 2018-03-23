@@ -9,7 +9,6 @@ import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import spellchecker.neural_net.CharacterIterator;
-import spellchecker.neural_net.Helper;
 
 import java.io.IOException;
 

@@ -7,7 +7,7 @@ public class DLSpeedTester {
         Seq2Seq model;
         try {
             model = SpeedNetwork.Builder().setCharacterIterator(SpeedNetwork.IteratorType.CLASSIC, true)
-                    .loadModel(String.format("data/models/model%s.bin", 490));
+                    .loadModel(String.format("data/model_speed/model%s.bin", 490));
 //                    .loadModel("data/models/BiLSTM.bin");
             //            System.out.println(model.generateSuggestion("holstebrovej"));
 //            model.runTestingOnTrain(true);
