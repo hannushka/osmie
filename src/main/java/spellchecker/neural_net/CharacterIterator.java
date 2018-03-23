@@ -111,7 +111,7 @@ public class CharacterIterator implements DataSetIterator {
                 }
 
                 char[] inputLine = inputOutput[0].toLowerCase().toCharArray();
-                char[] outputLine = ("\t" + inputOutput[1].toLowerCase() + "\n").toCharArray();  // Start and end character
+                char[] outputLine = inputOutput[1].toLowerCase().toCharArray();  // Start and end character
                 if(inputLine.length > 49 || outputLine.length > 49) continue;
 
                 for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
@@ -131,7 +131,7 @@ public class CharacterIterator implements DataSetIterator {
             for(int i = 0; i < inputToMerge.size(); i++){
                 if(in.length + 1 + inputToMerge.get(i).length < exampleLength){
                     inputLines.add(Helper.mergeArrays(in, inputToMerge.remove(i), ' '));
-                    outputLines.add(Helper.mergeArrays(out, outputToMerge.remove(i), ' '));
+                    outputLines.add(Helper.mergeOutArrays(out, outputToMerge.remove(i), ' '));
                     added = true;
                     break;
                 }

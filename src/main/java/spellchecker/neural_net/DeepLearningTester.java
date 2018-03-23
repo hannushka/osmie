@@ -5,7 +5,7 @@ public class DeepLearningTester {
         Seq2Seq model;
         try {
             model = RNN.Builder().setCharacterIterator(Seq2Seq.IteratorType.CLASSIC, false)
-                    .loadModel(String.format("data/models/model%s.bin", 160 ));
+                    .loadModel(String.format("data/models/model%s.bin", 80 ));
 //                    .loadModel("data/models/BiLSTM.bin");
             //            System.out.println(model.generateSuggestion("holstebrovej"));
 //            model.runTestingOnTrain(true);
