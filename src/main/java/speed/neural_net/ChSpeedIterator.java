@@ -45,10 +45,12 @@ public class ChSpeedIterator extends CharacterIterator {
         this.testOutputList = new ArrayList<>();
         this.bigramToIdx    = new HashMap<>();
         int j = 0;
-        List<String> alpha = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
+        List<String> alpha = Files.readAllLines(new File(alphFilePath).toPath(), textFileEncoding);
         StringJoiner joiner = new StringJoiner("\n");
         for (String s : alpha) joiner.add(s);
+        System.out.println(joiner.toString());
         for (String s : joiner.toString().split(",,,")) bigramToIdx.put(s, j++);
+        System.out.println(j);
         bigramToIdx.put("!!", j);
 
         j = 0;
@@ -74,7 +76,6 @@ public class ChSpeedIterator extends CharacterIterator {
             }
         }
         numExamples = inputList.size();
-        System.out.println(bigramToIdx.size());
     }
 
     private static Integer tryParse(String text) {
@@ -174,10 +175,7 @@ public class ChSpeedIterator extends CharacterIterator {
 
             for (int j = 0; j < exampleLength; j++) {
                 int currNgramIdx = bigramToIdx.get("!!");
-                System.out.println(currNgramIdx);
-                System.exit(0);
                 if (inputNgrams.size() > j) currNgramIdx = bigramToIdx.get(inputNgrams.get(j));
-                System.out.println(inputNgrams.get(j));
                 input.putScalar(new int[]{i, 0, j}, currNgramIdx);
             }
         }

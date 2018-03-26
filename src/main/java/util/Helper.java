@@ -22,7 +22,7 @@ public class Helper {
     public static CharacterIterator getSpeedIterator(int miniBatchSize, int sequenceLength, int epochSize,
                                                    boolean minimized) throws Exception {
         String fileLocation = "data/speedData.csv";
-        String alphaLocation = "data/speedAlphabet.csv";
+        String alphaLocation = "data/bigramAlphabet.csv";
         return new ChSpeedIterator(fileLocation, Charset.forName("UTF-8"),
                 miniBatchSize, sequenceLength, alphaLocation, epochSize, minimized);
     }
