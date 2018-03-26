@@ -108,14 +108,14 @@ public class Helper {
         return statsSmall.toString();
     }
 
-    public static ArrayList<String> getBigrams(String word, Map<String, Integer> bigrams){
-        String bigram;
-        ArrayList<String> word_bigrams = new ArrayList<>();
-        for(int i = 0; i < word.length() - 1; i++){
-            bigram = word.substring(i, i + 2);
-            if(bigrams.get(bigram) == null) bigram = "!!";
-            word_bigrams.add(bigram);
+    public static ArrayList<String> getNgrams(String word, Map<String, Integer> ngrams, int nGram){
+        String ngram;
+        ArrayList<String> wordNgrams = new ArrayList<>();
+        for (int i = 0; i < word.length() - (nGram-1); i++) {
+            ngram = word.substring(i, i + (nGram));
+            if (ngrams.get(ngram) == null) ngram = "!!!!!".substring(0, nGram);
+            wordNgrams.add(ngram);
         }
-        return word_bigrams;
+        return wordNgrams;
     }
 }

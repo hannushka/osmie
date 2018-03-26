@@ -3,7 +3,6 @@ package speed.neural_net;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.DataSetPreProcessor;
-import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.factory.Nd4j;
 import spellchecker.neural_net.CharacterIterator;
 import util.Helper;
@@ -61,7 +60,7 @@ public class ChSpeedIterator extends CharacterIterator {
             j++;
             String[] inputOutput = s.split(",,,");
             if (inputOutput.length < 3) continue;
-            ArrayList<String> bigrams = Helper.getBigrams(inputOutput[1].toLowerCase(), bigramToIdx);
+            ArrayList<String> bigrams = Helper.getNgrams(inputOutput[1].toLowerCase(), bigramToIdx, 2);
             Integer speed = tryParse(inputOutput[2]);
             if (speed == null) continue;
 
