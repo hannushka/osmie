@@ -97,4 +97,11 @@ public class Helper {
         }
         return mergedArray;
     }
+
+    public static String reduceEvalStats(String evalStats){
+        String[] stats =evalStats.split("\n");
+        StringBuilder statsSmall = new StringBuilder();
+        for(int i = 0; i < 10; i++) statsSmall.append(stats[stats.length - (i+1)]).append("\n");
+        return statsSmall.toString();
+    }
 }

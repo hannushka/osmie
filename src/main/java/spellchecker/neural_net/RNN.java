@@ -15,6 +15,7 @@ import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
+import util.Helper;
 import util.Seq2Seq;
 
 import java.io.IOException;
@@ -56,12 +57,8 @@ public class RNN extends Seq2Seq {
             eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
             createReadableStatistics(ds.getFeatures(), output, ds.getLabels(), print);
         }
-        //eval.stats().split("\n")
         printStats();
-        String[] stats = eval.stats().split("\n");
-        StringBuilder statsSmall = new StringBuilder();
-        for(int i = 0; i < 10; i++) statsSmall.append(stats[stats.length - (i+1)]).append("\n");
-        System.out.println(statsSmall.toString());
+        System.out.println(Helper.reduceEvalStats(eval.stats()));
     }
 
     @Override
