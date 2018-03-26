@@ -26,7 +26,7 @@ import java.io.IOException;
 
 public class SpeedNetwork extends Seq2Seq {
 
-    public static int embeddingLayerSize = 20;
+    public static int embeddingLayerSize = 100;
     public static int nbrOfSpeedClasses = 3;
 
     public static Seq2Seq Builder(){
@@ -67,7 +67,7 @@ public class SpeedNetwork extends Seq2Seq {
     }
 
     @Override
-    public void runTesting(boolean print) {
+    public Evaluation runTesting(boolean print) {
         Evaluation eval = new Evaluation(itr.getNbrClasses());
         while(itr.hasNextTest()){
             DataSet ds = itr.nextTest();
@@ -76,6 +76,7 @@ public class SpeedNetwork extends Seq2Seq {
             eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
         }
         System.out.println(Helper.reduceEvalStats(eval.stats()));
+        return eval;
     }
 
     @Override
@@ -88,12 +89,12 @@ public class SpeedNetwork extends Seq2Seq {
                 .regularization(true)
                 .l2(1e-6)// Dropout vs l2..!
                 .weightInit(WeightInit.XAVIER)
-                .updater(Updater.RMSPROP)   // TODO swap fro ADAM? RMSPROP?
+                .updater(Updater.ADAM)   // TODO swap fro ADAM? RMSPROP?
                 .list()
                 .layer(0, new EmbeddingLayer.Builder().nIn(nIn).nOut(embeddingLayerSize).build());
 
         for(int i = 1; i < layerDimensions.length; i++)
-            builder.layer(i, new GravesLSTM.Builder().nIn(layerDimensions[i-1]).nOut(layerDimensions[i]).activation(Activation.TANH).build());  //10->5,5->2
+            builder.layer(i, new GravesLSTM.Builder().nIn(layerDimensions[i-1]).nOut(layerDimensions[i]).activation(Activation.SOFTSIGN).build());  //10->5,5->2
 
         MultiLayerConfiguration config = builder.layer(layerDimensions.length, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT).activation(Activation.SOFTMAX)
                 .nIn(layerDimensions[layerDimensions.length-1]).nOut(nOut).build())

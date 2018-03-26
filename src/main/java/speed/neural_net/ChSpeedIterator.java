@@ -185,8 +185,8 @@ public class ChSpeedIterator extends CharacterIterator {
 
         for (int i = 0; i < currMinibatchSize; i++) {  // Iterating each line
             ArrayList<String> inputNgrams = in.get(currEx);
-            int output = out.get(currEx);
-            Integer outputToIdx = intToIdx(output);
+            int outputToIdx = out.get(currEx);
+//            Integer outputToIdx = output;
             currEx++;
             pointer++;
 

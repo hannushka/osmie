@@ -2,6 +2,7 @@ package util;
 
 import com.google.common.primitives.Chars;
 import org.deeplearning4j.api.storage.StatsStorage;
+import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.ui.api.UIServer;
@@ -146,7 +147,7 @@ public abstract class Seq2Seq {
 
     public abstract void runTraining() throws IOException;
 
-    public abstract void runTesting(boolean print);
+    public abstract Evaluation runTesting(boolean print);
 
     public abstract Seq2Seq buildNetwork() throws Exception;
 

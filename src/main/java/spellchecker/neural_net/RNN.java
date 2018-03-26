@@ -47,7 +47,7 @@ public class RNN extends Seq2Seq {
         ModelSerializer.writeModel(net, "model.bin", true);
     }
 
-    public void runTesting(boolean print){
+    public Evaluation runTesting(boolean print){
         Evaluation eval = new Evaluation(itr.getNbrClasses());
         while(itr.hasNextTest()){
             DataSet ds = itr.nextTest();
@@ -58,6 +58,13 @@ public class RNN extends Seq2Seq {
         }
         printStats();
         System.out.println(Helper.reduceEvalStats(eval.stats()));
+        String[] stats = eval.stats().split("\n");
+        StringBuilder statsSmall = new StringBuilder();
+        for(int i = 0; i < 10; i++) statsSmall.append(stats[stats.length - (i+1)]).append("\n");
+        System.out.println(statsSmall.toString());
+//        System.out.println(eval.confusionToString());
+        //System.out.println(eval.f1(EvaluationAveraging.Micro));
+        return eval;
     }
 
     @Override
