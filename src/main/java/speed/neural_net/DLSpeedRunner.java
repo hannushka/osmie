@@ -1,7 +1,6 @@
 package speed.neural_net;
 
 import util.Seq2Seq;
-import util.Seq2Seq.IteratorType;
 
 public class DLSpeedRunner {
     public static void main(String[] args) {
@@ -12,7 +11,7 @@ public class DLSpeedRunner {
                     .setNbrEpochs(100)
                     .setNbrLayers(10, 10) // params Integer int... (#lager, Size, Size)
                     .setLearningRate(.1)
-                    .setCharacterIterator(IteratorType.SPEED, false)
+                    .setCharacterIterator(Seq2Seq.IteratorType.SPEED, false)
                     .buildNetwork()
                     //.loadModel(String.format("data/models/model%s.bin", 260))
                     .setScoreListener(SpeedNetwork.ScoreListener.VISUALIZE);

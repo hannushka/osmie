@@ -6,6 +6,8 @@ import spellchecker.neural_net.CharacterIterator;
 
 import java.nio.charset.Charset;
 import java.util.StringJoiner;
+import java.util.ArrayList;
+import java.util.Map;
 
 public class Helper {
     public static CharacterIterator getCharacterIterator(int miniBatchSize, int sequenceLength, int epochSize,
@@ -18,11 +20,11 @@ public class Helper {
     }
 
     public static CharacterIterator getSpeedIterator(int miniBatchSize, int sequenceLength, int epochSize,
-                                                        boolean minimized) throws Exception {
+                                                   boolean minimized) throws Exception {
         String fileLocation = "data/speedData.csv";
-        char[] validCharacters = CharacterIterator.getDanishCharacterSet();
+        String alphaLocation = "data/speedAlphabet.csv";
         return new ChSpeedIterator(fileLocation, Charset.forName("UTF-8"),
-                miniBatchSize, sequenceLength, validCharacters, epochSize, minimized);
+                miniBatchSize, sequenceLength, alphaLocation, epochSize, minimized);
     }
 
     public static String[] convertTensorsToWords(INDArray output, CharacterIterator itr, int nCharactersToSample){
@@ -106,9 +108,14 @@ public class Helper {
         return statsSmall.toString();
     }
 
-    public static void main(String[] args) {
-        for (char c : mergeArrays("\t", "\n", new char[]{'h', 'e'}, new char[]{'e'})) {
-            System.out.print(c);
+    public static ArrayList<String> getBigrams(String word, Map<String, Integer> bigrams){
+        String bigram;
+        ArrayList<String> word_bigrams = new ArrayList<>();
+        for(int i = 0; i < word.length() - 1; i++){
+            bigram = word.substring(i, i + 2);
+            if(bigrams.get(bigram) == null) bigram = "!!";
+            word_bigrams.add(bigram);
         }
+        return word_bigrams;
     }
 }

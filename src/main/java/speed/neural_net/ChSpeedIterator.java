@@ -6,6 +6,7 @@ import org.nd4j.linalg.dataset.api.DataSetPreProcessor;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.factory.Nd4j;
 import spellchecker.neural_net.CharacterIterator;
+import util.Helper;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,85 +26,55 @@ import java.util.*;
  * Feature vectors and labels are both one-hot vectors of same length
  * @author Alex Black
  */
-public class ChSpeedIterator extends CharacterIterator{
-    private char[] validCharacters;
-    //Maps each character to an index in the input/output
-    private Map<Character,Integer> charToIdxMap;
-    //All characters of the input file (after filtering to only those that are valid)
-    private ArrayList<char[]> inputLines, ogInput, inputTest;
-    private ArrayList<Integer> outputLines, ogOutput, outputTest;
-    //Length of each example/minibatch (number of characters)
+public class ChSpeedIterator extends CharacterIterator {
+    private Map<String,Integer> bigramToIdx;
     private int exampleLength, miniBatchSize, numExamples, pointer = 0, epochSize, currEx = 0;
-
-    /**
-     * @param textFilePath Path to text file to use for generating samples
-     * @param textFileEncoding Encoding of the text file. Can try Charset.defaultCharset()
-     * @param miniBatchSize Number of examples per mini-batch
-     * @param exampleLength Number of characters in each input/output vector
-     * @param validCharacters Character array of valid characters. Characters not present in this array will be removed
-     * @throws IOException If text file cannot  be loaded
-     */
+    private ArrayList<ArrayList<String>> inputList, testInputList;
+    ArrayList<Integer> outputList, testOutputList;
 
     public ChSpeedIterator(String textFilePath, Charset textFileEncoding, int miniBatchSize, int exampleLength,
-                             char[] validCharacters, int epochSize, boolean minimized) throws IOException {
+                            String alphFilePath , int epochSize, boolean minimized) throws IOException {
         if(!new File(textFilePath).exists()) throw new IOException("Could not access file (does not exist): " + textFilePath);
         if(miniBatchSize <= 0) throw new IllegalArgumentException("Invalid miniBatchSize (must be > 0)");
-        this.inputLines     = new ArrayList<>();
-        this.outputLines    = new ArrayList<>();
-        this.ogInput        = new ArrayList<>();
-        this.ogOutput       = new ArrayList<>();
-        this.inputTest      = new ArrayList<>();
-        this.outputTest     = new ArrayList<>();
-        this.charToIdxMap   = new HashMap<>();  //Store valid characters is a map for later use in vectorization
-        this.validCharacters= validCharacters;
         this.exampleLength  = exampleLength;
         this.miniBatchSize  = miniBatchSize;
         this.epochSize      = epochSize;
-        for(int i = 0; i < validCharacters.length; i++) charToIdxMap.put(validCharacters[i], i);
-
-        //Load file and convert contents to a char[] -- ALSO filter out characters not in alphabet.
-        List<String> lines = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
+        this.inputList      = new ArrayList<>();
+        this.outputList     = new ArrayList<>();
+        this.testInputList  = new ArrayList<>();
+        this.testOutputList = new ArrayList<>();
+        this.bigramToIdx    = new HashMap<>();
         int j = 0;
-        double splitSize = lines.size() * 0.95;
-        if (minimized) splitSize = 950;
-        for (String s : lines){
-            if (s.isEmpty()) continue;
-            if (minimized && j > 1000) continue;
+        List<String> alpha = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
+        StringJoiner joiner = new StringJoiner("\n");
+        for (String s : alpha) joiner.add(s);
+        for (String s : joiner.toString().split(",,,")) bigramToIdx.put(s, j++);
+        bigramToIdx.put("!!", j);
+
+        j = 0;
+        List<String> lines = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
+        int splitThreshold = (int) (lines.size() * 0.95);
+        if (minimized) splitThreshold = 950;
+
+        for (String s : lines) {
+            if (s.isEmpty() || (minimized && j > 1000)) continue;
             j++;
             String[] inputOutput = s.split(",,,");
             if (inputOutput.length < 3) continue;
-            char[] inputLine = inputOutput[1].toLowerCase().toCharArray();
-            try {
-                int output = Integer.parseInt(inputOutput[2]);
-                if (output == -1) continue;
-                for (int i = 0; i < inputLine.length; i++) if (!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
-                if (j < splitSize){
-                    inputLines.add(inputLine);
-                    ogInput.add(inputLine);
-                    outputLines.add(output);
-                    ogOutput.add(output);
-                } else{
-                    inputTest.add(inputLine);
-                    outputTest.add(output);
-                }
-            } catch (NumberFormatException ex){
-                ex.printStackTrace();
-                continue;
-            }
-            Integer output = tryParse(inputOutput[2]);
-            if (output == null || output < 0) continue;
-            for (int i = 0; i < inputLine.length; i++) if (!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
-            if (j < splitSize){
-                inputLines.add(inputLine);
-                ogInput.add(inputLine);
-                outputLines.add(output);
-                ogOutput.add(output);
+            ArrayList<String> bigrams = Helper.getBigrams(inputOutput[1].toLowerCase(), bigramToIdx);
+            Integer speed = tryParse(inputOutput[2]);
+            if (speed == null) continue;
+
+            if (j > splitThreshold) {
+                inputList.add(bigrams);
+                outputList.add(speed);
             } else {
-                inputTest.add(inputLine);
-                outputTest.add(output);
+                testInputList.add(bigrams);
+                testOutputList.add(speed);
             }
         }
-        numExamples = inputLines.size();
+        numExamples = inputList.size();
+        System.out.println(bigramToIdx.size());
     }
 
     private static Integer tryParse(String text) {
@@ -161,22 +132,22 @@ public class ChSpeedIterator extends CharacterIterator{
     }
 
     public boolean hasNext() {
-        return currEx < inputLines.size() && pointer < epochSize;
+        return currEx < inputList.size() && pointer < epochSize;
     }
 
     public boolean hasNextTest() {
-        return currEx < inputTest.size();
+        return currEx < testInputList.size();
     }
 
     public DataSet next() {
-        return createDataSet(miniBatchSize, inputLines, outputLines);
+        return createDataSet(miniBatchSize, inputList, outputList);
     }
 
     public DataSet next(int num) {
-        return createDataSet(num, inputLines, outputLines);
+        return createDataSet(num, inputList, outputList);
     }
 
-    public DataSet createDataSet(int num, ArrayList<char[]> in, ArrayList<Integer> out){
+    public DataSet createDataSet(int num, ArrayList<ArrayList<String>> in, ArrayList<Integer> out){
         if (in.isEmpty()) throw new NoSuchElementException();
         int currMinibatchSize = Math.min(num, in.size() - currEx);
         // dimension 0 = number of examples in minibatch
@@ -189,28 +160,32 @@ public class ChSpeedIterator extends CharacterIterator{
         INDArray outputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
 
         for (int i = 0; i < currMinibatchSize; i++) {  // Iterating each line
-            char[] inputChars = in.get(currEx);
+            ArrayList<String> inputNgrams = in.get(currEx);
             int output = out.get(currEx);
             Integer outputToIdx = intToIdx(output);
             currEx++;
             pointer++;
-            if (inputChars == null || outputToIdx == null) continue;
-            outputMask.putScalar(new int[]{i, exampleLength-1}, 1f);
-            // 1 = exist, 0 = should be masked. INDArray should init with zeros?
-            for (int j = 0; j < inputChars.length + 1; j++)
-                inputMask.putScalar(new int[]{i,j}, 1f);
-            labels.putScalar(new int[]{i, outputToIdx, exampleLength-1}, 1f);
-            for (int j = 0; j < exampleLength; j++){
-                int currCharIdx = charToIdxMap.get('\n');
-                if (inputChars.length > j) currCharIdx = charToIdxMap.get(inputChars[j]);
-                input.putScalar(new int[]{i,0,j}, currCharIdx);
+
+            if (inputNgrams == null) continue;
+            outputMask.putScalar(new int[]{i, exampleLength - 1}, 1f);
+            for (int j = 0; j < inputNgrams.size() + 1; j++)
+                inputMask.putScalar(new int[]{i, j}, 1f);
+            labels.putScalar(new int[]{i, outputToIdx, exampleLength - 1}, 1f);
+
+            for (int j = 0; j < exampleLength; j++) {
+                int currNgramIdx = bigramToIdx.get("!!");
+                System.out.println(currNgramIdx);
+                System.exit(0);
+                if (inputNgrams.size() > j) currNgramIdx = bigramToIdx.get(inputNgrams.get(j));
+                System.out.println(inputNgrams.get(j));
+                input.putScalar(new int[]{i, 0, j}, currNgramIdx);
             }
         }
         return new DataSet(input, labels, inputMask, outputMask);
     }
 
     public DataSet nextTest() {
-        return createDataSet(miniBatchSize, inputTest, outputTest);
+        return createDataSet(miniBatchSize, testInputList, testOutputList);
     }
 
     public int totalExamples() {
@@ -218,7 +193,7 @@ public class ChSpeedIterator extends CharacterIterator{
     }
 
     public int inputColumns() {
-        return validCharacters.length;
+        return bigramToIdx.size();
     }
 
     public int totalOutcomes() {
@@ -226,11 +201,11 @@ public class ChSpeedIterator extends CharacterIterator{
     }
 
     public void reset() {
-        if(currEx < inputLines.size()){
+        if(currEx < inputList.size()){
             pointer = 0;
             return;
         }
-        currEx = new Random().nextInt(inputLines.size() - epochSize);
+        currEx = new Random().nextInt(inputList.size() - epochSize);
         pointer = 0;
     }
 
@@ -248,7 +223,7 @@ public class ChSpeedIterator extends CharacterIterator{
     }
 
     public int cursor() {
-        return totalExamples() - inputLines.size();
+        return totalExamples() - inputList.size();
     }
 
     public int numExamples() {
