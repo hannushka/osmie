@@ -48,9 +48,7 @@ public class ChSpeedIterator extends CharacterIterator {
         List<String> alpha = Files.readAllLines(new File(alphFilePath).toPath(), textFileEncoding);
         StringJoiner joiner = new StringJoiner("\n");
         for (String s : alpha) joiner.add(s);
-        System.out.println(joiner.toString());
         for (String s : joiner.toString().split(",,,")) bigramToIdx.put(s, j++);
-        System.out.println(j);
         bigramToIdx.put("!!", j);
 
         j = 0;
