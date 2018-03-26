@@ -39,7 +39,7 @@ public class EmbeddingRNN extends Seq2Seq {
                 }
             }
             if(i % 5 == 0) System.out.println("Finished EPOCH #" + i);
-            if(i % 10 == 0)  ModelSerializer.writeModel(net, String.format("data/models/model%s.bin", i), true);
+            if(i % 10 == 0)  ModelSerializer.writeModel(net, String.format("data/models/%s%s.bin", baseFilename, i), true);
             itr.reset();    //Reset iterator for another epoch
         }
         ModelSerializer.writeModel(net, "embModel.bin", true);

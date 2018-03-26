@@ -41,7 +41,7 @@ public class RNN extends Seq2Seq {
                 }
             }
             if(i % 5 == 0) System.out.println("Finished EPOCH #" + i);
-            if(i % 10 == 0)  ModelSerializer.writeModel(net, String.format("data/models/model%s.bin", i), true);
+            if(i % 10 == 0)  ModelSerializer.writeModel(net, String.format("data/models/%s%s.bin", baseFilename, i), true);
             itr.reset();    //Reset iterator for another epoch
         }
         ModelSerializer.writeModel(net, "model.bin", true);
@@ -53,8 +53,6 @@ public class RNN extends Seq2Seq {
             DataSet ds = itr.nextTest();
             net.rnnClearPreviousState();
             INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
-            System.out.println(output);
-            System.exit(0);
             eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
             createReadableStatistics(ds.getFeatures(), output, ds.getLabels(), print);
         }
@@ -64,8 +62,6 @@ public class RNN extends Seq2Seq {
         StringBuilder statsSmall = new StringBuilder();
         for(int i = 0; i < 10; i++) statsSmall.append(stats[stats.length - (i+1)]).append("\n");
         System.out.println(statsSmall.toString());
-//        System.out.println(eval.confusionToString());
-        //System.out.println(eval.f1(EvaluationAveraging.Micro));
     }
 
     @Override

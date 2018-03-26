@@ -1,5 +1,6 @@
 package util;
 
+import com.google.common.primitives.Chars;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
@@ -8,9 +9,11 @@ import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 import spellchecker.neural_net.CharacterIterator;
 
 import java.io.IOException;
+import java.util.Collections;
 
 public abstract class Seq2Seq {
     public enum ScoreListener{
@@ -26,10 +29,16 @@ public abstract class Seq2Seq {
     protected int miniBatchSize = 32, numEpochs = 50, epochSize = Integer.MAX_VALUE; //Size of mini batch to use when training
     private int nCharactersToSample = 50;
     protected double learningRate = 0.01;
+    protected String baseFilename = "models";
     protected MultiLayerNetwork net;
     protected CharacterIterator itr;
     private int noChangeCorrect = 0, noChangeIncorrect = 0, changedCorrectly = 0, changedIncorrectly = 0;
     private int wrongChangeType = 0;
+
+    public Seq2Seq setFilename(String name){
+        this.baseFilename = name;
+        return this;
+    }
 
     public Seq2Seq setNbrLayers(int... layerDimensions){
         this.layerDimensions = layerDimensions;

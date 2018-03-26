@@ -6,7 +6,8 @@ import util.Seq2Seq.ScoreListener;
 public class DeepLearningRunner {
     public static void main(String[] args) {
         try {
-            Seq2Seq model = RNN.Builder()
+            Seq2Seq model = BiDirectionalRNN.Builder()
+                    .setFilename("modelBRNN")
                     .setBatchSize(32)
                     .setNbrEpochs(500)
                     .setEpochSize(10000)
