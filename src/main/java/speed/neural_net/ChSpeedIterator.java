@@ -73,7 +73,33 @@ public class ChSpeedIterator extends CharacterIterator {
                 testOutputList.add(speed);
             }
         }
+        balanceLists();
         numExamples = inputList.size();
+    }
+
+    private void balanceLists(){
+        Map<Integer, ArrayList<Integer>> speedToIdx = new HashMap<>();
+        ArrayList<ArrayList<String>> balancedInput = new ArrayList<>();
+        ArrayList<Integer> balancedOutput = new ArrayList<>();
+        int minSize = Integer.MAX_VALUE;
+        for (int i = 0; i < outputList.size(); i++) {
+            ArrayList<Integer> indices = speedToIdx.getOrDefault(outputList.get(i), new ArrayList<>());
+            indices.add(i);
+            speedToIdx.put(i, indices);
+        }
+        Set<Integer> keys = new HashSet<>();
+        for (Map.Entry<Integer, ArrayList<Integer>> e : speedToIdx.entrySet()){
+            if (e.getValue().size() < minSize) minSize = e.getValue().size();
+            keys.add(e.getKey());
+        }
+        for (int i = 0; i < minSize; i ++) {
+            for (int key : keys) {
+                balancedInput.add(inputList.get(speedToIdx.get(key).get(i)));
+                balancedOutput.add(outputList.get(speedToIdx.get(key).get(i)));
+            }
+        }
+        inputList = balancedInput;
+        outputList = balancedOutput;
     }
 
     private static Integer tryParse(String text) {
@@ -201,7 +227,7 @@ public class ChSpeedIterator extends CharacterIterator {
             pointer = 0;
             return;
         }
-        currEx = new Random().nextInt(inputList.size() - epochSize);
+        currEx = 0;
         pointer = 0;
     }
 

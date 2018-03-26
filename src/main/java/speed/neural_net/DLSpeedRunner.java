@@ -7,8 +7,8 @@ public class DLSpeedRunner {
         try {
             Seq2Seq model = SpeedNetwork.Builder()
                     .setBatchSize(64)
-                    .setEpochSize(500)
-                    .setNbrEpochs(100)
+                    .setEpochSize(1000)
+                    .setNbrEpochs(500)
                     .setNbrLayers(10, 10) // params Integer int... (#lager, Size, Size)
                     .setLearningRate(.1)
                     .setCharacterIterator(Seq2Seq.IteratorType.SPEED, false)
