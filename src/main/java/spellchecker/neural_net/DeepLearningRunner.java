@@ -8,7 +8,7 @@ public class DeepLearningRunner {
         try {
             Seq2Seq model = BiDirectionalRNN.Builder()
                     .setFilename("modelBRNN")
-                    .useCorpus(false)
+                    .useCorpus(true)
                     .setBatchSize(32)
                     .setNbrEpochs(500)
                     .setEpochSize(10000)

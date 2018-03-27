@@ -94,7 +94,6 @@ public class Helper {
     public static char[] mergeArrays(String before, String after, char[]... arrays){
         StringJoiner joiner = new StringJoiner(" ");
         for(char[] array : arrays) joiner.add(String.valueOf(array));
-        if(!(before.equals("\t") && after.equals("\n"))) System.out.println("CRAZY SHIT");
         return (before + joiner.toString() + after).toCharArray();
     }
 
