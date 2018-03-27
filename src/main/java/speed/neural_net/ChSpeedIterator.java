@@ -6,6 +6,7 @@ import org.nd4j.linalg.dataset.api.DataSetPreProcessor;
 import org.nd4j.linalg.factory.Nd4j;
 import spellchecker.neural_net.CharacterIterator;
 import util.Helper;
+import util.NgramBuilder;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -30,6 +31,7 @@ public class ChSpeedIterator extends CharacterIterator {
     private int exampleLength, miniBatchSize, numExamples, pointer = 0, epochSize, currEx = 0;
     private ArrayList<ArrayList<String>> inputList, testInputList;
     ArrayList<Integer> outputList, testOutputList;
+    NgramBuilder ngramBuilder;
 
     public ChSpeedIterator(String textFilePath, Charset textFileEncoding, int miniBatchSize, int exampleLength,
                             String alphFilePath , int epochSize, boolean minimized) throws IOException {
@@ -44,11 +46,16 @@ public class ChSpeedIterator extends CharacterIterator {
         this.testOutputList = new ArrayList<>();
         this.bigramToIdx    = new HashMap<>();
         int j = 0;
-        List<String> alpha = Files.readAllLines(new File(alphFilePath).toPath(), textFileEncoding);
-        StringJoiner joiner = new StringJoiner("\n");
-        for (String s : alpha) joiner.add(s);
-        for (String s : joiner.toString().split(",,,")) bigramToIdx.put(s, j++);
+        ngramBuilder = new NgramBuilder(2);
+        ngramBuilder.createNgramAlphabet("data/nameDataUnique.csv",
+                "data/bigramAlphabet.csv", 5);
+        ngramBuilder.loadNgramMap("data/bigramAlphabet.csv");
+//        List<String> alpha = Files.readAllLines(new File(alphFilePath).toPath(), textFileEncoding);
+//        StringJoiner joiner = new StringJoiner("\n");
+//        for (String s : alpha) joiner.add(s);
+        for (String s : ngramBuilder.nGrams) bigramToIdx.put(s, j++);
         bigramToIdx.put("!!", j);
+        System.out.println(bigramToIdx.size());
 
         j = 0;
         List<String> lines = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
@@ -60,7 +67,8 @@ public class ChSpeedIterator extends CharacterIterator {
             j++;
             String[] inputOutput = s.split(",,,");
             if (inputOutput.length < 3) continue;
-            ArrayList<String> bigrams = Helper.getNgrams(inputOutput[1].toLowerCase(), bigramToIdx, 2);
+//            ArrayList<String> bigrams = Helper.getNgrams(inputOutput[1].toLowerCase(), bigramToIdx, 2);
+            ArrayList<String> bigrams = ngramBuilder.getFilteredNgrams(inputOutput[1].toLowerCase());
             Integer speed = tryParse(inputOutput[2]);
             if (speed == null) continue;
 
@@ -198,7 +206,7 @@ public class ChSpeedIterator extends CharacterIterator {
 
             for (int j = 0; j < exampleLength; j++) {
                 int currNgramIdx = bigramToIdx.get("!!");
-                if (inputNgrams.size() > j) currNgramIdx = bigramToIdx.get(inputNgrams.get(j));
+                if (inputNgrams.size() > j) currNgramIdx = bigramToIdx.getOrDefault(inputNgrams.get(j), currNgramIdx);
                 input.putScalar(new int[]{i, 0, j}, currNgramIdx);
             }
         }

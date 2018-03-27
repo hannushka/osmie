@@ -87,16 +87,17 @@ public class SpeedNetwork extends Seq2Seq {
                 .learningRate(learningRate)
                 .seed(12345)
                 .regularization(true)
-                .l2(1e-6)// Dropout vs l2..!
+                .l2(1e-3)// Dropout vs l2..!
+                .dropOut(0.5)
                 .weightInit(WeightInit.XAVIER)
                 .updater(Updater.ADAM)   // TODO swap fro ADAM? RMSPROP?
                 .list()
                 .layer(0, new EmbeddingLayer.Builder().nIn(nIn).nOut(embeddingLayerSize).build());
 
         for(int i = 1; i < layerDimensions.length; i++)
-            builder.layer(i, new GravesLSTM.Builder().nIn(layerDimensions[i-1]).nOut(layerDimensions[i]).activation(Activation.SOFTSIGN).build());  //10->5,5->2
+            builder.layer(i, new GravesLSTM.Builder().nIn(layerDimensions[i-1]).nOut(layerDimensions[i]).activation(Activation.TANH).build());  //10->5,5->2
 
-        MultiLayerConfiguration config = builder.layer(layerDimensions.length, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT).activation(Activation.SOFTMAX)
+        MultiLayerConfiguration config = builder.layer(layerDimensions.length, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MSE).activation(Activation.SOFTMAX)
                 .nIn(layerDimensions[layerDimensions.length-1]).nOut(nOut).build())
                 .backpropType(BackpropType.TruncatedBPTT).tBPTTForwardLength(tbpttLength).tBPTTBackwardLength(tbpttLength)
                 .inputPreProcessor(0, new RnnToFeedForwardPreProcessor())

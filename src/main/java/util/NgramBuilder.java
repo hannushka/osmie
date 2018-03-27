@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 public class NgramBuilder {
     private int nGram;
-    private Set<String> nGrams;
+    public Set<String> nGrams;
 
     public NgramBuilder(int nGram){
         this.nGram = nGram;
