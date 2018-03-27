@@ -38,12 +38,11 @@ public class RNN extends Seq2Seq {
                     System.out.println("--------------------");
                     System.out.println("Completed " + miniBatchNumber + " minibatches of size "
                             + miniBatchSize + " words");
-//                    System.out.println("kabbelåjeløkken --> " + generateSuggestion("kabbelåjeløkken").trim() + "\n(kabbelejeløkken)");
                 }
             }
             if(i % 5 == 0) System.out.println("Finished EPOCH #" + i);
             if(i % 10 == 0)  ModelSerializer.writeModel(net, String.format("data/models/%s%s.bin", baseFilename, i), true);
-            itr.reset();    //Reset iterator for another epoch
+            itr.reset();
         }
         ModelSerializer.writeModel(net, "model.bin", true);
     }
@@ -68,9 +67,9 @@ public class RNN extends Seq2Seq {
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).iterations(1)
                 .learningRate(learningRate)
                 .seed(12345)
-                .regularization(true).l2(1e-4)// Dropout vs l2..!
+                .regularization(true).l2(1e-4)
                 .weightInit(WeightInit.XAVIER)
-                .updater(Updater.ADAM)   // TODO swap fro ADAM? RMSPROP?
+                .updater(Updater.ADAM)
                 .list()
                 .layer(0, new GravesLSTM.Builder().nIn(nOut).nOut(layerDimensions[0])
                         .activation(Activation.SOFTSIGN).build());

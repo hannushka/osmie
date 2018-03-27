@@ -7,10 +7,7 @@ public class DeepLearningTester {
         Seq2Seq model;
         try {
             model = BiDirectionalRNN.Builder().setCharacterIterator(Seq2Seq.IteratorType.CLASSIC, false)
-                    .loadModel(String.format("data/models/modelBRNN%s.bin", 10));
-//                    .loadModel("data/models/BiLSTM.bin");
-            //            System.out.println(model.generateSuggestion("holstebrovej"));
-//            model.runTestingOnTrain(true);
+                    .loadModel(String.format("data/models/modelBRNN%s.bin", 60));
             model.runTesting(true);
         } catch (Exception e) {
             e.printStackTrace();

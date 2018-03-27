@@ -51,7 +51,7 @@ public class Helper {
                 else sb.append("<NaN>");
                 if(getMaxDbl(outputProbDistr) < 0.5 && wordIdx != -1){
                     found = true;
-                    System.out.print(itr.convertIndexToCharacter(wordIdx)
+                    System.out.print(("" + itr.convertIndexToCharacter(wordIdx)).trim()
                             + "("
                             + Double.toString(getMaxDbl(outputProbDistr)).substring(0,4)
                             + ","
@@ -61,7 +61,7 @@ public class Helper {
                 }
             }
             result[i] = sb.toString();
-            if(found) System.out.println(sb.toString().trim().replaceAll("<NaN>", ""));
+            if(found) System.out.println(sb.toString().replaceAll("<NaN>", "").trim());
         }
         return result;
     }
@@ -78,6 +78,7 @@ public class Helper {
         if(max == 0) return -1;
         return idx;
     }
+
     public static double getMaxDbl(double[] distribution){
         int idx = 0;
         double max = 0;

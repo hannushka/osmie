@@ -25,13 +25,14 @@ public class BiDirectionalRNN extends RNN {
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).iterations(1)
                 .learningRate(learningRate)
                 .seed(12345)
-                .regularization(true).l2(1e-4)// Dropout vs l2..!
+                .regularization(true).l2(1e-4)
                 .weightInit(WeightInit.XAVIER)
-                .updater(Updater.ADAM)   // TODO swap fro ADAM? RMSPROP?
+                .updater(Updater.ADAM)
                 .list()
-                .layer(0, new GravesBidirectionalLSTM.Builder().nIn(nOut).nOut(layerDimensions[0]).activation(Activation.SOFTSIGN).build());//
+                .layer(0, new GravesBidirectionalLSTM.Builder().nIn(nOut).nOut(layerDimensions[0]).activation(Activation.SOFTSIGN).build());
+
         for(int i = 1; i < layerDimensions.length; i++, idx++)
-            builder.layer(idx, new GravesBidirectionalLSTM.Builder().nIn(layerDimensions[i-1]).nOut(layerDimensions[i]).activation(Activation.SOFTSIGN).build());  //10->5,5->2
+            builder.layer(idx, new GravesBidirectionalLSTM.Builder().nIn(layerDimensions[i-1]).nOut(layerDimensions[i]).activation(Activation.SOFTSIGN).build());
 
         for(int i = layerDimensions.length - 1; i > 0; i--, idx++)
             builder.layer(idx, new GravesBidirectionalLSTM.Builder().nIn(layerDimensions[i]).nOut(layerDimensions[i-1]).activation(Activation.SOFTSIGN).build());
