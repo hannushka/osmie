@@ -34,6 +34,12 @@ public abstract class Seq2Seq {
     protected CharacterIterator itr;
     private int noChangeCorrect = 0, noChangeIncorrect = 0, changedCorrectly = 0, changedIncorrectly = 0;
     private int wrongChangeType = 0;
+    private boolean useCorpus = true;
+
+    public Seq2Seq useCorpus(boolean useCorpus){
+        this.useCorpus = useCorpus;
+        return this;
+    }
 
     public Seq2Seq setFilename(String name){
         this.baseFilename = name;
@@ -69,10 +75,10 @@ public abstract class Seq2Seq {
         int exampleLength = 50;
         switch (type){
             case CLASSIC:
-                itr = Helper.getCharacterIterator(miniBatchSize, exampleLength, epochSize, minimized);
+                itr = Helper.getCharacterIterator(miniBatchSize, exampleLength, epochSize, minimized, useCorpus);
                 break;
             case EMBEDDING:
-                itr = Helper.getEmbeddedIterator(miniBatchSize, exampleLength, epochSize, minimized);
+                itr = Helper.getEmbeddedIterator(miniBatchSize, exampleLength, epochSize, minimized, useCorpus);
                 break;
             case SPEED:
                 itr = Helper.getSpeedIterator(miniBatchSize, exampleLength, epochSize, minimized);
@@ -118,7 +124,7 @@ public abstract class Seq2Seq {
             inp = inputStr[i].replaceAll("<NaN>", "").trim();
             out = resultStr[i].replaceAll("<NaN>", "").trim();
             label = labelStr[i].replaceAll("<NaN>", "").trim();
-            System.out.println(inp + ",,," + out + ",,," + label);
+//            System.out.println(inp + ",,," + out + ",,," + label);
             if(inp.equals(out) && inp.equals(label)) noChangeCorrect++;
             if(inp.equals(out) && !inp.equals(label)) noChangeIncorrect++;
             if(!inp.equals(label) && out.equals(label)) changedCorrectly++;

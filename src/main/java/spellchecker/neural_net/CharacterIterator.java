@@ -47,7 +47,7 @@ public class CharacterIterator implements DataSetIterator {
      */
 
     public CharacterIterator(String textFilePath, String testFilePath, Charset textFileEncoding, int miniBatchSize, int exampleLength,
-                             char[] validCharacters, int epochSize, boolean minimized) throws IOException {
+                             char[] validCharacters, int epochSize, boolean minimized, boolean useCorpus) throws IOException {
         if(!new File(textFilePath).exists()) throw new IOException("Could not access file (does not exist): " + textFilePath);
         if(miniBatchSize <= 0) throw new IllegalArgumentException("Invalid miniBatchSize (must be > 0)");
         this.inputLines     = new LinkedList<>();
@@ -101,7 +101,7 @@ public class CharacterIterator implements DataSetIterator {
         }
 
         ArrayList<char []> inputToMerge = new ArrayList<>(), outputToMerge = new ArrayList<>();
-        if(!minimized){
+        if(useCorpus){
             lines = Files.readAllLines(new File("data/korpus_freq_dict.txt.mini.noised").toPath(), textFileEncoding);
             for(String s : lines) {         // TODO check if \n is included or not!!
                 if(s.isEmpty()) continue;  // TODO 10k as limit as in the KERAS example..!
@@ -119,28 +119,29 @@ public class CharacterIterator implements DataSetIterator {
                 inputToMerge.add(inputLine);
                 outputToMerge.add(outputLine);
             }
-        }
-        char[] in, out;
-        boolean added;
-        while(!inputToMerge.isEmpty()){
-            in = inputToMerge.remove(0);
-            out = outputToMerge.remove(0);
-            added = false;
+            char[] in, out;
+            boolean added;
+            while(!inputToMerge.isEmpty()){
+                in = inputToMerge.remove(0);
+                out = outputToMerge.remove(0);
+                added = false;
 
-            for(int i = 0; i < inputToMerge.size(); i++){
-                if(in.length + 5 + inputToMerge.get(i).length < exampleLength){
-                    inputLines.add(Helper.mergeArrays(in, inputToMerge.remove(i)));
-                    outputLines.add(Helper.mergeArrays(out, outputToMerge.remove(i)));
-                    added = true;
-                    break;
+                for(int i = 0; i < inputToMerge.size(); i++){
+                    if(in.length + 5 + inputToMerge.get(i).length < exampleLength){
+                        inputLines.add(Helper.mergeArrays(in, inputToMerge.remove(i)));
+                        outputLines.add(Helper.mergeArrays(out, outputToMerge.remove(i)));
+                        added = true;
+                        break;
+                    }
+                }
+
+                if(!added){
+                    inputLines.add(Helper.mergeArrays(in));
+                    outputLines.add(Helper.mergeArrays(out));
                 }
             }
-
-            if(!added){
-                inputLines.add(Helper.mergeArrays(in));
-                outputLines.add(Helper.mergeArrays(out));
-            }
         }
+
         ogInput = new LinkedList<>(inputLines);
         ogOutput = new LinkedList<>(outputLines);
 

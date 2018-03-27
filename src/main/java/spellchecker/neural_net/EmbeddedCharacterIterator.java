@@ -20,8 +20,8 @@ public class EmbeddedCharacterIterator extends CharacterIterator{
      * @param minimized
      * @throws IOException If text file cannot  be loaded
      */
-    public EmbeddedCharacterIterator(String textFilePath, String testFilePath, Charset textFileEncoding, int miniBatchSize, int exampleLength, char[] validCharacters, int epochSize, boolean minimized) throws IOException {
-        super(textFilePath, testFilePath, textFileEncoding, miniBatchSize, exampleLength, validCharacters, epochSize, minimized);
+    public EmbeddedCharacterIterator(String textFilePath, String testFilePath, Charset textFileEncoding, int miniBatchSize, int exampleLength, char[] validCharacters, int epochSize, boolean minimized, boolean useCorpus) throws IOException {
+        super(textFilePath, testFilePath, textFileEncoding, miniBatchSize, exampleLength, validCharacters, epochSize, minimized, useCorpus);
     }
 
     @Override
