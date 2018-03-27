@@ -27,6 +27,7 @@ import java.util.*;
  */
 public class CharacterIterator implements DataSetIterator {
     protected char[] validCharacters;
+    protected Charset textFileEncoding;
     //Maps each character to an index in the input/output
     protected Map<Character,Integer> charToIdxMap;
     //All characters of the input file (after filtering to only those that are valid)
@@ -61,91 +62,79 @@ public class CharacterIterator implements DataSetIterator {
         this.exampleLength  = exampleLength;
         this.miniBatchSize  = miniBatchSize;
         this.epochSize      = epochSize;
+        this.textFileEncoding = textFileEncoding;
         for(int i = 0; i < validCharacters.length; i++) charToIdxMap.put(validCharacters[i], i);
-
+        String before = "\t", after = "\n";
         //Load file and convert contents to a char[] -- ALSO filter out characters not in alphabet.
-        List<String> lines = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
-        int j = 0;
-        for(String s : lines){
-            if(s.isEmpty() || (minimized && j > 1000)) continue;
-            j++;
-            String[] inputOutput = s.split(",,,");
+        // Train-Data (streets)
+        int limit = Integer.MAX_VALUE;
+        if(minimized) limit = 1000;
+        generateDataFromFile(textFilePath, inputLines, outputLines, limit, before, after);
 
-            if(inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
+        // Test-Data
+        limit = Integer.MAX_VALUE;
+        generateDataFromFile(testFilePath, inputTest, outputTest, limit, before, after);
 
-            char[] inputLine = (inputOutput[0].toLowerCase() + "\n").toLowerCase().toCharArray();
-            char[] outputLine = ("\t" + inputOutput[1].toLowerCase() + "\n").toCharArray();  // Start and end character
-
-            for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
-            for(int i = 0; i < outputLine.length; i++) if(!charToIdxMap.containsKey(outputLine[i])) outputLine[i] = '!';
-
-            inputLines.add(inputLine);
-            outputLines.add(outputLine);
-        }
-
-        lines = Files.readAllLines(new File(testFilePath).toPath(), textFileEncoding);
-        for(String s : lines){
-            if(s.isEmpty()) continue;
-            String[] inputOutput = s.split(",,,");
-
-            if(inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
-
-            char[] inputLine = ("\t" + inputOutput[0] + "\n").toLowerCase().toCharArray();
-            char[] outputLine = ("\t" + inputOutput[1] + "\n").toLowerCase().toCharArray();  // Start and end character
-
-            for(int i = 0; i < inputLine.length; i++)  if(!charToIdxMap.containsKey(inputLine[i]))  inputLine[i]  = '!';
-            for(int i = 0; i < outputLine.length; i++) if(!charToIdxMap.containsKey(outputLine[i])) outputLine[i] = '!';
-
-            inputTest.add(inputLine);
-            outputTest.add(outputLine);
-        }
-
-        ArrayList<char []> inputToMerge = new ArrayList<>(), outputToMerge = new ArrayList<>();
+        // Train-Data (corpus)
         if(useCorpus){
-            lines = Files.readAllLines(new File("data/korpus_freq_dict.txt.mini.noised").toPath(), textFileEncoding);
-            for(String s : lines) {         // TODO check if \n is included or not!!
-                if(s.isEmpty()) continue;  // TODO 10k as limit as in the KERAS example..!
-                String[] inputOutput = s.split(",,,");
-                if(inputOutput.length != 2){
-                    throw new IOException("Fileformat error: '<old> <nbr>' is to be used compared to " + s);
-                }
-
-                char[] inputLine = inputOutput[0].toLowerCase().toCharArray();
-                char[] outputLine = inputOutput[1].toLowerCase().toCharArray();  // Start and end character
-                if(inputLine.length > 49 || outputLine.length > 49) continue;
-
-                for(int i = 0; i < inputLine.length; i++)  if(!charToIdxMap.containsKey(inputLine[i]))  inputLine[i]  = '!';
-                for(int i = 0; i < outputLine.length; i++) if(!charToIdxMap.containsKey(outputLine[i])) outputLine[i] = '!';
-                inputToMerge.add(inputLine);
-                outputToMerge.add(outputLine);
-            }
-            char[] in, out;
-            boolean added;
-            while(!inputToMerge.isEmpty()){
-                in = inputToMerge.remove(0);
-                out = outputToMerge.remove(0);
-                added = false;
-
-                for(int i = 0; i < inputToMerge.size(); i++){
-                    if(in.length + 5 + inputToMerge.get(i).length < exampleLength){
-                        inputLines.add(Helper.mergeArrays(in, inputToMerge.remove(i)));
-                        outputLines.add(Helper.mergeArrays(out, outputToMerge.remove(i)));
-                        added = true;
-                        break;
-                    }
-                }
-
-                if(!added){
-                    inputLines.add(Helper.mergeArrays(in));
-                    outputLines.add(Helper.mergeArrays(out));
-                }
-            }
+            LinkedList<char []> inputToMerge = new LinkedList<>(), outputToMerge = new LinkedList<>();
+            generateDataFromFile(testFilePath, inputToMerge, outputToMerge, limit, "", "");
+            addCorpusToData(inputToMerge, outputToMerge, before, after);
         }
 
         ogInput = new LinkedList<>(inputLines);
         ogOutput = new LinkedList<>(outputLines);
 
         numExamples = inputLines.size();
+    }
+
+    private void addCorpusToData(LinkedList<char[]> inputToMerge, LinkedList<char[]> outputToMerge,
+                                 String before, String after) {
+        char[] in, out;
+        boolean added;
+        while (!inputToMerge.isEmpty()) {
+            in = inputToMerge.remove(0);
+            out = outputToMerge.remove(0);
+            added = false;
+
+            for (int i = 0; i < inputToMerge.size(); i++) {
+                if (in.length + 5 + inputToMerge.get(i).length < exampleLength) {
+                    inputLines.add(Helper.mergeArrays(before, after, in, inputToMerge.remove(i)));
+                    outputLines.add(Helper.mergeArrays(before, after, out, outputToMerge.remove(i)));
+                    added = true;
+                    break;
+                }
+            }
+
+            if (!added) {
+                inputLines.add(Helper.mergeArrays(before, after, in));
+                outputLines.add(Helper.mergeArrays(before, after, out));
+            }
+        }
+    }
+
+    private void generateDataFromFile(String textFilePath, LinkedList<char[]> in, LinkedList<char[]> out, int limit,
+                                      String before, String after) throws IOException {
+
+        List<String> lines = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
+        int j = 0;
+        for(String s : lines){
+            if(s.isEmpty() || (j > limit)) continue;
+            j++;
+            String[] inputOutput = s.split(",,,");
+
+            if(inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
+
+            char[] inputLine = Helper.mergeArrays(before, after, inputOutput[0].toLowerCase().toCharArray());
+            char[] outputLine = Helper.mergeArrays(before, after, inputOutput[1].toLowerCase().toCharArray());
+
+            for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
+            for(int i = 0; i < outputLine.length; i++) if(!charToIdxMap.containsKey(outputLine[i])) outputLine[i] = '!';
+
+            in.add(inputLine);
+            out.add(outputLine);
+        }
+
     }
 
     protected CharacterIterator() { }

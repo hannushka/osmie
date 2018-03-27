@@ -91,32 +91,11 @@ public class Helper {
         return max;
     }
 
-    public static char[] mergeArrays(char[]... arrays){
+    public static char[] mergeArrays(String before, String after, char[]... arrays){
         StringJoiner joiner = new StringJoiner(" ");
         for(char[] array : arrays) joiner.add(String.valueOf(array));
-        return ("\t" + joiner.toString() + "\n").toCharArray();
-    }
-
-    public static char[] mergeInArrays(char[] first, char[] second, char... extras){
-        char[] mergedArray = new char[first.length +  second.length + extras.length + 2];
-        int i = 1;
-        for(char c : first) mergedArray[i++] = c;
-        for(char c : extras) mergedArray[i++] = c;
-        for(char c : second) mergedArray[i++] = c;
-        mergedArray[0] = '\t';
-        mergedArray[mergedArray.length-1] = '\n';
-        return mergedArray;
-    }
-
-    public static char[] mergeOutArrays(char[] first, char[] second, char... extras){
-        char[] mergedArray = new char[first.length +  second.length + extras.length + 2];
-        int i = 1;
-        for(char c : first) mergedArray[i++] = c;
-        for(char c : extras) mergedArray[i++] = c;
-        for(char c : second) mergedArray[i++] = c;
-        mergedArray[0] = '\t';
-        mergedArray[mergedArray.length-1] = '\n';
-        return mergedArray;
+        if(!(before.equals("\t") && after.equals("\n"))) System.out.println("CRAZY SHIT");
+        return (before + joiner.toString() + after).toCharArray();
     }
 
     public static Object[] mergeArrays(Object[]... arrays){
@@ -138,7 +117,7 @@ public class Helper {
     }
 
     public static void main(String[] args) {
-        for (char c : mergeArrays(new char[]{'h', 'e'}, new char[]{'e'})) {
+        for (char c : mergeArrays("\t", "\n", new char[]{'h', 'e'}, new char[]{'e'})) {
             System.out.print(c);
         }
     }
