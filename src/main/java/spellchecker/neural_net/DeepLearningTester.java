@@ -6,12 +6,12 @@ public class DeepLearningTester {
     public static void main(String[] args) {
         Seq2Seq model;
         try {
-            model = RNN.Builder().setCharacterIterator(Seq2Seq.IteratorType.CLASSIC, false)
-                    .loadModel(String.format("data/models/model%s.bin", 240 ));
+            model = BiDirectionalRNN.Builder().setCharacterIterator(Seq2Seq.IteratorType.CLASSIC, false)
+                    .loadModel(String.format("data/models/modelBRNN%s.bin", 150));
 //                    .loadModel("data/models/BiLSTM.bin");
             //            System.out.println(model.generateSuggestion("holstebrovej"));
 //            model.runTestingOnTrain(true);
-            model.runTesting(false);
+            model.runTesting(true);
         } catch (Exception e) {
             e.printStackTrace();
         }

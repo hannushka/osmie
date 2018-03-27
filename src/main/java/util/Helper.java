@@ -67,11 +67,12 @@ public class Helper {
     }
 
     public static char[] mergeInArrays(char[] first, char[] second, char... extras){
-        char[] mergedArray = new char[first.length +  second.length + extras.length + 1];
-        int i = 0;
+        char[] mergedArray = new char[first.length +  second.length + extras.length + 2];
+        int i = 1;
         for(char c : first) mergedArray[i++] = c;
         for(char c : extras) mergedArray[i++] = c;
         for(char c : second) mergedArray[i++] = c;
+        mergedArray[0] = '\t';
         mergedArray[mergedArray.length-1] = '\n';
         return mergedArray;
     }

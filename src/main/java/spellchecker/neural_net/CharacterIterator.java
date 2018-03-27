@@ -90,10 +90,10 @@ public class CharacterIterator implements DataSetIterator {
 
             if(inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
 
-            char[] inputLine = (inputOutput[0] + "\n").toLowerCase().toCharArray();
+            char[] inputLine = ("\t" + inputOutput[0] + "\n").toLowerCase().toCharArray();
             char[] outputLine = ("\t" + inputOutput[1].toLowerCase() + "\n").toCharArray();  // Start and end character
 
-            for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
+            for(int i = 0; i < inputLine.length; i++)  if(!charToIdxMap.containsKey(inputLine[i]))  inputLine[i]  = '!';
             for(int i = 0; i < outputLine.length; i++) if(!charToIdxMap.containsKey(outputLine[i])) outputLine[i] = '!';
 
             inputTest.add(inputLine);
