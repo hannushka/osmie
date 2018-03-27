@@ -15,7 +15,6 @@ public class DeepLearningTester {
                 model.runTesting(true);
 //                System.out.println("Nr:" + i);
 //                String a = keyboard.nextLine();
-//            }
         } catch (Exception e) {
             e.printStackTrace();
         }

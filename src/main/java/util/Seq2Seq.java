@@ -14,7 +14,9 @@ import org.nd4j.linalg.factory.Nd4j;
 import spellchecker.neural_net.CharacterIterator;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public abstract class Seq2Seq {
     public enum ScoreListener{
@@ -32,7 +34,10 @@ public abstract class Seq2Seq {
     protected String baseFilename = "models";
     protected MultiLayerNetwork net;
     protected CharacterIterator itr;
-    private int noChangeCorrect = 0, noChangeIncorrect = 0, changedCorrectly = 0, changedIncorrectly = 0;
+    private List<String> noChangeCorrect = new ArrayList<>();
+    private List<String> noChangeIncorrect = new ArrayList<>();
+    private List<String> changedCorrectly = new ArrayList<>();
+    private List<String> changedIncorrectly = new ArrayList<>();
     private int wrongChangeType = 0;
     private boolean useCorpus = true;
 
@@ -121,28 +126,29 @@ public abstract class Seq2Seq {
             inp = inputStr[i].replaceAll("<NaN>", "").trim();
             out = resultStr[i].replaceAll("<NaN>", "").trim();
             label = labelStr[i].replaceAll("<NaN>", "").trim();
-//            System.out.println(inp + ",,," + out + ",,," + label);
-            if(inp.equals(out) && inp.equals(label)) noChangeCorrect++;
-            if(inp.equals(out) && !inp.equals(label)) noChangeIncorrect++;
-            if(!inp.equals(label) && out.equals(label)) changedCorrectly++;
-            if(inp.equals(label) && !inp.equals(out)) changedIncorrectly++;
+            System.out.println(inp + ",,," + out + ",,," + label);
+            if(inp.equals(out) && inp.equals(label)) noChangeCorrect.add(out);
+            if(inp.equals(out) && !inp.equals(label)) noChangeIncorrect.add(out);
+            if(!inp.equals(label) && out.equals(label)) changedCorrectly.add(out);
+            if(inp.equals(label) && !inp.equals(out)) changedIncorrectly.add(out);
             if(!inp.equals(label) && !inp.equals(out) && !out.equals(label))  wrongChangeType++;
         }
     }
 
     public void printStats(){
         System.out.println("====");
-        System.out.println("Correctly unchanged = " + noChangeCorrect);
-        System.out.println("Incorrectly unchanged = " + noChangeIncorrect);
-        System.out.println("Correctly changed = " + changedCorrectly);
-        System.out.println("Incorrectly changed = " + changedIncorrectly);
+        System.out.println("Correctly unchanged = " + noChangeCorrect.size());
+        System.out.println("Incorrectly unchanged = " + noChangeIncorrect.size());
+        System.out.println("Correctly changed = " + changedCorrectly.size());
+        System.out.println("Incorrectly changed = " + changedIncorrectly.size());
         System.out.println("Correctly changed but to the wrong class = " + wrongChangeType);
         System.out.println("====");
-        System.out.println("Errors introduced: " + changedIncorrectly);
+        System.out.println("Errors introduced: " + changedIncorrectly.size());
         System.out.println("Corrections introduced: " + changedCorrectly + " (total #correct: "
-                + (changedCorrectly+noChangeCorrect) + ")");
+                + (changedCorrectly.size() + noChangeCorrect.size()) + ")");
         System.out.println("Correction that introduce no new error: " + wrongChangeType);
-        System.out.println("Unchanged: " + (noChangeCorrect+noChangeIncorrect));
+        System.out.println("Unchanged: " + (noChangeCorrect.size() + noChangeIncorrect.size()));
+        changedIncorrectly.forEach(s -> System.out.println(s));
     }
 
     public abstract void runTraining() throws IOException;
