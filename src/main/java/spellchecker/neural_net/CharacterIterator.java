@@ -91,7 +91,7 @@ public class CharacterIterator implements DataSetIterator {
             if(inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
 
             char[] inputLine = ("\t" + inputOutput[0] + "\n").toLowerCase().toCharArray();
-            char[] outputLine = ("\t" + inputOutput[1].toLowerCase() + "\n").toCharArray();  // Start and end character
+            char[] outputLine = ("\t" + inputOutput[1] + "\n").toLowerCase().toCharArray();  // Start and end character
 
             for(int i = 0; i < inputLine.length; i++)  if(!charToIdxMap.containsKey(inputLine[i]))  inputLine[i]  = '!';
             for(int i = 0; i < outputLine.length; i++) if(!charToIdxMap.containsKey(outputLine[i])) outputLine[i] = '!';
@@ -114,9 +114,8 @@ public class CharacterIterator implements DataSetIterator {
                 char[] outputLine = inputOutput[1].toLowerCase().toCharArray();  // Start and end character
                 if(inputLine.length > 49 || outputLine.length > 49) continue;
 
-                for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
+                for(int i = 0; i < inputLine.length; i++)  if(!charToIdxMap.containsKey(inputLine[i]))  inputLine[i]  = '!';
                 for(int i = 0; i < outputLine.length; i++) if(!charToIdxMap.containsKey(outputLine[i])) outputLine[i] = '!';
-
                 inputToMerge.add(inputLine);
                 outputToMerge.add(outputLine);
             }
@@ -129,17 +128,17 @@ public class CharacterIterator implements DataSetIterator {
             added = false;
 
             for(int i = 0; i < inputToMerge.size(); i++){
-                if(in.length + 1 + inputToMerge.get(i).length < exampleLength){
-                    inputLines.add(Helper.mergeInArrays(in, inputToMerge.remove(i), ' '));
-                    outputLines.add(Helper.mergeOutArrays(out, outputToMerge.remove(i), ' '));
+                if(in.length + 5 + inputToMerge.get(i).length < exampleLength){
+                    inputLines.add(Helper.mergeArrays(in, inputToMerge.remove(i)));
+                    outputLines.add(Helper.mergeArrays(out, outputToMerge.remove(i)));
                     added = true;
                     break;
                 }
             }
 
             if(!added){
-                inputLines.add(in);
-                outputLines.add(out);
+                inputLines.add(Helper.mergeArrays(in));
+                outputLines.add(Helper.mergeArrays(out));
             }
         }
         ogInput = new LinkedList<>(inputLines);

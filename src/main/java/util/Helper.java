@@ -6,6 +6,7 @@ import spellchecker.neural_net.CharacterIterator;
 import spellchecker.neural_net.EmbeddedCharacterIterator;
 
 import java.nio.charset.Charset;
+import java.util.StringJoiner;
 
 public class Helper {
     public static CharacterIterator getCharacterIterator(int miniBatchSize, int sequenceLength, int epochSize,
@@ -66,6 +67,12 @@ public class Helper {
         return idx;
     }
 
+    public static char[] mergeArrays(char[]... arrays){
+        StringJoiner joiner = new StringJoiner(" ");
+        for(char[] array : arrays) joiner.add(String.valueOf(array));
+        return ("\t" + joiner.toString() + "\n").toCharArray();
+    }
+
     public static char[] mergeInArrays(char[] first, char[] second, char... extras){
         char[] mergedArray = new char[first.length +  second.length + extras.length + 2];
         int i = 1;
@@ -88,7 +95,7 @@ public class Helper {
         return mergedArray;
     }
 
-    public static Object[] mergeInArrays(Object[]... arrays){
+    public static Object[] mergeArrays(Object[]... arrays){
         int size = 0, i = 0;
         for(Object[] array : arrays) size += array.length;
         Object[] mergedArray = new Object[size];
@@ -104,5 +111,11 @@ public class Helper {
         StringBuilder statsSmall = new StringBuilder();
         for(int i = 0; i < 10; i++) statsSmall.append(stats[stats.length - (i+1)]).append("\n");
         return statsSmall.toString();
+    }
+
+    public static void main(String[] args) {
+        for (char c : mergeArrays(new char[]{'h', 'e'}, new char[]{'e'})) {
+            System.out.print(c);
+        }
     }
 }
