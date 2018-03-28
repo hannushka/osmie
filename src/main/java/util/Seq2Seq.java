@@ -1,6 +1,5 @@
 package util;
 
-import com.google.common.primitives.Chars;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
@@ -9,11 +8,8 @@ import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.factory.Nd4j;
 import spellchecker.neural_net.CharacterIterator;
-
 import java.io.IOException;
-import java.util.Collections;
 
 public abstract class Seq2Seq {
     public enum ScoreListener{

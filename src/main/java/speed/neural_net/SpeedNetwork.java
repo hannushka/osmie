@@ -37,8 +37,7 @@ public class SpeedNetwork extends Seq2Seq {
     @Override
     public Seq2Seq setNbrLayers(int... lstmLayerSize){
         int[] tmp1 = new int[]{embeddingLayerSize};
-        int[] tmp2 = lstmLayerSize;
-        this.layerDimensions = ArrayUtils.addAll(tmp1, tmp2);
+        this.layerDimensions = ArrayUtils.addAll(tmp1, lstmLayerSize);
         return this;
     }
 
