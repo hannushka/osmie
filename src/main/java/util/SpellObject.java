@@ -28,8 +28,7 @@ public class SpellObject {
             return;
         StringBuilder sb = new StringBuilder();
         sb.append(osmId).append(",,,");
-        if (currentName.isPresent())
-            sb.append(currentName.get());
+        currentName.ifPresent(sb::append);
         corrections.forEach(c -> sb.append(",,,").append(c));
         System.out.println(sb.toString());
     }

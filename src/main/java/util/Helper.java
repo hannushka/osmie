@@ -1,11 +1,16 @@
 package util;
 
+import org.apache.commons.math3.exception.DimensionMismatchException;
+import org.nd4j.linalg.api.iter.NdIndexIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import speed.neural_net.ChSpeedIterator;
 import spellchecker.neural_net.CharacterIterator;
 
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Helper {
     public static CharacterIterator getCharacterIterator(int miniBatchSize, int sequenceLength, int epochSize,
@@ -30,30 +35,46 @@ public class Helper {
         StringBuilder sb;
         String[] result = new String[numOutputs];
         for(int i=0; i < numOutputs; i++){
-            sb = new StringBuilder(nCharactersToSample);
-            boolean found = false;
-            for(int s = 0; s < output.shape()[2]; s++){     // for(char in outputWord)
-                double[] outputProbDistr = new double[itr.totalOutcomes()];
-                for(int j = 0; j < output.shape()[1]; j++)
-                    outputProbDistr[j] = output.getDouble(i,j,s); // for(charProb in chararray)
-                int wordIdx = getMax(outputProbDistr);      // TODO getMax might be better. I got no clue.
-                if(wordIdx >= 0) sb.append(itr.convertIndexToCharacter(wordIdx));
-                else sb.append("<NaN>");
-                if(getMaxDbl(outputProbDistr) < 0.5 && wordIdx != -1){
-                    found = true;
-                    System.out.print(("" + itr.convertIndexToCharacter(wordIdx)).trim()
-                            + "("
-                            + Double.toString(getMaxDbl(outputProbDistr)).substring(0,4)
-                            + ","
-                            + s
-                            + ")"
-                            + ",,,");
-                }
-            }
-            result[i] = sb.toString();
-            if(found) System.out.println(sb.toString().replaceAll("<NaN>", "").trim());
+            result[i] = getWordFromDistr(getDoubleMatrixDistr(output.tensorAlongDimension(i, 1,2)), itr)
+                    .replaceAll("ü", "").trim();
+            System.out.println(result[i]);
         }
         return result;
+    }
+
+    private static double[][] getDoubleMatrixDistr(INDArray array){
+        if(array.shape().length != 2) throw new DimensionMismatchException(array.shape().length, 2);
+        NdIndexIterator iter = new NdIndexIterator(array.shape());
+        double[][] distr = new double[array.shape()[1]][array.shape()[0]];
+        iter.forEachRemaining(ints -> distr[ints[1]][ints[0]] = array.getDouble(ints[0],ints[1]));
+        return distr;
+    }
+
+    private static String getWordFromDistr(double[][] wordDistr, CharacterIterator itr){
+        return Arrays.stream(wordDistr)
+                     .map(Helper::getIndexOfMax)
+                     .map(itr::convertIndexToCharacter)
+                     .map(String::valueOf)
+                     .collect(Collectors.joining());
+    }
+
+    private static int getIndexOfMax(double[] array){
+        return IntStream.range(0, array.length)
+                        .reduce((i, j)-> array[i] > array[j] ? i : j)
+                        .getAsInt();
+    }
+
+    public static DeepSpellObject[] getSpellObjectsFromTensors(INDArray output, CharacterIterator itr){
+        DeepSpellObject[] objects = new DeepSpellObject[output.shape()[0]];
+        // inp: [a,b,c] -- tensorAlongDimension(i,1,2) returns tensors of shape [b,c].
+
+        double[][] wordMatrix;
+        for(int i = 0; i < objects.length; i++){
+            wordMatrix = getDoubleMatrixDistr(output.tensorAlongDimension(i,1,2));
+            DeepSpellObject deepSpellObject = new DeepSpellObject(wordMatrix, getWordFromDistr(wordMatrix, itr).trim());
+            objects[i] = deepSpellObject;
+        }
+        return objects;
     }
 
     public static int getMax(double[] distribution){
@@ -107,8 +128,11 @@ public class Helper {
     }
 
     public static void main(String[] args) {
-        for (char c : mergeArrays("\t", "\n", new char[]{'h', 'e'}, new char[]{'e'})) {
-            System.out.print(c);
+        try {
+            System.out.println(getWordFromDistr(new double[][]{new double[]{45,5,2,3,5,5,55,85,485}, new double[]{7,5,2,3}, new double[]{7,5,23,3}},
+                    getCharacterIterator(32, 50, 10000, false, true)));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

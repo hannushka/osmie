@@ -1,4 +1,4 @@
-package util;
+package missing_name.graph_connectivity;
 
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 
