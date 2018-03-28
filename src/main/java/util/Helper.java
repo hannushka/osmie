@@ -3,33 +3,14 @@ package util;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.nd4j.linalg.api.iter.NdIndexIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import speed.neural_net.ChSpeedIterator;
 import spellchecker.neural_net.CharacterIterator;
 
-import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class Helper {
-    public static CharacterIterator getCharacterIterator(int miniBatchSize, int sequenceLength, int epochSize,
-                                                         boolean minimized, boolean useCorpus) throws Exception {
-        String fileLocation = "data/autoNameData.csv";
-        String testFileLocation = "data/manualNameData.csv";
-        char[] validCharacters = CharacterIterator.getDanishCharacterSet();
-        return new CharacterIterator(fileLocation, testFileLocation, Charset.forName("UTF-8"),
-                miniBatchSize, sequenceLength, validCharacters, epochSize, minimized, useCorpus);
-    }
-
-    public static CharacterIterator getSpeedIterator(int miniBatchSize, int sequenceLength, int epochSize,
-                                                        boolean minimized) throws Exception {
-        String fileLocation = "data/speedData.csv";
-        char[] validCharacters = CharacterIterator.getDanishCharacterSet();
-        return new ChSpeedIterator(fileLocation, Charset.forName("UTF-8"),
-                miniBatchSize, sequenceLength, validCharacters, epochSize, minimized);
-    }
-
     public static String[] convertTensorsToWords(INDArray output, CharacterIterator itr){
         String[] result = new String[output.shape()[0]];
         for(int i=0; i < result.length; i++)
@@ -58,6 +39,17 @@ public class Helper {
         return IntStream.range(0, array.length)
                         .reduce((i, j)-> array[i] > array[j] ? i : j)
                         .getAsInt();
+    }
+
+    public static boolean withinOneEditDist(String in, String label){
+        EditDistance dist = new EditDistance(label);
+        int distance = dist.DamerauLevenshteinDistance(in, 2);
+        return distance <= 1 && distance >= 0;
+    }
+
+    public static boolean oneEditDist(String in, String label){
+        EditDistance dist = new EditDistance(label);
+        return dist.DamerauLevenshteinDistance(in, 2) == 1;
     }
 
     public static DeepSpellObject[] getSpellObjectsFromTensors(INDArray output, CharacterIterator itr){
@@ -100,11 +92,11 @@ public class Helper {
     }
 
     public static void main(String[] args) {
-        try {
-            System.out.println(getWordFromDistr(new double[][]{new double[]{45,5,2,3,5,5,55,85,485}, new double[]{7,5,2,3}, new double[]{7,5,23,3}},
-                    getCharacterIterator(32, 50, 10000, false, true)));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        System.out.println(withinOneEditDist("hjj", "hejj"));
+        System.out.println(withinOneEditDist("hjej", "hejj"));
+        System.out.println(withinOneEditDist("höjj", "hejj"));
+        System.out.println(withinOneEditDist("heejj", "hejj"));
+//        System.out.println("hej".substring(0,0));
+//        System.out.println("hej".substring(1));
     }
 }

@@ -40,12 +40,11 @@ public class ChSpeedIterator extends CharacterIterator{
      * @param textFileEncoding Encoding of the text file. Can try Charset.defaultCharset()
      * @param miniBatchSize Number of examples per mini-batch
      * @param exampleLength Number of characters in each input/output vector
-     * @param validCharacters Character array of valid characters. Characters not present in this array will be removed
      * @throws IOException If text file cannot  be loaded
      */
 
     public ChSpeedIterator(String textFilePath, Charset textFileEncoding, int miniBatchSize, int exampleLength,
-                             char[] validCharacters, int epochSize, boolean minimized) throws IOException {
+                           int epochSize, boolean minimized) throws IOException {
         if(!new File(textFilePath).exists()) throw new IOException("Could not access file (does not exist): " + textFilePath);
         if(miniBatchSize <= 0) throw new IllegalArgumentException("Invalid miniBatchSize (must be > 0)");
         this.inputLines     = new ArrayList<>();
@@ -55,7 +54,7 @@ public class ChSpeedIterator extends CharacterIterator{
         this.inputTest      = new ArrayList<>();
         this.outputTest     = new ArrayList<>();
         this.charToIdxMap   = new HashMap<>();  //Store valid characters is a map for later use in vectorization
-        this.validCharacters= validCharacters;
+        this.validCharacters= getDanishCharacterSet();
         this.exampleLength  = exampleLength;
         this.miniBatchSize  = miniBatchSize;
         this.epochSize      = epochSize;

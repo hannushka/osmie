@@ -5,6 +5,7 @@ import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.DataSetPreProcessor;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.factory.Nd4j;
+import speed.neural_net.ChSpeedIterator;
 import util.Helper;
 
 import java.io.BufferedReader;
@@ -43,12 +44,11 @@ public class CharacterIterator implements DataSetIterator {
      * @param textFileEncoding Encoding of the text file. Can try Charset.defaultCharset()
      * @param miniBatchSize Number of examples per mini-batch
      * @param exampleLength Number of characters in each input/output vector
-     * @param validCharacters Character array of valid characters. Characters not present in this array will be removed
      * @throws IOException If text file cannot  be loaded
      */
 
     public CharacterIterator(String textFilePath, String testFilePath, Charset textFileEncoding, int miniBatchSize, int exampleLength,
-                             char[] validCharacters, int epochSize, boolean minimized, boolean useCorpus) throws IOException {
+                             int epochSize, boolean minimized, boolean useCorpus) throws IOException {
         if(!new File(textFilePath).exists()) throw new IOException("Could not access file (does not exist): " + textFilePath);
         if(miniBatchSize <= 0) throw new IllegalArgumentException("Invalid miniBatchSize (must be > 0)");
         this.inputLines     = new LinkedList<>();
@@ -58,7 +58,7 @@ public class CharacterIterator implements DataSetIterator {
         this.inputTest      = new LinkedList<>();
         this.outputTest     = new LinkedList<>();
         this.charToIdxMap   = new HashMap<>();  //Store valid characters is a map for later use in vectorization
-        this.validCharacters= validCharacters;
+        this.validCharacters= getDanishCharacterSet();
         this.exampleLength  = exampleLength;
         this.miniBatchSize  = miniBatchSize;
         this.epochSize      = epochSize;
@@ -306,5 +306,20 @@ public class CharacterIterator implements DataSetIterator {
     @Override
     public void remove() {
         throw new UnsupportedOperationException();
+    }
+
+    public static CharacterIterator getCharacterIterator(int miniBatchSize, int sequenceLength, int epochSize,
+                                                         boolean minimized, boolean useCorpus) throws Exception {
+        String fileLocation = "data/autoNameData.csv";
+        String testFileLocation = "data/manualNameData.csv";
+        return new CharacterIterator(fileLocation, testFileLocation, Charset.forName("UTF-8"),
+                miniBatchSize, sequenceLength, epochSize, minimized, useCorpus);
+    }
+
+    public static CharacterIterator getSpeedIterator(int miniBatchSize, int sequenceLength, int epochSize,
+                                                     boolean minimized) throws Exception {
+        String fileLocation = "data/speedData.csv";
+        return new ChSpeedIterator(fileLocation, Charset.forName("UTF-8"),
+                miniBatchSize, sequenceLength, epochSize, minimized);
     }
 }

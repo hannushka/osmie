@@ -32,7 +32,7 @@ public abstract class Seq2Seq {
     protected String baseFilename = "models";
     protected MultiLayerNetwork net;
     protected CharacterIterator itr;
-    private int noChangeCorrect = 0, noChangeIncorrect = 0, changedCorrectly = 0, changedIncorrectly = 0;
+    private int noChangeCorrect = 0, noChangeIncorrect = 0, changedCorrectly = 0, changedIncorrectly = 0, editDistOne = 0;
     private int wrongChangeType = 0;
     private boolean useCorpus = true;
 
@@ -75,10 +75,10 @@ public abstract class Seq2Seq {
         int exampleLength = 50;
         switch (type){
             case CLASSIC:
-                itr = Helper.getCharacterIterator(miniBatchSize, exampleLength, epochSize, minimized, useCorpus);
+                itr = CharacterIterator.getCharacterIterator(miniBatchSize, exampleLength, epochSize, minimized, useCorpus);
                 break;
             case SPEED:
-                itr = Helper.getSpeedIterator(miniBatchSize, exampleLength, epochSize, minimized);
+                itr = CharacterIterator.getSpeedIterator(miniBatchSize, exampleLength, epochSize, minimized);
                 break;
         }
         return this;
@@ -122,6 +122,7 @@ public abstract class Seq2Seq {
             out = resultStr[i];
             label = labelStr[i];
             if(print) System.out.println(inp + ",,," + out + ",,," + label);
+            if(Helper.oneEditDist(inp, label)) editDistOne++;
             if(inp.equals(out) && inp.equals(label)) noChangeCorrect++;
             if(inp.equals(out) && !inp.equals(label)) noChangeIncorrect++;
             if(!inp.equals(label) && out.equals(label)) changedCorrectly++;
@@ -130,19 +131,19 @@ public abstract class Seq2Seq {
         }
     }
 
-    public void printStats(){
+    protected void printStats(){
         System.out.println("====");
-        System.out.println("Correctly unchanged = " + noChangeCorrect);
-        System.out.println("Incorrectly unchanged = " + noChangeIncorrect);
-        System.out.println("Correctly changed = " + changedCorrectly);
-        System.out.println("Incorrectly changed = " + changedIncorrectly);
-        System.out.println("Correctly changed but to the wrong class = " + wrongChangeType);
-        System.out.println("====");
-        System.out.println("Errors introduced: " + changedIncorrectly);
-        System.out.println("Corrections introduced: " + changedCorrectly + " (total #correct: "
+        System.out.println("Errors (good->bad): \t\t" + changedIncorrectly);
+        System.out.println("Corrections (bad->good):\t" + changedCorrectly + " (total #correct: "
                 + (changedCorrectly+noChangeCorrect) + ")");
-        System.out.println("Correction that introduce no new error: " + wrongChangeType);
-        System.out.println("Unchanged: " + (noChangeCorrect+noChangeIncorrect));
+        System.out.println("Correction (bad->bad): \t\t" + wrongChangeType);
+        System.out.println("Total changes: \t\t\t\t" + (wrongChangeType + changedCorrectly + changedIncorrectly));
+        System.out.println("----");
+        System.out.println("Unchanged correctly (good->good): \t" + noChangeCorrect);
+        System.out.println("Unchanged incorrectly (bad->bad): \t" + noChangeIncorrect);
+        System.out.println("Total unchanged: \t\t\t" + (noChangeCorrect+noChangeIncorrect));
+        System.out.println("----");
+        System.out.println("Edits within one: \t\t\t" + editDistOne);
     }
 
     public abstract void runTraining() throws IOException;
