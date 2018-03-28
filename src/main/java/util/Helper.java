@@ -41,17 +41,6 @@ public class Helper {
                         .getAsInt();
     }
 
-    public static boolean withinOneEditDist(String in, String label){
-        EditDistance dist = new EditDistance(label);
-        int distance = dist.DamerauLevenshteinDistance(in, 2);
-        return distance <= 1 && distance >= 0;
-    }
-
-    public static boolean oneEditDist(String in, String label){
-        EditDistance dist = new EditDistance(label);
-        return dist.DamerauLevenshteinDistance(in, 2) == 1;
-    }
-
     public static DeepSpellObject[] getSpellObjectsFromTensors(INDArray output, CharacterIterator itr){
         DeepSpellObject[] objects = new DeepSpellObject[output.shape()[0]];
         // inp: [a,b,c] -- tensorAlongDimension(i,1,2) returns tensors of shape [b,c].
@@ -68,34 +57,7 @@ public class Helper {
         return Arrays.stream(distribution).max().getAsDouble();
     }
 
-    public static char[] mergeArrays(String before, String after, char[]... arrays){
-        StringJoiner joiner = new StringJoiner(" ");
-        for(char[] array : arrays) joiner.add(String.valueOf(array));
-        return (before + joiner.toString() + after).toCharArray();
-    }
-
-    public static Object[] mergeArrays(Object[]... arrays){
-        int size = 0, i = 0;
-        for(Object[] array : arrays) size += array.length;
-        Object[] mergedArray = new Object[size];
-        for(Object[] array : arrays){
-            for(Object c : array) mergedArray[i++] = c;
-        }
-        return mergedArray;
-    }
-
-    public static String reduceEvalStats(String evalStats){
-        String[] stats = evalStats.split("\n");
-        StringJoiner statsSmall = new StringJoiner("\n");
-        for(int i = 0; i < 6; i++) statsSmall.add(stats[stats.length - (i+1)]);
-        return statsSmall.toString();
-    }
-
     public static void main(String[] args) {
-        System.out.println(withinOneEditDist("hjj", "hejj"));
-        System.out.println(withinOneEditDist("hjej", "hejj"));
-        System.out.println(withinOneEditDist("höjj", "hejj"));
-        System.out.println(withinOneEditDist("heejj", "hejj"));
 //        System.out.println("hej".substring(0,0));
 //        System.out.println("hej".substring(1));
     }

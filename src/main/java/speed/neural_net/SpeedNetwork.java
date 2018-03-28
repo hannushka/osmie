@@ -21,6 +21,7 @@ import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import util.Helper;
 import util.Seq2Seq;
+import util.StringUtils;
 
 import java.io.IOException;
 
@@ -75,7 +76,7 @@ public class SpeedNetwork extends Seq2Seq {
             INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
             eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
         }
-        System.out.println(Helper.reduceEvalStats(eval.stats()));
+        System.out.println(StringUtils.reduceEvalStats(eval.stats()));
     }
 
     @Override

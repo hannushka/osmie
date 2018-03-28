@@ -17,6 +17,7 @@ import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import util.Helper;
 import util.Seq2Seq;
+import util.StringUtils;
 
 import java.io.IOException;
 
@@ -57,7 +58,7 @@ public class RNN extends Seq2Seq {
             createReadableStatistics(ds.getFeatures(), output, ds.getLabels(), print);
         }
         printStats();
-        System.out.println(Helper.reduceEvalStats(eval.stats()));
+        System.out.println(StringUtils.reduceEvalStats(eval.stats()));
     }
 
     @Override

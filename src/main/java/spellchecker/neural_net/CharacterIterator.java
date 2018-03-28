@@ -6,6 +6,7 @@ import org.nd4j.linalg.dataset.api.DataSetPreProcessor;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.factory.Nd4j;
 import speed.neural_net.ChSpeedIterator;
+import util.ArrayUtils;
 import util.Helper;
 
 import java.io.BufferedReader;
@@ -99,16 +100,16 @@ public class CharacterIterator implements DataSetIterator {
 
             for (int i = 0; i < inputToMerge.size(); i++) {
                 if (in.length + 5 + inputToMerge.get(i).length < exampleLength) {
-                    inputLines.add(Helper.mergeArrays(before, after, in, inputToMerge.remove(i)));
-                    outputLines.add(Helper.mergeArrays(before, after, out, outputToMerge.remove(i)));
+                    inputLines.add(ArrayUtils.mergeArrays(before, after, in, inputToMerge.remove(i)));
+                    outputLines.add(ArrayUtils.mergeArrays(before, after, out, outputToMerge.remove(i)));
                     added = true;
                     break;
                 }
             }
 
             if (!added) {
-                inputLines.add(Helper.mergeArrays(before, after, in));
-                outputLines.add(Helper.mergeArrays(before, after, out));
+                inputLines.add(ArrayUtils.mergeArrays(before, after, in));
+                outputLines.add(ArrayUtils.mergeArrays(before, after, out));
             }
         }
     }
@@ -125,8 +126,8 @@ public class CharacterIterator implements DataSetIterator {
 
             if(inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
 
-            char[] inputLine = Helper.mergeArrays(before, after, inputOutput[0].toLowerCase().toCharArray());
-            char[] outputLine = Helper.mergeArrays(before, after, inputOutput[1].toLowerCase().toCharArray());
+            char[] inputLine = ArrayUtils.mergeArrays(before, after, inputOutput[0].toLowerCase().toCharArray());
+            char[] outputLine = ArrayUtils.mergeArrays(before, after, inputOutput[1].toLowerCase().toCharArray());
 
             for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
             for(int i = 0; i < outputLine.length; i++) if(!charToIdxMap.containsKey(outputLine[i])) outputLine[i] = '!';

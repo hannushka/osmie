@@ -122,7 +122,7 @@ public abstract class Seq2Seq {
             out = resultStr[i];
             label = labelStr[i];
             if(print) System.out.println(inp + ",,," + out + ",,," + label);
-            if(Helper.oneEditDist(inp, label)) editDistOne++;
+            if(StringUtils.oneEditDist(inp, label)) editDistOne++;
             if(inp.equals(out) && inp.equals(label)) noChangeCorrect++;
             if(inp.equals(out) && !inp.equals(label)) noChangeIncorrect++;
             if(!inp.equals(label) && out.equals(label)) changedCorrectly++;
