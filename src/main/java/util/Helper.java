@@ -30,15 +30,10 @@ public class Helper {
                 miniBatchSize, sequenceLength, validCharacters, epochSize, minimized);
     }
 
-    public static String[] convertTensorsToWords(INDArray output, CharacterIterator itr, int nCharactersToSample){
-        int numOutputs = output.shape()[0];
-        StringBuilder sb;
-        String[] result = new String[numOutputs];
-        for(int i=0; i < numOutputs; i++){
-            result[i] = getWordFromDistr(getDoubleMatrixDistr(output.tensorAlongDimension(i, 1,2)), itr)
-                    .replaceAll("ü", "").trim();
-            System.out.println(result[i]);
-        }
+    public static String[] convertTensorsToWords(INDArray output, CharacterIterator itr){
+        String[] result = new String[output.shape()[0]];
+        for(int i=0; i < result.length; i++)
+            result[i] = getWordFromDistr(getDoubleMatrixDistr(output.tensorAlongDimension(i, 1,2)), itr);
         return result;
     }
 
@@ -55,10 +50,11 @@ public class Helper {
                      .map(Helper::getIndexOfMax)
                      .map(itr::convertIndexToCharacter)
                      .map(String::valueOf)
-                     .collect(Collectors.joining());
+                     .collect(Collectors.joining())
+                     .replaceAll("ü", "").trim();       // ü will be chosen if none is bigger supposedly.. TODO
     }
 
-    private static int getIndexOfMax(double[] array){
+    public static int getIndexOfMax(double[] array){
         return IntStream.range(0, array.length)
                         .reduce((i, j)-> array[i] > array[j] ? i : j)
                         .getAsInt();
@@ -67,7 +63,6 @@ public class Helper {
     public static DeepSpellObject[] getSpellObjectsFromTensors(INDArray output, CharacterIterator itr){
         DeepSpellObject[] objects = new DeepSpellObject[output.shape()[0]];
         // inp: [a,b,c] -- tensorAlongDimension(i,1,2) returns tensors of shape [b,c].
-
         double[][] wordMatrix;
         for(int i = 0; i < objects.length; i++){
             wordMatrix = getDoubleMatrixDistr(output.tensorAlongDimension(i,1,2));
@@ -77,30 +72,8 @@ public class Helper {
         return objects;
     }
 
-    public static int getMax(double[] distribution){
-        int idx = 0;
-        double max = 0;
-        for(int i = 0; i < distribution.length; i++){
-            if(distribution[i] > max){
-                max = distribution[i];
-                idx = i;
-            }
-        }
-        if(max == 0) return -1;
-        return idx;
-    }
-
     public static double getMaxDbl(double[] distribution){
-        int idx = 0;
-        double max = 0;
-        for(int i = 0; i < distribution.length; i++){
-            if(distribution[i] > max){
-                max = distribution[i];
-                idx = i;
-            }
-        }
-        if(max == 0) return -1;
-        return max;
+        return Arrays.stream(distribution).max().getAsDouble();
     }
 
     public static char[] mergeArrays(String before, String after, char[]... arrays){
@@ -113,7 +86,6 @@ public class Helper {
         int size = 0, i = 0;
         for(Object[] array : arrays) size += array.length;
         Object[] mergedArray = new Object[size];
-
         for(Object[] array : arrays){
             for(Object c : array) mergedArray[i++] = c;
         }
@@ -121,9 +93,9 @@ public class Helper {
     }
 
     public static String reduceEvalStats(String evalStats){
-        String[] stats =evalStats.split("\n");
-        StringBuilder statsSmall = new StringBuilder();
-        for(int i = 0; i < 10; i++) statsSmall.append(stats[stats.length - (i+1)]).append("\n");
+        String[] stats = evalStats.split("\n");
+        StringJoiner statsSmall = new StringJoiner("\n");
+        for(int i = 0; i < 6; i++) statsSmall.add(stats[stats.length - (i+1)]);
         return statsSmall.toString();
     }
 

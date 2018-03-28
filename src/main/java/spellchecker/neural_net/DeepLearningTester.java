@@ -11,8 +11,8 @@ public class DeepLearningTester {
 //            Scanner keyboard = new Scanner(System.in);
 //            for(int i = 0; i < 500; i += 10){
                 model = BiDirectionalRNN.Builder().setCharacterIterator(Seq2Seq.IteratorType.CLASSIC, false)
-                        .loadModel(String.format("data/models/modelBRNN_triple%s.bin", 70));
-                model.runTesting(true);
+                        .loadModel(String.format("data/models/modelBRNN_triple%s.bin", 130));
+                model.runTesting(false);
 //                System.out.println("Nr:" + i);
 //                String a = keyboard.nextLine();
 //            }

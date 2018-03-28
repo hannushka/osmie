@@ -18,7 +18,8 @@ import java.util.Collections;
 public abstract class Seq2Seq {
     public enum ScoreListener{
         VISUALIZE,
-        TERMINAL
+        TERMINAL,
+        ALL
     }
     public enum IteratorType{
         CLASSIC,
@@ -89,12 +90,18 @@ public abstract class Seq2Seq {
         switch (type){
             case VISUALIZE:
                 UIServer uiServer = UIServer.getInstance();
-                StatsStorage statsStorage = new InMemoryStatsStorage(); // Alternative use FileStatsStorage for saving&loading
+                StatsStorage statsStorage = new InMemoryStatsStorage();
                 uiServer.attach(statsStorage);
-                net.setListeners(new StatsListener(statsStorage), new ScoreIterationListener(25));
+                net.setListeners(new StatsListener(statsStorage));
                 break;
             case TERMINAL:
                 net.setListeners(new ScoreIterationListener(1000));
+                break;
+            case ALL:
+                uiServer = UIServer.getInstance();
+                statsStorage = new InMemoryStatsStorage();
+                uiServer.attach(statsStorage);
+                net.setListeners(new StatsListener(statsStorage), new ScoreIterationListener(25));
                 break;
         }
         return this;
@@ -106,21 +113,15 @@ public abstract class Seq2Seq {
     }
 
     public void createReadableStatistics(INDArray input, INDArray result, INDArray labels, boolean print){
-        // No change correct
-        // No change incorrect
-        // Change correct
-        // Change correct but changed wrong
-        // Change incorrect
-        if(!print) return;
-        String[] inputStr = Helper.convertTensorsToWords(input, itr, nCharactersToSample);
-        String[] resultStr = Helper.convertTensorsToWords(result, itr, nCharactersToSample);
-        String[] labelStr = Helper.convertTensorsToWords(labels, itr, nCharactersToSample);
+        String[] inputStr = Helper.convertTensorsToWords(input, itr);
+        String[] resultStr = Helper.convertTensorsToWords(result, itr);
+        String[] labelStr = Helper.convertTensorsToWords(labels, itr);
         String inp, out, label;
         for(int i = 0; i < inputStr.length; i++){
-            inp = inputStr[i].replaceAll("<NaN>", "").trim();
-            out = resultStr[i].replaceAll("<NaN>", "").trim();
-            label = labelStr[i].replaceAll("<NaN>", "").trim();
-//            System.out.println(inp + ",,," + out + ",,," + label);
+            inp = inputStr[i];
+            out = resultStr[i];
+            label = labelStr[i];
+            if(print) System.out.println(inp + ",,," + out + ",,," + label);
             if(inp.equals(out) && inp.equals(label)) noChangeCorrect++;
             if(inp.equals(out) && !inp.equals(label)) noChangeIncorrect++;
             if(!inp.equals(label) && out.equals(label)) changedCorrectly++;
@@ -149,59 +150,4 @@ public abstract class Seq2Seq {
     public abstract void runTesting(boolean print);
 
     public abstract Seq2Seq buildNetwork() throws Exception;
-
-//    public void runTestingOnTrain(boolean print){
-//        itr.reset();
-//        Evaluation eval = new Evaluation(itr.getNbrClasses());
-//        while(itr.hasNext()){
-//            DataSet ds = itr.next();
-//            INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
-//            eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
-//            createReadableStatistics(ds.getFeatures(), output, ds.getLabels(), print);
-//        }
-//        printStats();
-//        //System.out.println(eval.stats(false));
-//    }
-
-
-    public String generateSuggestion(String street){
-        INDArray initializationInput = Nd4j.zeros(1, itr.inputColumns(), street.length());
-        //INDArray inputMask = Nd4j.zeros(numSamples, initialization.length());
-
-        char[] init = street.toCharArray();
-        Collections.reverse(Chars.asList(init));
-        for(int i = 0; i < init.length; i++){
-            int idx = itr.convertCharacterToIndex(init[i]);
-            initializationInput.putScalar(new int[]{0,idx,i}, 1.0f);
-        }
-
-        StringBuilder sb = new StringBuilder(street);
-
-        //Sample from network (and feed samples back into input) one character at a time (for all samples)
-        //Sampling is done in parallel here
-        net.rnnClearPreviousState();
-//            INDArray output = net.output(initializationInput, false);
-//            System.out.println(convertTensorsToWords(output)[0]);
-
-        INDArray output = net.rnnTimeStep(initializationInput);
-        output = output.tensorAlongDimension(output.size(2)-1,1,0);
-        //Gets the last time step output
-
-        for(int i = 0; i < nCharactersToSample; i++){
-            //Set up next input (single time step) by sampling from previous output
-            INDArray nextInput = Nd4j.zeros(1, itr.inputColumns());
-            //Output is a probability distribution. Sample from this for each example we want to generate, and add it to the new input
-            double[] outputProbDistribution = new double[itr.totalOutcomes()];
-            for(int j = 0; j < outputProbDistribution.length; j++ ) outputProbDistribution[j] = output.getDouble(0,j);
-            int sampledCharacterIdx = Helper.getMax(outputProbDistribution);
-
-            nextInput.putScalar(new int[]{0,sampledCharacterIdx}, 1.0f);		//Prepare next time step input
-            if(sampledCharacterIdx == -1) sb.append("<NaN>");
-            else sb.append(itr.convertIndexToCharacter(sampledCharacterIdx));
-
-            output = net.rnnTimeStep(nextInput);	//Do one time step of forward pass
-        }
-        return sb.toString();
-    }
-
 }
