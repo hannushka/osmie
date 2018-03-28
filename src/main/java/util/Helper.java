@@ -3,7 +3,6 @@ package util;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import speed.neural_net.ChSpeedIterator;
 import spellchecker.neural_net.CharacterIterator;
-import spellchecker.neural_net.EmbeddedCharacterIterator;
 
 import java.nio.charset.Charset;
 import java.util.StringJoiner;
@@ -15,15 +14,6 @@ public class Helper {
         String testFileLocation = "data/manualNameData.csv";
         char[] validCharacters = CharacterIterator.getDanishCharacterSet();
         return new CharacterIterator(fileLocation, testFileLocation, Charset.forName("UTF-8"),
-                miniBatchSize, sequenceLength, validCharacters, epochSize, minimized, useCorpus);
-    }
-
-    public static CharacterIterator getEmbeddedIterator(int miniBatchSize, int sequenceLength, int epochSize,
-                                                           boolean minimized, boolean useCorpus) throws Exception {
-        String fileLocation = "data/autoNameData.csv";
-        String testFileLocation = "data/manualNameData.csv";
-        char[] validCharacters = CharacterIterator.getDanishCharacterSet();
-        return new EmbeddedCharacterIterator(fileLocation, testFileLocation, Charset.forName("UTF-8"),
                 miniBatchSize, sequenceLength, validCharacters, epochSize, minimized, useCorpus);
     }
 

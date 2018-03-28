@@ -134,7 +134,6 @@ public class CharacterIterator implements DataSetIterator {
             in.add(inputLine);
             out.add(outputLine);
         }
-
     }
 
     protected CharacterIterator() { }
