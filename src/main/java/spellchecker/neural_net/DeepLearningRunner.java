@@ -12,8 +12,8 @@ public class DeepLearningRunner {
                     .setBatchSize(32)
                     .setNbrEpochs(500)
                     .setEpochSize(10000)
-                    .setNbrLayers(10, 6) // params Integer int... (Size, Size)
-                    .setLearningRate(.1)
+                    .setNbrLayers(20) // params Integer int... (Size, Size)
+                    .setLearningRate(1)
                     .setCharacterIterator(IteratorType.TRUEFALSE,false)
                     .buildNetwork()
                     .setScoreListener(ScoreListener.VISUALIZE);

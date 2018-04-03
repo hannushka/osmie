@@ -29,10 +29,10 @@ public class TrueFalseChIterator extends CharacterIterator {
             this.outputTest     = new LinkedList<>();
             this.charToIdxMap   = new HashMap<>();
             this.validCharacters= getDanishCharacterSet();
-            this.exampleLength  = exampleLength;
+            this.exampleLength  = sequenceLength;
             this.miniBatchSize  = miniBatchSize;
             this.epochSize      = epochSize;
-            this.textFileEncoding = textFileEncoding;
+            this.textFileEncoding = encoding;
             for(int i = 0; i < validCharacters.length; i++) charToIdxMap.put(validCharacters[i], i);
             String before = "\t", after = "\n";
 
@@ -81,7 +81,7 @@ public class TrueFalseChIterator extends CharacterIterator {
         // dimension 2 = length of each time series/example
         // 'f' (fortran) ordering = must for optimized custom iterator.
         INDArray input = Nd4j.create(new int[]{currMinibatchSize, validCharacters.length, exampleLength}, 'f');
-        INDArray labels = Nd4j.create(new int[]{currMinibatchSize, 2, exampleLength}, 'f');
+        INDArray labels = Nd4j.create(new int[]{currMinibatchSize, 1, exampleLength}, 'f');
         INDArray inputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
         INDArray outputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
 
@@ -95,8 +95,8 @@ public class TrueFalseChIterator extends CharacterIterator {
             for(int j = 0; j < inputChars.length + 1; j++)
                 inputMask.putScalar(new int[]{i,j}, 1f);
 
-            outputMask.putScalar(new int[]{i,exampleLength-1}, 1f);
-            labels.putScalar(new int[]{i, outputChars[0], exampleLength-1}, 1f);
+            outputMask.putScalar(new int[]{i, exampleLength-1}, 1f);
+            labels.putScalar(new int[]{i, 0, exampleLength-1}, (float) outputChars[0]);
 
             for(int j = 0; j < exampleLength; j++){
                 int currCharIdx = charToIdxMap.get('\n');
@@ -108,5 +108,8 @@ public class TrueFalseChIterator extends CharacterIterator {
         return new DataSet(input,labels, inputMask, outputMask);
     }
 
-
+    @Override
+    public int totalOutcomes() {
+        return 1;
+    }
 }

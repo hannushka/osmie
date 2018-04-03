@@ -62,7 +62,7 @@ public class RNN extends Seq2Seq {
 
     @Override
     public Seq2Seq buildNetwork() throws Exception{
-        int tbpttLength = 50, idx = 1, nOut = itr.totalOutcomes();
+        int tbpttLength = 50, idx = 1, nOut = itr.totalOutcomes(), nIn = itr.inputColumns();
         NeuralNetConfiguration.ListBuilder builder = new NeuralNetConfiguration.Builder()
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).iterations(1)
                 .learningRate(learningRate)
@@ -71,7 +71,7 @@ public class RNN extends Seq2Seq {
                 .weightInit(WeightInit.XAVIER)
                 .updater(Updater.ADAM)
                 .list()
-                .layer(0, new GravesLSTM.Builder().nIn(nOut).nOut(layerDimensions[0])
+                .layer(0, new GravesLSTM.Builder().nIn(nIn).nOut(layerDimensions[0])
                         .activation(Activation.SOFTSIGN).build());
 
         for(int i = 1; i < layerDimensions.length; i++, idx++)
