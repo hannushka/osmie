@@ -19,7 +19,8 @@ public abstract class Seq2Seq {
     }
     public enum IteratorType{
         CLASSIC,
-        SPEED
+        SPEED,
+        TRUEFALSE
     }
     protected int[] layerDimensions = new int[]{}; //Number of units in each GravesLSTM layer
     protected int miniBatchSize = 32, numEpochs = 50, epochSize = Integer.MAX_VALUE; //Size of mini batch to use when training
@@ -75,6 +76,9 @@ public abstract class Seq2Seq {
                 break;
             case SPEED:
                 itr = CharacterIterator.getSpeedIterator(miniBatchSize, exampleLength, epochSize, minimized);
+                break;
+            case TRUEFALSE:
+                itr = CharacterIterator.getTrueFalseIterator(miniBatchSize, exampleLength, epochSize, minimized);
                 break;
         }
         return this;

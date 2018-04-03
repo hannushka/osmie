@@ -1,27 +1,28 @@
 package spellchecker.neural_net;
 
 import util.Seq2Seq;
-
+import util.Seq2Seq.IteratorType;
 import java.util.Scanner;
 
 public class DeepLearningTester {
     public static void main(String[] args) {
         Seq2Seq model;
         try {
-//            Scanner keyboard = new Scanner(System.in);
-//            for(int i = 0; i < 500; i += 10){
-                model = BiDirectionalRNN.Builder().setCharacterIterator(Seq2Seq.IteratorType.CLASSIC, false)
-                        .loadModel(String.format("data/models/modelBRNN_triple%s.bin", 240));
+            Scanner keyboard = new Scanner(System.in);
+            for(int i = 0; i < 500; i += 10){
+                model = BiDirectionalRNN.Builder().setCharacterIterator(IteratorType.CLASSIC, false)
+                        .loadModel(String.format("data/models/modelBRNN_triple%s.bin", i));
                 model.runTesting(false);
-//                System.out.println("Nr:" + i);
-//                String a = keyboard.nextLine();
-//            }
+                System.out.println("Nr:" + i);
+                String a = keyboard.nextLine();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 }
 /**
+ *
  * String name
  * String label
  * Int position
@@ -43,5 +44,11 @@ public class DeepLearningTester {
  * Test to remove if uncertain and just return inputclass. (Don't forget to test this)
  * Create stats for edit-dist = 1 also (?)
  * SymSpell. Testa att remove framifrån/bakifrån och enbart ändra char i fråga. OpenAddress check.
+ *
+ * Hastighet
+ * Underlag
+ * highway-tag
+ *
+ *
 
  **/

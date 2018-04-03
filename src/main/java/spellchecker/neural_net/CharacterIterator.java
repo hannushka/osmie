@@ -293,4 +293,10 @@ public class CharacterIterator implements DataSetIterator {
         return new ChSpeedIterator(fileLocation, Charset.forName("UTF-8"),
                 miniBatchSize, sequenceLength, epochSize, minimized);
     }
+    public static CharacterIterator getTrueFalseIterator(int miniBatchSize, int sequenceLength, int epochSize,
+                                                     boolean minimized) throws Exception {
+        String fileLocation = "data/autoNameData.csv";
+        return new TrueFalseChIterator(fileLocation, Charset.forName("UTF-8"),
+                miniBatchSize, sequenceLength, epochSize, minimized);
+    }
 }
