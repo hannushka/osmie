@@ -20,16 +20,15 @@ public class BiDirectionalRNN extends RNN {
 
     @Override
     public Seq2Seq buildNetwork() throws Exception {
-        int nOut = itr.totalOutcomes(), idx = 1;
+        int nOut = itr.totalOutcomes(), idx = 1, nIn = itr.inputColumns();
         NeuralNetConfiguration.ListBuilder builder = new NeuralNetConfiguration.Builder()
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).iterations(1)
                 .learningRate(learningRate)
                 .seed(12345)
-                .regularization(true).l2(1e-4)
                 .weightInit(WeightInit.XAVIER)
-                .updater(Updater.ADAM)
+                .updater(Updater.RMSPROP)
                 .list()
-                .layer(0, new GravesBidirectionalLSTM.Builder().nIn(nOut).nOut(layerDimensions[0]).activation(Activation.SOFTSIGN).build());
+                .layer(0, new GravesBidirectionalLSTM.Builder().nIn(nIn).nOut(layerDimensions[0]).activation(Activation.SOFTSIGN).build());
 
         for(int i = 1; i < layerDimensions.length; i++, idx++)
             builder.layer(idx, new GravesBidirectionalLSTM.Builder().nIn(layerDimensions[i-1]).nOut(layerDimensions[i]).activation(Activation.SOFTSIGN).build());
@@ -37,7 +36,7 @@ public class BiDirectionalRNN extends RNN {
         for(int i = layerDimensions.length - 1; i > 0; i--, idx++)
             builder.layer(idx, new GravesBidirectionalLSTM.Builder().nIn(layerDimensions[i]).nOut(layerDimensions[i-1]).activation(Activation.SOFTSIGN).build());
 
-        MultiLayerConfiguration config =  builder.layer(idx, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT).activation(Activation.SOFTMAX)
+        MultiLayerConfiguration config =  builder.layer(idx, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MSE).activation(Activation.SIGMOID)
                 .nIn(layerDimensions[0]).nOut(nOut).build())
                 .build();
         net = new MultiLayerNetwork(config);
