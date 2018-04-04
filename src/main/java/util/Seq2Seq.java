@@ -19,7 +19,6 @@ public abstract class Seq2Seq {
     }
     public enum IteratorType{
         CLASSIC,
-        SPEED,
         TRUEFALSE
     }
     protected int[] layerDimensions = new int[]{}; //Number of units in each GravesLSTM layer
@@ -73,9 +72,6 @@ public abstract class Seq2Seq {
         switch (type){
             case CLASSIC:
                 itr = CharacterIterator.getCharacterIterator(miniBatchSize, exampleLength, epochSize, minimized, useCorpus);
-                break;
-            case SPEED:
-                itr = CharacterIterator.getSpeedIterator(miniBatchSize, exampleLength, epochSize, minimized);
                 break;
             case TRUEFALSE:
                 itr = CharacterIterator.getTrueFalseIterator(miniBatchSize, exampleLength, epochSize, minimized);

@@ -5,16 +5,13 @@ import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.DataSetPreProcessor;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.factory.Nd4j;
-import speed.neural_net.ChSpeedIterator;
+import truefalse.neural_net.TrueFalseChIterator;
 import util.ArrayUtils;
-import util.Helper;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 
 import static util.StringUtils.getDanishCharacterSet;
@@ -287,12 +284,6 @@ public class CharacterIterator implements DataSetIterator {
                 miniBatchSize, sequenceLength, epochSize, minimized, useCorpus);
     }
 
-    public static CharacterIterator getSpeedIterator(int miniBatchSize, int sequenceLength, int epochSize,
-                                                     boolean minimized) throws Exception {
-        String fileLocation = "data/speedData.csv";
-        return new ChSpeedIterator(fileLocation, Charset.forName("UTF-8"),
-                miniBatchSize, sequenceLength, epochSize, minimized);
-    }
     public static CharacterIterator getTrueFalseIterator(int miniBatchSize, int sequenceLength, int epochSize,
                                                      boolean minimized) throws Exception {
         String fileLocation = "data/autoNameData.csv";

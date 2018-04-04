@@ -36,7 +36,7 @@ public class BiDirectionalRNN extends RNN {
         for(int i = layerDimensions.length - 1; i > 0; i--, idx++)
             builder.layer(idx, new GravesBidirectionalLSTM.Builder().nIn(layerDimensions[i]).nOut(layerDimensions[i-1]).activation(Activation.SOFTSIGN).build());
 
-        MultiLayerConfiguration config =  builder.layer(idx, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MSE).activation(Activation.SIGMOID)
+        MultiLayerConfiguration config =  builder.layer(idx, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT).activation(Activation.SOFTMAX)
                 .nIn(layerDimensions[0]).nOut(nOut).build())
                 .build();
         net = new MultiLayerNetwork(config);
