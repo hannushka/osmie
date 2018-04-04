@@ -8,14 +8,16 @@ public class DeepLearningTester {
     public static void main(String[] args) {
         Seq2Seq model;
         try {
-//            Scanner keyboard = new Scanner(System.in);
-//            for(int i = 0; i < 500; i += 10){
-                model = BiDirectionalRNN.Builder().setCharacterIterator(Seq2Seq.IteratorType.CLASSIC, false)
-                        .loadModel(String.format("data/models/modelBRNN_triple%s.bin", 240));
+            Scanner keyboard = new Scanner(System.in);
+            for(int i = 0; i < 500; i += 10){
+                model = BiDirectionalRNN.Builder()
+                        .useCorpus(false)
+                        .setCharacterIterator(Seq2Seq.IteratorType.CLASSIC, false)
+                        .loadModel(String.format("data/models/modelBRNN_triple_NO_CORPUS%s.bin", i));
                 model.runTesting(false);
-//                System.out.println("Nr:" + i);
-//                String a = keyboard.nextLine();
-//            }
+                System.out.println("Nr:" + i);
+                String a = keyboard.nextLine();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
