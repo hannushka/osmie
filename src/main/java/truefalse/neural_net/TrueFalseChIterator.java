@@ -10,24 +10,23 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import static util.StringUtils.getDanishCharacterSet;
 
 public class TrueFalseChIterator extends CharacterIterator {
+    List<Boolean> outputTF, testOutputTF;
+    List<List<String>> inputTF, testTF;
+
     public TrueFalseChIterator(String file, Charset encoding, int miniBatchSize, int sequenceLength, int epochSize,
                                boolean minimized) throws IOException {
             if(!new File(file).exists()) throw new IOException("Could not access file (does not exist): " + file);
             if(miniBatchSize <= 0) throw new IllegalArgumentException("Invalid miniBatchSize (must be > 0)");
-            this.inputLines     = new LinkedList<>();
-            this.outputLines    = new LinkedList<>();
-            this.ogInput        = new LinkedList<>();
-            this.ogOutput       = new LinkedList<>();
-            this.inputTest      = new LinkedList<>();
-            this.outputTest     = new LinkedList<>();
+            this.outputTF = new ArrayList<>();
+            this.testOutputTF = new ArrayList<>();
+            this.inputTF = new ArrayList<>();
+            this.testTF = new ArrayList<>();
+
             this.charToIdxMap   = new HashMap<>();
             this.validCharacters= getDanishCharacterSet();
             this.exampleLength  = sequenceLength;
@@ -54,21 +53,20 @@ public class TrueFalseChIterator extends CharacterIterator {
                 j++;
                 String[] inputOutput = s.split(",,,");
 
-                if(inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
+                if(inputOutput.length < 7) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
 
-                char[] inputLine = ArrayUtils.mergeArrays(before, after, inputOutput[0].toLowerCase().toCharArray());
-                char[] outputLine = new char[1];
+                List<String> values = new ArrayList<>();
+                for(String val : inputOutput) values.add(val.toLowerCase().trim());
+                values.remove(0);
+                // values = [val,val,val,val,name] ish.
+//                char[] outputLine = new char[1];
 
-                for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
-                int val = inputOutput[0].toLowerCase().trim().equals(inputOutput[1].toLowerCase().trim()) ? 1 : 0;
-                outputLine[0] = (char) val;
+
+                //for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
+                //int val = inputOutput[0].toLowerCase().trim().equals(inputOutput[1].toLowerCase().trim()) ? 1 : 0;
 
                 if(j < limit){
-                    inputLines.add(inputLine);
-                    outputLines.add(outputLine);
                 }else{
-                    inputTest.add(inputLine);
-                    outputTest.add(outputLine);
                 }
             }
     }
