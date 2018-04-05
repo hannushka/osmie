@@ -9,11 +9,12 @@ public class DeepLearningTester {
         Seq2Seq model;
         try {
             Scanner keyboard = new Scanner(System.in);
-            for(int i = 0; i < 500; i += 10){
+            for(int i = 40; i < 500; i += 10){
+                System.out.println("Running evaluation for model " + i);
                 model = BiDirectionalRNN.Builder()
                         .useCorpus(false)
                         .setCharacterIterator(Seq2Seq.IteratorType.CLASSIC, false)
-                        .loadModel(String.format("data/models/modelBRNN_triple_NO_CORPUS%s.bin", i));
+                        .loadModel(String.format("data/models/modelBRNN_quad_NO_CORPUS%s.bin", i));
                 model.runTesting(false);
                 System.out.println("Nr:" + i);
                 String a = keyboard.nextLine();

@@ -114,7 +114,7 @@ public abstract class Seq2Seq {
         String[] labelStr = Helper.convertTensorsToWords(labels, itr);
         String inp, out, label;
         for(int i = 0; i < inputStr.length; i++){
-            inp = inputStr[i];
+            inp = inputStr[i].substring(1); //Remove other parameters than characters with substring
             out = resultStr[i];
             label = labelStr[i];
             if(print) System.out.println(inp + ",,," + out + ",,," + label);

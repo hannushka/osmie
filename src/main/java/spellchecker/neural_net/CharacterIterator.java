@@ -37,6 +37,7 @@ public class CharacterIterator implements DataSetIterator {
     protected LinkedList<char[]> inputTest, outputTest;
     //Length of each example/minibatch (number of characters)
     protected int exampleLength, miniBatchSize, numExamples, pointer = 0, epochSize;
+    int nbrOfSpeedClasses = 3;
     //Size of each minibatch (number of examples) <-- This is each word, so words here.
 
     /**
@@ -63,7 +64,8 @@ public class CharacterIterator implements DataSetIterator {
         this.miniBatchSize  = miniBatchSize;
         this.epochSize      = epochSize;
         this.textFileEncoding = textFileEncoding;
-        for(int i = 0; i < validCharacters.length; i++) charToIdxMap.put(validCharacters[i], i);
+        for (int i = 0; i < validCharacters.length; i++) charToIdxMap.put(validCharacters[i], i);
+        for (int i = 0 ; i < nbrOfSpeedClasses ; i++) charToIdxMap.put((char)i, validCharacters.length + i);
         String before = "\t", after = "\n";
 
         // Train-Data (streets)
@@ -75,42 +77,11 @@ public class CharacterIterator implements DataSetIterator {
         limit = Integer.MAX_VALUE;
         generateDataFromFile(testFilePath, inputTest, outputTest, limit, before, after);
 
-        // Train-Data (corpus)
-        if(useCorpus){
-            LinkedList<char []> inputToMerge = new LinkedList<>(), outputToMerge = new LinkedList<>();
-            generateDataFromFile(testFilePath, inputToMerge, outputToMerge, limit, "", "");
-            addCorpusToData(inputToMerge, outputToMerge, before, after);
-        }
 
         ogInput = new LinkedList<>(inputLines);
         ogOutput = new LinkedList<>(outputLines);
 
         numExamples = inputLines.size();
-    }
-
-    private void addCorpusToData(LinkedList<char[]> inputToMerge, LinkedList<char[]> outputToMerge,
-                                 String before, String after) {
-        char[] in, out;
-        boolean added;
-        while (!inputToMerge.isEmpty()) {
-            in = inputToMerge.remove(0);
-            out = outputToMerge.remove(0);
-            added = false;
-
-            for (int i = 0; i < inputToMerge.size(); i++) {
-                if (in.length + 5 + inputToMerge.get(i).length < exampleLength) {
-                    inputLines.add(ArrayUtils.mergeArrays(before, after, in, inputToMerge.remove(i)));
-                    outputLines.add(ArrayUtils.mergeArrays(before, after, out, outputToMerge.remove(i)));
-                    added = true;
-                    break;
-                }
-            }
-
-            if (!added) {
-                inputLines.add(ArrayUtils.mergeArrays(before, after, in));
-                outputLines.add(ArrayUtils.mergeArrays(before, after, out));
-            }
-        }
     }
 
     private void generateDataFromFile(String textFilePath, LinkedList<char[]> in, LinkedList<char[]> out, int limit,
@@ -121,12 +92,12 @@ public class CharacterIterator implements DataSetIterator {
         for(String s : lines){
             if(s.isEmpty() || (j > limit)) continue;
             j++;
-            String[] inputOutput = s.split(",,,");
+            String[] values = s.split(",,,");
+            if(values.length < 7) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
 
-            if(inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
-
-            char[] inputLine = ArrayUtils.mergeArrays(before, after, inputOutput[0].toLowerCase().toCharArray());
-            char[] outputLine = ArrayUtils.mergeArrays(before, after, inputOutput[1].toLowerCase().toCharArray());
+            String tmpBefore = before + getSpeedClass(values[1]);
+            char[] inputLine = ArrayUtils.mergeArrays(tmpBefore, after, values[0].toLowerCase().toCharArray());
+            char[] outputLine = ArrayUtils.mergeArrays(before, after, values[values.length-1].toLowerCase().toCharArray());
 
             for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
             for(int i = 0; i < outputLine.length; i++) if(!charToIdxMap.containsKey(outputLine[i])) outputLine[i] = '!';
@@ -174,7 +145,7 @@ public class CharacterIterator implements DataSetIterator {
         // dimension 1 = size of each vector (i.e., number of characters)
         // dimension 2 = length of each time series/example
         // 'f' (fortran) ordering = must for optimized custom iterator.
-        INDArray input = Nd4j.create(new int[]{currMinibatchSize, validCharacters.length, exampleLength}, 'f');
+        INDArray input = Nd4j.create(new int[]{currMinibatchSize, validCharacters.length + nbrOfSpeedClasses, exampleLength}, 'f');
         INDArray labels = Nd4j.create(new int[]{currMinibatchSize, validCharacters.length, exampleLength}, 'f');
 //        INDArray labels = Nd4j.create(new int[]{currMinibatchSize, validCharacters.length, exampleLength*2}, 'f');
 
@@ -219,7 +190,7 @@ public class CharacterIterator implements DataSetIterator {
     }
 
     public int inputColumns() {
-        return validCharacters.length;
+        return validCharacters.length + nbrOfSpeedClasses;
     }
 
     public int totalOutcomes() {
@@ -278,16 +249,33 @@ public class CharacterIterator implements DataSetIterator {
 
     public static CharacterIterator getCharacterIterator(int miniBatchSize, int sequenceLength, int epochSize,
                                                          boolean minimized, boolean useCorpus) throws Exception {
-        String fileLocation = "data/autoNameData.csv";
-        String testFileLocation = "data/manualNameData.csv";
+        String fileLocation = "data/SuperDataUnique.csv.noised";
+        String testFileLocation = "data/superDataUniqueTest.csv.noised";
         return new CharacterIterator(fileLocation, testFileLocation, Charset.forName("UTF-8"),
                 miniBatchSize, sequenceLength, epochSize, minimized, useCorpus);
     }
 
     public static CharacterIterator getTrueFalseIterator(int miniBatchSize, int sequenceLength, int epochSize,
                                                      boolean minimized) throws Exception {
-        String fileLocation = "data/autoNameData.csv";
+        String fileLocation = "data/SuperDataUnique.csv.noised";
         return new TrueFalseChIterator(fileLocation, Charset.forName("UTF-8"),
                 miniBatchSize, sequenceLength, epochSize, minimized);
+    }
+
+    private int getSpeedClass(String speed) {
+        try {
+            int numericSpeed = Integer.parseInt(speed);
+            if (numericSpeed == -1) return 3;
+            else if (numericSpeed <= 30) return 0;
+            else if (numericSpeed <= 70) return 1;
+            else return 2;
+        } catch (NumberFormatException e) {
+            speed = speed.toLowerCase();
+            switch (speed) {
+                case "walk": return 0;
+                case "dk:rural": return 0;
+                default: return 3;
+            }
+        }
     }
 }
