@@ -15,10 +15,11 @@ import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
-import util.Seq2Seq;
-import util.StringUtils;
+import util.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RNN extends Seq2Seq {
 
@@ -49,15 +50,30 @@ public class RNN extends Seq2Seq {
 
     public void runTesting(boolean print){
         Evaluation eval = new Evaluation(itr.getNbrClasses());
+        List<DeepSpellObject> spellObjects = new ArrayList<>();
         while(itr.hasNextTest()){
             DataSet ds = itr.nextTest();
             net.rnnClearPreviousState();
             INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
             eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
+            spellObjects.addAll(Helper.getSpellObjectsFromUncertainTensors(output, ds.getLabels(), itr));
             createReadableStatistics(ds.getFeatures(), output, ds.getLabels(), print);
         }
         printStats();
+        int correct = 0;
+        for(DeepSpellObject obj : spellObjects) if(obj.guessCorrect()) correct++;
+
+        System.out.println(correct + " / " + spellObjects.size() + " (unsure guesses that are correct)");
         System.out.println(StringUtils.reduceEvalStats(eval.stats()));
+        spellObjects.get(0).generateNewWordsFromGuess();
+        DataSet ds = itr.createDataSetFromDSO(spellObjects.get(0));
+        net.rnnClearPreviousState();
+        INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
+        double[][] distr = Helper.getBestGuess(output);
+        System.out.println(Helper.getWordFromDistr(distr, itr));
+        System.out.println(spellObjects.get(0).currentName.orElse("") + ",,," + spellObjects.get(0).correctName);
+//        eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
+
     }
 
     @Override

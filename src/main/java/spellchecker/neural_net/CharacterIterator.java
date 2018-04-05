@@ -7,6 +7,7 @@ import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.factory.Nd4j;
 import truefalse.neural_net.TrueFalseChIterator;
 import util.ArrayUtils;
+import util.DeepSpellObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -137,6 +138,23 @@ public class CharacterIterator implements DataSetIterator {
     }
 
     protected CharacterIterator() { }
+
+    public DataSet createDataSetFromDSO(DeepSpellObject obj){
+        String labelStr = obj.correctName;
+        char[] label = ArrayUtils.mergeArrays("\t", "\n", labelStr.toCharArray());
+        char[] inp;
+        for(int i = 0; i < label.length; i++) if(!charToIdxMap.containsKey(label[i])) label[i] = '!';
+        LinkedList<char[]> inputs = new LinkedList<>();
+        LinkedList<char[]> labels = new LinkedList<>();
+        for(String suggestion : obj.corrections){
+            inp = ArrayUtils.mergeArrays("\t", "\n", suggestion.toCharArray());
+            for(int i = 0; i < inp.length; i++) if(!charToIdxMap.containsKey(inp[i])) inp[i] = '!';
+            inputs.add(inp);
+            labels.add(label);
+        }
+
+        return createDataSet(Integer.MAX_VALUE, inputs, labels);
+    }
 
     public int getNbrClasses(){
         return validCharacters.length;

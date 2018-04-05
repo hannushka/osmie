@@ -5,7 +5,9 @@ import org.nd4j.linalg.api.iter.NdIndexIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import spellchecker.neural_net.CharacterIterator;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -18,6 +20,23 @@ public class Helper {
         return result;
     }
 
+    public static double[][] getBestGuess(INDArray array){
+        double[][] bestDistr = getDoubleMatrixDistr(array.tensorAlongDimension(0, 1,2)), tmpDistr;
+        double maxScore = -1, tmpLowest = 10, tmpScore;
+        for(int i=0; i < array.shape()[0]; i++){
+            tmpDistr = getDoubleMatrixDistr(array.tensorAlongDimension(i, 1,2));
+            for(double[] a : tmpDistr){
+                tmpScore = getMaxDbl(a);
+                if(tmpScore > 0) tmpLowest = Double.min(tmpLowest, tmpScore);
+            }
+            if(tmpLowest > maxScore){
+                maxScore = tmpLowest;
+                bestDistr = tmpDistr;
+            }
+        }
+        return bestDistr;
+    }
+
     private static double[][] getDoubleMatrixDistr(INDArray array){
         if(array.shape().length != 2) throw new DimensionMismatchException(array.shape().length, 2);
         NdIndexIterator iter = new NdIndexIterator(array.shape());
@@ -26,7 +45,7 @@ public class Helper {
         return distr;
     }
 
-    private static String getWordFromDistr(double[][] wordDistr, CharacterIterator itr){
+    public static String getWordFromDistr(double[][] wordDistr, CharacterIterator itr){
         return Arrays.stream(wordDistr)
                      .map(Helper::getIndexOfMax)
                      .map(itr::convertIndexToCharacter)
@@ -41,14 +60,22 @@ public class Helper {
                         .getAsInt();
     }
 
-    public static DeepSpellObject[] getSpellObjectsFromTensors(INDArray output, CharacterIterator itr){
-        DeepSpellObject[] objects = new DeepSpellObject[output.shape()[0]];
+
+
+    public static List<DeepSpellObject> getSpellObjectsFromUncertainTensors(INDArray output, INDArray labels,
+                                                                            CharacterIterator itr){
+        List<DeepSpellObject> objects = new ArrayList<>();
+        double[][] wordMatrix, labelMatrix;
         // inp: [a,b,c] -- tensorAlongDimension(i,1,2) returns tensors of shape [b,c].
-        double[][] wordMatrix;
-        for(int i = 0; i < objects.length; i++){
+
+        for(int i = 0; i < output.shape()[0]; i++){
             wordMatrix = getDoubleMatrixDistr(output.tensorAlongDimension(i,1,2));
-            DeepSpellObject deepSpellObject = new DeepSpellObject(wordMatrix, getWordFromDistr(wordMatrix, itr).trim());
-            objects[i] = deepSpellObject;
+            if(Arrays.stream(wordMatrix).anyMatch(array -> getMaxDbl(array) < 0.5 && getMaxDbl(array) > 0)){
+                labelMatrix = getDoubleMatrixDistr(labels.tensorAlongDimension(i, 1,2));
+                DeepSpellObject deepSpellObject = new DeepSpellObject(wordMatrix, getWordFromDistr(wordMatrix, itr).trim(),
+                        getWordFromDistr(labelMatrix, itr).trim());
+                objects.add(deepSpellObject);
+            }
         }
         return objects;
     }
