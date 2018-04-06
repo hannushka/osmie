@@ -1,7 +1,7 @@
 package neural_nets.anomalies;
 
+import neural_nets.BiDirectionalRNN;
 import neural_nets.Seq2Seq;
-import neural_nets.spellchecker.BiDirectionalRNN;
 
 public class AnomaliesRunner {
     public static void main(String[] args) {

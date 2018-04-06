@@ -1,6 +1,7 @@
 package neural_nets.spellchecker;
 
 
+import neural_nets.BiDirectionalRNN;
 import neural_nets.Seq2Seq;
 
 import java.util.Scanner;

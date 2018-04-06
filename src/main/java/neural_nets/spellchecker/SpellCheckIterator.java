@@ -20,10 +20,10 @@ import static util.StringUtils.getDanishCharacterSet;
  * @author Hannah Lindblad
  */
 public class SpellCheckIterator extends CharacterIterator {
-    char[] validCharacters;
-    Charset textFileEncoding; //Maps each character to an index in the input/output
-    Map<Character,Integer> charToIdxMap; //All characters of the input file (after filtering to only those that are valid)
-    LinkedList<char[]> inputLines, outputLines;
+    protected char[] validCharacters;
+    protected Charset textFileEncoding; //Maps each character to an index in the input/output
+    protected Map<Character,Integer> charToIdxMap; //All characters of the input file (after filtering to only those that are valid)
+    protected LinkedList<char[]> inputLines, outputLines;
     protected LinkedList<char[]> ogInput, ogOutput;
     protected int exampleLength, miniBatchSize, numExamples, pointer = 0, epochSize;
 
@@ -54,6 +54,7 @@ public class SpellCheckIterator extends CharacterIterator {
         generateDataFromFile(textFilePath, before, after);
     }
 
+    public SpellCheckIterator() {}
 
     private void generateDataFromFile(String textFilePath, String before, String after) throws IOException {
 

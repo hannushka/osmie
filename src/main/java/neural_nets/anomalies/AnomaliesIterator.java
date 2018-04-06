@@ -1,7 +1,6 @@
 package neural_nets.anomalies;
 
 import neural_nets.CharacterIterator;
-import neural_nets.spellchecker.BiDirectionalRNN;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
@@ -127,9 +126,6 @@ public class AnomaliesIterator extends CharacterIterator {
         pointer = 0;
     }
 
-    public boolean resetSupported() {
-        return true;
-    }
 
     public int batch() {
         return miniBatchSize;
@@ -154,6 +150,11 @@ public class AnomaliesIterator extends CharacterIterator {
     @Override
     public int totalOutcomes() {
         return 2;
+    }
+
+    @Override
+    public boolean resetSupported() {
+        return true;
     }
 
 }

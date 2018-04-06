@@ -1,10 +1,10 @@
 package util;
 
 import neural_nets.CharacterIterator;
+import neural_nets.spellchecker.SpellCheckIterator;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.nd4j.linalg.api.iter.NdIndexIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import neural_nets.spellchecker.SpellCheckIterator;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
