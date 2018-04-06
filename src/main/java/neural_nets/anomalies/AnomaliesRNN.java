@@ -1,5 +1,7 @@
-package truefalse.neural_net;
+package neural_nets.anomalies;
 
+import neural_nets.RNN;
+import neural_nets.Seq2Seq;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
@@ -10,18 +12,16 @@ import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
-import spellchecker.neural_net.RNN;
-import util.Seq2Seq;
 
-public class TrueFalseRNN extends RNN {
+public class AnomaliesRNN extends RNN {
 
     public static Seq2Seq Builder(){
-        return new TrueFalseRNN();
+        return new AnomaliesRNN();
     }
 
     @Override
     public Seq2Seq buildNetwork() throws Exception {
-        int nOut = itr.totalOutcomes(), idx = 1, nIn = itr.inputColumns();
+        int nOut = trainItr.totalOutcomes(), idx = 1, nIn = trainItr.inputColumns();
         NeuralNetConfiguration.ListBuilder builder = new NeuralNetConfiguration.Builder()
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).iterations(1)
                 .learningRate(learningRate)

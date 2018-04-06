@@ -1,7 +1,9 @@
-package util;
+package neural_nets;
 
 import SymSpell.SymSpell;
 import SymSpell.SuggestItem;
+import neural_nets.anomalies.AnomaliesIterator;
+import neural_nets.spellchecker.SpellCheckIterator;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
@@ -10,10 +12,14 @@ import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import spellchecker.neural_net.CharacterIterator;
+import util.DeepSpellObject;
+import util.Helper;
+import util.StringUtils;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.nio.charset.Charset;
 
 public abstract class Seq2Seq {
     public enum ScoreListener{
@@ -23,23 +29,18 @@ public abstract class Seq2Seq {
     }
     public enum IteratorType{
         CLASSIC,
-        TRUEFALSE
+        ANOMALIES
     }
+
     protected int[] layerDimensions = new int[]{}; //Number of units in each GravesLSTM layer
     protected int miniBatchSize = 32, numEpochs = 50, epochSize = Integer.MAX_VALUE; //Size of mini batch to use when training
-    private int nCharactersToSample = 50;
     protected double learningRate = 0.01;
     protected String baseFilename = "models";
     protected MultiLayerNetwork net;
-    protected CharacterIterator itr;
+    protected CharacterIterator trainItr, testItr;
+
     private int noChangeCorrect = 0, noChangeIncorrect = 0, changedCorrectly = 0, changedIncorrectly = 0, editDistOne = 0;
     private int wrongChangeType = 0;
-    private boolean useCorpus = true;
-
-    public Seq2Seq useCorpus(boolean useCorpus){
-        this.useCorpus = useCorpus;
-        return this;
-    }
 
     public Seq2Seq setFilename(String name){
         this.baseFilename = name;
@@ -71,14 +72,21 @@ public abstract class Seq2Seq {
         return this;
     }
 
-    public Seq2Seq setCharacterIterator(IteratorType type, boolean minimized) throws Exception {
+    public Seq2Seq setCharacterIterator(String fileLocation, String testFileLocation,
+                                        IteratorType type) throws Exception {
         int exampleLength = 50;
         switch (type){
             case CLASSIC:
-                itr = CharacterIterator.getCharacterIterator(miniBatchSize, exampleLength, epochSize, minimized, useCorpus);
+                trainItr = new SpellCheckIterator(fileLocation, Charset.forName("UTF-8"),
+                        miniBatchSize, exampleLength, epochSize);
+                testItr = new SpellCheckIterator(testFileLocation, Charset.forName("UTF-8"),
+                        miniBatchSize, exampleLength, epochSize);
                 break;
-            case TRUEFALSE:
-                itr = CharacterIterator.getTrueFalseIterator(miniBatchSize, exampleLength, epochSize, minimized);
+            case ANOMALIES:
+                trainItr = new AnomaliesIterator(fileLocation, Charset.forName("UTF-8"),
+                        miniBatchSize, exampleLength, epochSize);
+                testItr = new AnomaliesIterator(testFileLocation, Charset.forName("UTF-8"),
+                        miniBatchSize, exampleLength, epochSize);
                 break;
         }
         return this;
@@ -114,9 +122,9 @@ public abstract class Seq2Seq {
 
     public void createReadableStatistics(INDArray input, INDArray result, INDArray labels, boolean print,
                                          List<DeepSpellObject> deepSpellObjects, SymSpell symSpell){
-        String[] inputStr = Helper.convertTensorsToWords(input, itr);
-        String[] resultStr = Helper.convertTensorsToWords(result, itr);
-        String[] labelStr = Helper.convertTensorsToWords(labels, itr);
+        String[] inputStr = Helper.convertTensorsToWords(input, trainItr);
+        String[] resultStr = Helper.convertTensorsToWords(result, trainItr);
+        String[] labelStr = Helper.convertTensorsToWords(labels, trainItr);
         for(DeepSpellObject obj : deepSpellObjects){
             String word = obj.currentName.orElse("");
             if(word.contains(" ")) continue;
@@ -127,7 +135,6 @@ public abstract class Seq2Seq {
                 resultStr[obj.index] = items.get(0).term;
             }
         }
-
         String inp, out, label;
         for(int i = 0; i < inputStr.length; i++){
             inp = inputStr[i];

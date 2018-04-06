@@ -1,4 +1,4 @@
-package spellchecker.random_forest;
+package s_corrector.random_forest;
 
 import org.apache.commons.io.IOUtils;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;

@@ -1,16 +1,16 @@
 package util;
 
 import SymSpell.SymSpell;
+import neural_nets.CharacterIterator;
+import neural_nets.spellchecker.SpellCheckIterator;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.nd4j.linalg.api.iter.NdIndexIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import spellchecker.neural_net.CharacterIterator;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -61,8 +61,6 @@ public class Helper {
                         .reduce((i, j)-> array[i] > array[j] ? i : j)
                         .getAsInt();
     }
-
-
 
     public static List<DeepSpellObject> getSpellObjectsFromUncertainTensors(INDArray input, INDArray output, INDArray labels,
                                                                             CharacterIterator itr){

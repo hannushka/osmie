@@ -3,14 +3,10 @@ import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.streaming.resource.File;
-import org.openstreetmap.atlas.tags.names.NameTag;
-import spellchecker.random_forest.SCorrector;
 import util.SpellObject;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 public class Main {
     Map<Long, SpellObject> edges;

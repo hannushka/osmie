@@ -1,20 +1,22 @@
-package truefalse.neural_net;
+package neural_nets.spellchecker;
 
-import spellchecker.neural_net.BiDirectionalRNN;
-import util.Seq2Seq;
 
-public class TrueFalseRunner {
+import neural_nets.BiDirectionalRNN;
+import neural_nets.Seq2Seq;
+
+public class DeepLearningRunner {
     public static void main(String[] args) {
         try {
+            String fileLocation = "data/autoNameData.csv";
+            String testFileLocation = "data/manualNameData.csv";
             Seq2Seq model = BiDirectionalRNN.Builder()
-                    .setFilename("modelBRNN_quad_NO_CORPUS")
-                    .useCorpus(false)
+                    .setFilename("modelBRNN_")
                     .setBatchSize(32)
                     .setNbrEpochs(500)
                     .setEpochSize(10000)
-                    .setNbrLayers(20, 10) // params Integer int... (Size, Size)
+                    .setNbrLayers(10, 6) // params Integer int... (Size, Size)
                     .setLearningRate(.1)
-                    .setCharacterIterator(Seq2Seq.IteratorType.TRUEFALSE,false)
+                    .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC)
                     .buildNetwork()
                     .setScoreListener(Seq2Seq.ScoreListener.VISUALIZE);
             model.runTraining();

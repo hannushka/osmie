@@ -1,4 +1,4 @@
-package spellchecker.neural_net;
+package neural_nets;
 
 import SymSpell.SymSpell;
 import SymSpell.SuggestItem;
@@ -18,6 +18,7 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import util.*;
+import util.StringUtils;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -32,8 +33,8 @@ public class RNN extends Seq2Seq {
     public void runTraining() throws IOException {
         int miniBatchNumber = 0, generateSamplesEveryNMinibatches = 100;
         for (int i = 0; i < numEpochs; i++) {
-            while (itr.hasNext()) {
-                DataSet ds = itr.next();
+            while (trainItr.hasNext()) {
+                DataSet ds = trainItr.next();
                 net.rnnClearPreviousState();
                 net.fit(ds);
 
@@ -45,13 +46,13 @@ public class RNN extends Seq2Seq {
             }
             if(i % 5 == 0) System.out.println("Finished EPOCH #" + i);
             if(i % 10 == 0)  ModelSerializer.writeModel(net, String.format("data/models/%s%s.bin", baseFilename, i), true);
-            itr.reset();
+            trainItr.reset();
         }
         ModelSerializer.writeModel(net, "model.bin", true);
     }
 
     public void runTesting(boolean print){
-        Evaluation eval = new Evaluation(itr.getNbrClasses());
+        Evaluation eval = new Evaluation(testItr.getNbrClasses());
         List<DeepSpellObject> spellObjects = new ArrayList<>();
         SymSpell symSpell = new SymSpell(-1, 2, -1, 10);
         if(!symSpell.loadDictionary("data/korpus_freq_dict.txt", 0, 1)) try {
@@ -60,12 +61,12 @@ public class RNN extends Seq2Seq {
             e.printStackTrace();
         }
 
-        while(itr.hasNextTest()){
-            DataSet ds = itr.nextTest();
+        while(testItr.hasNext()){
+            DataSet ds = testItr.next();
             net.rnnClearPreviousState();
             INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
             eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
-            List<DeepSpellObject> objects = Helper.getSpellObjectsFromUncertainTensors(ds.getFeatureMatrix(), output, ds.getLabels(), itr);
+            List<DeepSpellObject> objects = Helper.getSpellObjectsFromUncertainTensors(ds.getFeatureMatrix(), output, ds.getLabels(), testItr);
             spellObjects.addAll(objects);
 
             createReadableStatistics(ds.getFeatures(), output, ds.getLabels(), print, objects, symSpell);
@@ -109,12 +110,11 @@ public class RNN extends Seq2Seq {
 //            System.out.println(obj.currentName.orElse("") + ",,," + obj.correctName);
 //        }
 //        eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
-
     }
 
     @Override
     public Seq2Seq buildNetwork() throws Exception{
-        int tbpttLength = 50, idx = 1, nOut = itr.totalOutcomes(), nIn = itr.inputColumns();
+        int tbpttLength = 50, idx = 1, nOut = trainItr.totalOutcomes(), nIn = trainItr.inputColumns();
         NeuralNetConfiguration.ListBuilder builder = new NeuralNetConfiguration.Builder()
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).iterations(1)
                 .learningRate(learningRate)
