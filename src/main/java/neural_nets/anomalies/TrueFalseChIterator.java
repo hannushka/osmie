@@ -145,16 +145,6 @@ public class TrueFalseChIterator extends CharacterIterator {
     }
 
     @Override
-    public boolean hasNextTest() {
-        return false;
-    }
-
-    @Override
-    public DataSet nextTest() {
-        return null;
-    }
-
-    @Override
     public boolean resetSupported() {
         return false;
     }

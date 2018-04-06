@@ -47,9 +47,9 @@ public class RNN extends Seq2Seq {
     }
 
     public void runTesting(boolean print){
-        Evaluation eval = new Evaluation(trainItr.getNbrClasses());
-        while(trainItr.hasNextTest()){
-            DataSet ds = trainItr.nextTest();
+        Evaluation eval = new Evaluation(testItr.getNbrClasses());
+        while(testItr.hasNext()){
+            DataSet ds = testItr.next();
             net.rnnClearPreviousState();
             INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
             eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());

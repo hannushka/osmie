@@ -15,7 +15,7 @@ public class TrueFalseRunner {
                     .setEpochSize(10000)
                     .setNbrLayers(20, 10) // params Integer int... (Size, Size)
                     .setLearningRate(.1)
-                    .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.ANOMALIES,false)
+                    .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.ANOMALIES)
                     .buildNetwork()
                     .setScoreListener(Seq2Seq.ScoreListener.VISUALIZE);
             model.runTraining();

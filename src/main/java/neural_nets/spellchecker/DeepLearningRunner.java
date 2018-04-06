@@ -8,13 +8,13 @@ public class DeepLearningRunner {
             String fileLocation = "data/autoNameData.csv";
             String testFileLocation = "data/manualNameData.csv";
             Seq2Seq model = BiDirectionalRNN.Builder()
-                    .setFilename("modelBRNN_quad_NO_CORPUS")
+                    .setFilename("modelBRNN_")
                     .setBatchSize(32)
                     .setNbrEpochs(500)
                     .setEpochSize(10000)
                     .setNbrLayers(10, 6) // params Integer int... (Size, Size)
                     .setLearningRate(.1)
-                    .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC,false)
+                    .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC)
                     .buildNetwork()
                     .setScoreListener(Seq2Seq.ScoreListener.VISUALIZE);
             model.runTraining();

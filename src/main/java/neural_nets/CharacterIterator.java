@@ -39,7 +39,4 @@ public abstract class CharacterIterator implements DataSetIterator {
 
     public abstract int getNbrClasses();
 
-    public abstract boolean hasNextTest();
-
-    public abstract DataSet nextTest();
 }

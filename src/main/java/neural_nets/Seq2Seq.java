@@ -32,8 +32,7 @@ public abstract class Seq2Seq {
     protected double learningRate = 0.01;
     protected String baseFilename = "models";
     protected MultiLayerNetwork net;
-    protected CharacterIterator trainItr;
-    protected CharacterIterator testItr;
+    protected CharacterIterator trainItr, testItr;
 
     private int noChangeCorrect = 0, noChangeIncorrect = 0, changedCorrectly = 0, changedIncorrectly = 0, editDistOne = 0;
     private int wrongChangeType = 0;
@@ -69,16 +68,20 @@ public abstract class Seq2Seq {
     }
 
     public Seq2Seq setCharacterIterator(String fileLocation, String testFileLocation,
-                                        IteratorType type, boolean minimized) throws Exception {
+                                        IteratorType type) throws Exception {
         int exampleLength = 50;
         switch (type){
             case CLASSIC:
-                trainItr = new SpellCheckIterator(fileLocation, testFileLocation, Charset.forName("UTF-8"),
-                        miniBatchSize, exampleLength, epochSize, minimized);
+                trainItr = new SpellCheckIterator(fileLocation, Charset.forName("UTF-8"),
+                        miniBatchSize, exampleLength, epochSize);
+                testItr = new SpellCheckIterator(testFileLocation, Charset.forName("UTF-8"),
+                        miniBatchSize, exampleLength, epochSize);
                 break;
             case ANOMALIES:
                 trainItr = new TrueFalseChIterator(fileLocation, Charset.forName("UTF-8"),
-                        miniBatchSize, exampleLength, epochSize, minimized);
+                        miniBatchSize, exampleLength, epochSize, true);
+                testItr = new TrueFalseChIterator(testFileLocation, Charset.forName("UTF-8"),
+                        miniBatchSize, exampleLength, epochSize, true);
                 break;
         }
         return this;
