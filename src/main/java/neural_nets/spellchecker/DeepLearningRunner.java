@@ -9,7 +9,6 @@ public class DeepLearningRunner {
             String testFileLocation = "data/manualNameData.csv";
             Seq2Seq model = BiDirectionalRNN.Builder()
                     .setFilename("modelBRNN_quad_NO_CORPUS")
-                    .useCorpus(false)
                     .setBatchSize(32)
                     .setNbrEpochs(500)
                     .setEpochSize(10000)

@@ -21,7 +21,7 @@ public class TrueFalseRNN extends RNN {
 
     @Override
     public Seq2Seq buildNetwork() throws Exception {
-        int nOut = itr.totalOutcomes(), idx = 1, nIn = itr.inputColumns();
+        int nOut = trainItr.totalOutcomes(), idx = 1, nIn = trainItr.inputColumns();
         NeuralNetConfiguration.ListBuilder builder = new NeuralNetConfiguration.Builder()
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).iterations(1)
                 .learningRate(learningRate)

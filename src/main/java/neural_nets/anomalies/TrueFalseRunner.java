@@ -9,8 +9,7 @@ public class TrueFalseRunner {
             String fileLocation = "data/autoNameData.csv";
             String testFileLocation = "";
             Seq2Seq model = BiDirectionalRNN.Builder()
-                    .setFilename("modelBRNN_quad_NO_CORPUS")
-                    .useCorpus(false)
+                    .setFilename("modelBRNN_")
                     .setBatchSize(32)
                     .setNbrEpochs(500)
                     .setEpochSize(10000)

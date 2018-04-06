@@ -35,20 +35,6 @@ public abstract class CharacterIterator implements DataSetIterator {
         return inputColumns();
     }
 
-    public static CharacterIterator getCharacterIterator(String fileLocation, String testFileLocation,
-                                                         int miniBatchSize, int sequenceLength, int epochSize,
-                                                          boolean minimized, boolean useCorpus) throws Exception {
-        return new SpellCheckIterator(fileLocation, testFileLocation, Charset.forName("UTF-8"),
-                miniBatchSize, sequenceLength, epochSize, minimized, useCorpus);
-    }
-
-    public static CharacterIterator getTrueFalseIterator(String fileLocation, String testFileLocation,
-                                                         int miniBatchSize, int sequenceLength, int epochSize,
-                                                          boolean minimized) throws Exception {
-        return new TrueFalseChIterator(fileLocation, Charset.forName("UTF-8"),
-                miniBatchSize, sequenceLength, epochSize, minimized);
-    }
-
     public abstract char convertIndexToCharacter(int idx);
 
     public abstract int getNbrClasses();

@@ -1,5 +1,6 @@
 package neural_nets;
 
+import neural_nets.anomalies.TrueFalseChIterator;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
@@ -13,6 +14,7 @@ import util.Helper;
 import util.StringUtils;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 public abstract class Seq2Seq {
     public enum ScoreListener{
@@ -30,16 +32,11 @@ public abstract class Seq2Seq {
     protected double learningRate = 0.01;
     protected String baseFilename = "models";
     protected MultiLayerNetwork net;
-    protected CharacterIterator itr;
+    protected CharacterIterator trainItr;
+    protected CharacterIterator testItr;
 
     private int noChangeCorrect = 0, noChangeIncorrect = 0, changedCorrectly = 0, changedIncorrectly = 0, editDistOne = 0;
     private int wrongChangeType = 0;
-    private boolean useCorpus = true;
-
-    public Seq2Seq useCorpus(boolean useCorpus){
-        this.useCorpus = useCorpus;
-        return this;
-    }
 
     public Seq2Seq setFilename(String name){
         this.baseFilename = name;
@@ -76,11 +73,11 @@ public abstract class Seq2Seq {
         int exampleLength = 50;
         switch (type){
             case CLASSIC:
-                itr = SpellCheckIterator.getCharacterIterator(fileLocation, testFileLocation,
-                        miniBatchSize, exampleLength, epochSize, minimized, useCorpus);
+                trainItr = new SpellCheckIterator(fileLocation, testFileLocation, Charset.forName("UTF-8"),
+                        miniBatchSize, exampleLength, epochSize, minimized);
                 break;
             case ANOMALIES:
-                itr = SpellCheckIterator.getTrueFalseIterator(fileLocation, testFileLocation,
+                trainItr = new TrueFalseChIterator(fileLocation, Charset.forName("UTF-8"),
                         miniBatchSize, exampleLength, epochSize, minimized);
                 break;
         }
@@ -116,9 +113,9 @@ public abstract class Seq2Seq {
     }
 
     public void createReadableStatistics(INDArray input, INDArray result, INDArray labels, boolean print){
-        String[] inputStr = Helper.convertTensorsToWords(input, itr);
-        String[] resultStr = Helper.convertTensorsToWords(result, itr);
-        String[] labelStr = Helper.convertTensorsToWords(labels, itr);
+        String[] inputStr = Helper.convertTensorsToWords(input, trainItr);
+        String[] resultStr = Helper.convertTensorsToWords(result, trainItr);
+        String[] labelStr = Helper.convertTensorsToWords(labels, trainItr);
         String inp, out, label;
         for(int i = 0; i < inputStr.length; i++){
             inp = inputStr[i];

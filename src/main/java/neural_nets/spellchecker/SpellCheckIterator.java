@@ -37,7 +37,7 @@ public class SpellCheckIterator extends CharacterIterator {
      */
 
     public SpellCheckIterator(String textFilePath, String testFilePath, Charset textFileEncoding, int miniBatchSize, int exampleLength,
-                              int epochSize, boolean minimized, boolean useCorpus) throws IOException {
+                              int epochSize, boolean minimized) throws IOException {
         if(!new File(textFilePath).exists()) throw new IOException("Could not access file (does not exist): " + textFilePath);
         if(miniBatchSize <= 0) throw new IllegalArgumentException("Invalid miniBatchSize (must be > 0)");
         this.inputLines     = new LinkedList<>();

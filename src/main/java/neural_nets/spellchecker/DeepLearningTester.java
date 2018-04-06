@@ -14,7 +14,6 @@ public class DeepLearningTester {
             Scanner keyboard = new Scanner(System.in);
             for(int i = 0; i < 500; i += 10){
                 model = BiDirectionalRNN.Builder()
-                        .useCorpus(false)
                         .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC, false)
                         .loadModel(String.format("data/models/modelBRNN_triple_NO_CORPUS%s.bin", i));
                 model.runTesting(false);
