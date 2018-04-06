@@ -58,10 +58,8 @@ public class SpellCheckIterator extends CharacterIterator {
     private void generateDataFromFile(String textFilePath, String before, String after) throws IOException {
 
         List<String> lines = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
-        int j = 0;
         for (String s : lines){
             if (s.isEmpty()) continue;
-            j++;
             String[] inputOutput = s.split(",,,");
 
             if (inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
@@ -141,6 +139,10 @@ public class SpellCheckIterator extends CharacterIterator {
         return validCharacters.length;
     }
 
+    public int totalOutcomes() {
+        return inputColumns();
+    }
+
     public void reset() {
         if (!inputLines.isEmpty() && !outputLines.isEmpty()) {
             pointer = 0;
@@ -173,9 +175,5 @@ public class SpellCheckIterator extends CharacterIterator {
 
     public char convertIndexToCharacter( int idx ){
         return validCharacters[idx];
-    }
-
-    public int convertCharacterToIndex( char c ){
-        return charToIdxMap.getOrDefault(c, 0);
     }
 }

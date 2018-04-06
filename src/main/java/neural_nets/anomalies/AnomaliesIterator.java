@@ -1,10 +1,11 @@
 package neural_nets.anomalies;
 
 import neural_nets.CharacterIterator;
+import neural_nets.spellchecker.BiDirectionalRNN;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
-import neural_nets.spellchecker.SpellCheckIterator;
+import util.ArrayUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,22 +19,17 @@ public class AnomaliesIterator extends CharacterIterator {
     char[] validCharacters;
     Charset textFileEncoding; //Maps each character to an index in the input/output
     Map<Character,Integer> charToIdxMap; //All characters of the input file (after filtering to only those that are valid)
-    LinkedList<char[]> inputLines, outputLines;
-    protected LinkedList<char[]> ogInput, ogOutput;
-    protected LinkedList<char[]> inputTest, outputTest; //Length of each example/minibatch (number of characters)
+    LinkedList<char[]> inputLines;
+    LinkedList<Integer> outputLines;
+    protected LinkedList<char[]> ogInput;
+    LinkedList<Integer> ogOutput;
     protected int exampleLength, miniBatchSize, numExamples, pointer = 0, epochSize;
-    List<Boolean> outputTF, testOutputTF;
-    List<List<String>> inputTF, testTF;
 
-    public AnomaliesIterator(String file, Charset encoding, int miniBatchSize, int sequenceLength, int epochSize,
-                             boolean minimized) throws IOException {
+    public AnomaliesIterator(String file, Charset encoding, int miniBatchSize, int sequenceLength, int epochSize) throws IOException {
             if(!new File(file).exists()) throw new IOException("Could not access file (does not exist): " + file);
             if(miniBatchSize <= 0) throw new IllegalArgumentException("Invalid miniBatchSize (must be > 0)");
-            this.outputTF = new ArrayList<>();
-            this.testOutputTF = new ArrayList<>();
-            this.inputTF = new ArrayList<>();
-            this.testTF = new ArrayList<>();
-
+            this.inputLines     = new LinkedList<>();
+            this.outputLines    = new LinkedList<>();
             this.charToIdxMap   = new HashMap<>();
             this.validCharacters= getDanishCharacterSet();
             this.exampleLength  = sequenceLength;
@@ -42,58 +38,46 @@ public class AnomaliesIterator extends CharacterIterator {
             this.textFileEncoding = encoding;
             for(int i = 0; i < validCharacters.length; i++) charToIdxMap.put(validCharacters[i], i);
             String before = "\t", after = "\n";
-
-            // Train-Data (streets)
             generateDataFromFile(file, before, after);
+        }
 
+        private void generateDataFromFile(String textFilePath, String before, String after) throws IOException {
+            List<String> lines = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
+            for (String s : lines){
+                if (s.isEmpty()) continue;
+                String[] values = s.split(",,,");
+
+                if (values.length < 7) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
+
+                char[] inputLine = ArrayUtils.mergeArrays(before, after, values[0].toLowerCase().toCharArray());
+                char[] tmpOutput = values[values.length-1].toLowerCase().toCharArray();
+                int outputLine = tmpOutput.equals(inputLine) ? 0 : 1;
+
+                for (int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
+                inputLines.add(inputLine);
+                outputLines.add(outputLine);
+            }
             ogInput = new LinkedList<>(inputLines);
             ogOutput = new LinkedList<>(outputLines);
             numExamples = inputLines.size();
         }
 
-        private void generateDataFromFile(String textFilePath, String before, String after) throws IOException {
-            List<String> lines = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
-            int j = 0, limit = (int) (lines.size() * 0.95f);
-
-            for(String s : lines){
-                if(s.isEmpty() || (j > limit)) continue;
-                j++;
-                String[] inputOutput = s.split(",,,");
-
-                if(inputOutput.length < 7) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
-
-                List<String> values = new ArrayList<>();
-                for(String val : inputOutput) values.add(val.toLowerCase().trim());
-                values.remove(0);
-                // values = [val,val,val,val,name] ish.
-//                char[] outputLine = new char[1];
-
-
-                //for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
-                //int val = inputOutput[0].toLowerCase().trim().equals(inputOutput[1].toLowerCase().trim()) ? 1 : 0;
-
-                if(j < limit){
-                }else{
-                }
-            }
-    }
-
-    protected DataSet createDataSet(int num, LinkedList<char[]> in, LinkedList<char[]> out){
-        if(in.isEmpty()) throw new NoSuchElementException();
-        int currMinibatchSize = Math.min(num, in.size());
-        currMinibatchSize = Math.min(currMinibatchSize, out.size());
+    protected DataSet createDataSet(int num) {
+        if(inputLines.isEmpty()) throw new NoSuchElementException();
+        int currMinibatchSize = Math.min(num, inputLines.size());
+        currMinibatchSize = Math.min(currMinibatchSize, outputLines.size());
         // dimension 0 = number of examples in minibatch
         // dimension 1 = size of each vector (i.e., number of characters)
         // dimension 2 = length of each time series/example
         // 'f' (fortran) ordering = must for optimized custom iterator.
         INDArray input = Nd4j.create(new int[]{currMinibatchSize, validCharacters.length, exampleLength}, 'f');
-        INDArray labels = Nd4j.create(new int[]{currMinibatchSize, 1, exampleLength}, 'f');
+        INDArray labels = Nd4j.create(new int[]{currMinibatchSize, 2, exampleLength}, 'f');
         INDArray inputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
         INDArray outputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
 
         for(int i=0; i < currMinibatchSize; i++) {  // Iterating each line
-            char[] inputChars = in.removeFirst();
-            char[] outputChars = out.removeFirst();
+            char[] inputChars = inputLines.removeFirst();
+            int outputClass = outputLines.removeFirst();
             if(inputChars == null) continue;
             pointer++;
 
@@ -102,7 +86,7 @@ public class AnomaliesIterator extends CharacterIterator {
                 inputMask.putScalar(new int[]{i,j}, 1f);
 
             outputMask.putScalar(new int[]{i, exampleLength-1}, 1f);
-            labels.putScalar(new int[]{i, 0, exampleLength-1}, (float) outputChars[0]);
+            labels.putScalar(new int[]{i, outputClass, exampleLength-1}, 1f);
 
             for(int j = 0; j < exampleLength; j++){
                 int currCharIdx = charToIdxMap.get('\n');
@@ -110,72 +94,66 @@ public class AnomaliesIterator extends CharacterIterator {
                 input.putScalar(new int[]{i,currCharIdx,j}, 1f);
             }
         }
-
-        return new DataSet(input,labels, inputMask, outputMask);
+        return new DataSet(input, labels, inputMask, outputMask);
     }
 
-    @Override
+    public boolean hasNext() {
+        return !inputLines.isEmpty() && !outputLines.isEmpty() && pointer < epochSize;
+    }
+
+    public DataSet next() {
+        return createDataSet(miniBatchSize);
+    }
+
     public DataSet next(int num) {
-        return null;
+        return createDataSet(num);
     }
 
-    @Override
     public int totalExamples() {
-        return 0;
+        return numExamples;
     }
 
-    @Override
     public int inputColumns() {
-        return 0;
+        return validCharacters.length;
+    }
+
+    public void reset() {
+        if (!inputLines.isEmpty() && !outputLines.isEmpty()) {
+            pointer = 0;
+            return;
+        }
+        inputLines = new LinkedList<>(ogInput);
+        outputLines = new LinkedList<>(ogOutput);
+        pointer = 0;
+    }
+
+    public boolean resetSupported() {
+        return true;
+    }
+
+    public int batch() {
+        return miniBatchSize;
+    }
+
+    public int cursor() {
+        return totalExamples() - inputLines.size();
+    }
+
+    public int numExamples() {
+        return totalExamples();
+    }
+
+    public int getNbrClasses(){
+        return validCharacters.length;
+    }
+
+    public char convertIndexToCharacter( int idx ){
+        return validCharacters[idx];
     }
 
     @Override
     public int totalOutcomes() {
-        return 1;
+        return 2;
     }
 
-    @Override
-    public char convertIndexToCharacter(int idx) {
-        return 0;
-    }
-
-    @Override
-    public int getNbrClasses() {
-        return 0;
-    }
-
-    @Override
-    public boolean resetSupported() {
-        return false;
-    }
-
-    @Override
-    public void reset() {
-
-    }
-
-    @Override
-    public int batch() {
-        return 0;
-    }
-
-    @Override
-    public int cursor() {
-        return 0;
-    }
-
-    @Override
-    public int numExamples() {
-        return 0;
-    }
-
-    @Override
-    public boolean hasNext() {
-        return false;
-    }
-
-    @Override
-    public DataSet next() {
-        return null;
-    }
 }

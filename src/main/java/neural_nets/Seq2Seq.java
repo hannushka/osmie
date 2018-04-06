@@ -79,9 +79,9 @@ public abstract class Seq2Seq {
                 break;
             case ANOMALIES:
                 trainItr = new AnomaliesIterator(fileLocation, Charset.forName("UTF-8"),
-                        miniBatchSize, exampleLength, epochSize, true);
+                        miniBatchSize, exampleLength, epochSize);
                 testItr = new AnomaliesIterator(testFileLocation, Charset.forName("UTF-8"),
-                        miniBatchSize, exampleLength, epochSize, true);
+                        miniBatchSize, exampleLength, epochSize);
                 break;
         }
         return this;
