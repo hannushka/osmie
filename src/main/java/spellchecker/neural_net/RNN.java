@@ -62,10 +62,14 @@ public class RNN extends Seq2Seq {
             createReadableStatistics(ds.getFeatures(), output, ds.getLabels(), print);
         }
         printStats();
-        int correct = 0;
-        for(DeepSpellObject obj : spellObjects) if(obj.guessCorrect()) correct++;
+        int correct = 0, destroy = 0;
+        for(DeepSpellObject obj : spellObjects){
+            if(obj.guessCorrect()) correct++;
+            if(!obj.guessCorrect() && obj.inputName.equals(obj.correctName)) destroy++;
+        }
 
-        System.out.println(correct + " / " + spellObjects.size() + " (unsure guesses that are correct)");
+        System.out.println(correct + " / " + spellObjects.size() + " (unsure guesses that are correct & "
+                + destroy + " good->bad)");
         System.out.println(StringUtils.reduceEvalStats(eval.stats()));
 
         SymSpell symSpell = new SymSpell(-1, 2, -1, 10);
@@ -74,7 +78,7 @@ public class RNN extends Seq2Seq {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        int j = 0, i = 0,k = 0, l=0;
+        int j = 0, i = 0, k = 0, l=0;
         for(DeepSpellObject obj : spellObjects){
             String word = obj.currentName.orElse("");
             if(word.contains(" ")) continue;
