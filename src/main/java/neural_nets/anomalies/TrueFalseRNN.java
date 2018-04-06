@@ -1,4 +1,4 @@
-package spellchecker.neural_net;
+package neural_nets.anomalies;
 
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
@@ -10,12 +10,13 @@ import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
+import neural_nets.spellchecker.RNN;
 import util.Seq2Seq;
 
-public class BiDirectionalRNN extends RNN {
+public class TrueFalseRNN extends RNN {
 
     public static Seq2Seq Builder(){
-        return new BiDirectionalRNN();
+        return new TrueFalseRNN();
     }
 
     @Override
@@ -36,11 +37,10 @@ public class BiDirectionalRNN extends RNN {
         for(int i = layerDimensions.length - 1; i > 0; i--, idx++)
             builder.layer(idx, new GravesBidirectionalLSTM.Builder().nIn(layerDimensions[i]).nOut(layerDimensions[i-1]).activation(Activation.SOFTSIGN).build());
 
-        MultiLayerConfiguration config =  builder.layer(idx, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT).activation(Activation.SOFTMAX)
+        MultiLayerConfiguration config =  builder.layer(idx, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MSE).activation(Activation.SIGMOID)
                 .nIn(layerDimensions[0]).nOut(nOut).build())
                 .build();
         net = new MultiLayerNetwork(config);
         return this;
     }
-
 }

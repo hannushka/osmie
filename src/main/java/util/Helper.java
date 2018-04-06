@@ -1,12 +1,12 @@
 package util;
 
+import neural_nets.CharacterIterator;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.nd4j.linalg.api.iter.NdIndexIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import spellchecker.neural_net.CharacterIterator;
+import neural_nets.spellchecker.SpellCheckIterator;
 
 import java.util.Arrays;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -41,7 +41,7 @@ public class Helper {
                         .getAsInt();
     }
 
-    public static DeepSpellObject[] getSpellObjectsFromTensors(INDArray output, CharacterIterator itr){
+    public static DeepSpellObject[] getSpellObjectsFromTensors(INDArray output, SpellCheckIterator itr){
         DeepSpellObject[] objects = new DeepSpellObject[output.shape()[0]];
         // inp: [a,b,c] -- tensorAlongDimension(i,1,2) returns tensors of shape [b,c].
         double[][] wordMatrix;

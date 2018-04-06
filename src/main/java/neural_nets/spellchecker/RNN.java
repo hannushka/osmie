@@ -1,4 +1,4 @@
-package spellchecker.neural_net;
+package neural_nets.spellchecker;
 
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;

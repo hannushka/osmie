@@ -1,11 +1,9 @@
-package spellchecker.neural_net;
+package neural_nets.spellchecker;
 
+import neural_nets.CharacterIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
-import org.nd4j.linalg.dataset.api.DataSetPreProcessor;
-import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.factory.Nd4j;
-import truefalse.neural_net.TrueFalseChIterator;
 import util.ArrayUtils;
 
 import java.io.File;
@@ -16,28 +14,19 @@ import java.util.*;
 
 import static util.StringUtils.getDanishCharacterSet;
 
-/** A simple DataSetIterator for use in the GravesLSTMCharModellingExample.
- * Given a text file and a few options, generate feature vectors and labels for training,
- * where we want to predict the next character in the sequence.<br>
- * This is done by randomly choosing a position in the text file, at offsets of 0, exampleLength, 2*exampleLength, etc
- * to start each sequence. Then we convert each character to an index, i.e., a one-hot vector.
- * Then the character 'a' becomes [1,0,0,0,...], 'b' becomes [0,1,0,0,...], etc
- *
- * Feature vectors and labels are both one-hot vectors of same length
+/*
  * @author Alex Black
+ * @author Hampus Londögård
+ * @author Hannah Lindblad
  */
-public class CharacterIterator implements DataSetIterator {
-    protected char[] validCharacters;
-    protected Charset textFileEncoding;
-    //Maps each character to an index in the input/output
-    protected Map<Character,Integer> charToIdxMap;
-    //All characters of the input file (after filtering to only those that are valid)
-    protected LinkedList<char[]> inputLines, outputLines;
+public class SpellCheckIterator extends CharacterIterator {
+    char[] validCharacters;
+    Charset textFileEncoding; //Maps each character to an index in the input/output
+    Map<Character,Integer> charToIdxMap; //All characters of the input file (after filtering to only those that are valid)
+    LinkedList<char[]> inputLines, outputLines;
     protected LinkedList<char[]> ogInput, ogOutput;
-    protected LinkedList<char[]> inputTest, outputTest;
-    //Length of each example/minibatch (number of characters)
+    protected LinkedList<char[]> inputTest, outputTest; //Length of each example/minibatch (number of characters)
     protected int exampleLength, miniBatchSize, numExamples, pointer = 0, epochSize;
-    //Size of each minibatch (number of examples) <-- This is each word, so words here.
 
     /**
      * @param textFilePath Path to text file to use for generating samples
@@ -47,8 +36,8 @@ public class CharacterIterator implements DataSetIterator {
      * @throws IOException If text file cannot  be loaded
      */
 
-    public CharacterIterator(String textFilePath, String testFilePath, Charset textFileEncoding, int miniBatchSize, int exampleLength,
-                             int epochSize, boolean minimized, boolean useCorpus) throws IOException {
+    public SpellCheckIterator(String textFilePath, String testFilePath, Charset textFileEncoding, int miniBatchSize, int exampleLength,
+                              int epochSize, boolean minimized, boolean useCorpus) throws IOException {
         if(!new File(textFilePath).exists()) throw new IOException("Could not access file (does not exist): " + textFilePath);
         if(miniBatchSize <= 0) throw new IllegalArgumentException("Invalid miniBatchSize (must be > 0)");
         this.inputLines     = new LinkedList<>();
@@ -87,56 +76,6 @@ public class CharacterIterator implements DataSetIterator {
 
         numExamples = inputLines.size();
     }
-
-    private void addCorpusToData(LinkedList<char[]> inputToMerge, LinkedList<char[]> outputToMerge,
-                                 String before, String after) {
-        char[] in, out;
-        boolean added;
-        while (!inputToMerge.isEmpty()) {
-            in = inputToMerge.remove(0);
-            out = outputToMerge.remove(0);
-            added = false;
-
-            for (int i = 0; i < inputToMerge.size(); i++) {
-                if (in.length + 5 + inputToMerge.get(i).length < exampleLength) {
-                    inputLines.add(ArrayUtils.mergeArrays(before, after, in, inputToMerge.remove(i)));
-                    outputLines.add(ArrayUtils.mergeArrays(before, after, out, outputToMerge.remove(i)));
-                    added = true;
-                    break;
-                }
-            }
-
-            if (!added) {
-                inputLines.add(ArrayUtils.mergeArrays(before, after, in));
-                outputLines.add(ArrayUtils.mergeArrays(before, after, out));
-            }
-        }
-    }
-
-    private void generateDataFromFile(String textFilePath, LinkedList<char[]> in, LinkedList<char[]> out, int limit,
-                                      String before, String after) throws IOException {
-
-        List<String> lines = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
-        int j = 0;
-        for(String s : lines){
-            if(s.isEmpty() || (j > limit)) continue;
-            j++;
-            String[] inputOutput = s.split(",,,");
-
-            if(inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
-
-            char[] inputLine = ArrayUtils.mergeArrays(before, after, inputOutput[0].toLowerCase().toCharArray());
-            char[] outputLine = ArrayUtils.mergeArrays(before, after, inputOutput[1].toLowerCase().toCharArray());
-
-            for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
-            for(int i = 0; i < outputLine.length; i++) if(!charToIdxMap.containsKey(outputLine[i])) outputLine[i] = '!';
-
-            in.add(inputLine);
-            out.add(outputLine);
-        }
-    }
-
-    protected CharacterIterator() { }
 
     public int getNbrClasses(){
         return validCharacters.length;
@@ -222,10 +161,6 @@ public class CharacterIterator implements DataSetIterator {
         return validCharacters.length;
     }
 
-    public int totalOutcomes() {
-        return validCharacters.length;
-    }
-
     public void reset() {
         if(!inputLines.isEmpty() && !outputLines.isEmpty()){
             pointer = 0;
@@ -237,11 +172,6 @@ public class CharacterIterator implements DataSetIterator {
     }
 
     public boolean resetSupported() {
-        return true;
-    }
-
-    @Override
-    public boolean asyncSupported() {
         return true;
     }
 
@@ -257,37 +187,51 @@ public class CharacterIterator implements DataSetIterator {
         return totalExamples();
     }
 
-    public void setPreProcessor(DataSetPreProcessor preProcessor) {
-        throw new UnsupportedOperationException("Not implemented");
+    private void addCorpusToData(LinkedList<char[]> inputToMerge, LinkedList<char[]> outputToMerge,
+                                 String before, String after) {
+        char[] in, out;
+        boolean added;
+        while (!inputToMerge.isEmpty()) {
+            in = inputToMerge.remove(0);
+            out = outputToMerge.remove(0);
+            added = false;
+
+            for (int i = 0; i < inputToMerge.size(); i++) {
+                if (in.length + 5 + inputToMerge.get(i).length < exampleLength) {
+                    inputLines.add(ArrayUtils.mergeArrays(before, after, in, inputToMerge.remove(i)));
+                    outputLines.add(ArrayUtils.mergeArrays(before, after, out, outputToMerge.remove(i)));
+                    added = true;
+                    break;
+                }
+            }
+            if (!added) {
+                inputLines.add(ArrayUtils.mergeArrays(before, after, in));
+                outputLines.add(ArrayUtils.mergeArrays(before, after, out));
+            }
+        }
     }
 
-    @Override
-    public DataSetPreProcessor getPreProcessor() {
-        throw new UnsupportedOperationException("Not implemented");
+    private void generateDataFromFile(String textFilePath, LinkedList<char[]> in, LinkedList<char[]> out, int limit,
+                                      String before, String after) throws IOException {
+
+        List<String> lines = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
+        int j = 0;
+        for(String s : lines){
+            if(s.isEmpty() || (j > limit)) continue;
+            j++;
+            String[] inputOutput = s.split(",,,");
+
+            if(inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
+
+            char[] inputLine = ArrayUtils.mergeArrays(before, after, inputOutput[0].toLowerCase().toCharArray());
+            char[] outputLine = ArrayUtils.mergeArrays(before, after, inputOutput[1].toLowerCase().toCharArray());
+
+            for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
+            for(int i = 0; i < outputLine.length; i++) if(!charToIdxMap.containsKey(outputLine[i])) outputLine[i] = '!';
+
+            in.add(inputLine);
+            out.add(outputLine);
+        }
     }
 
-    @Override
-    public List<String> getLabels() {
-        return null;    // Returning the same as another example from DL4j that uses seq-2-seq
-    }
-
-    @Override
-    public void remove() {
-        throw new UnsupportedOperationException();
-    }
-
-    public static CharacterIterator getCharacterIterator(int miniBatchSize, int sequenceLength, int epochSize,
-                                                         boolean minimized, boolean useCorpus) throws Exception {
-        String fileLocation = "data/autoNameData.csv";
-        String testFileLocation = "data/manualNameData.csv";
-        return new CharacterIterator(fileLocation, testFileLocation, Charset.forName("UTF-8"),
-                miniBatchSize, sequenceLength, epochSize, minimized, useCorpus);
-    }
-
-    public static CharacterIterator getTrueFalseIterator(int miniBatchSize, int sequenceLength, int epochSize,
-                                                     boolean minimized) throws Exception {
-        String fileLocation = "data/autoNameData.csv";
-        return new TrueFalseChIterator(fileLocation, Charset.forName("UTF-8"),
-                miniBatchSize, sequenceLength, epochSize, minimized);
-    }
 }

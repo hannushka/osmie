@@ -1,18 +1,20 @@
-package spellchecker.neural_net;
+package neural_nets.spellchecker;
 
 import util.Seq2Seq;
-import util.Seq2Seq.IteratorType;
+
 import java.util.Scanner;
 
 public class DeepLearningTester {
     public static void main(String[] args) {
+        String fileLocation = "data/autoNameData.csv";
+        String testFileLocation = "data/manualNameData.csv";
         Seq2Seq model;
         try {
             Scanner keyboard = new Scanner(System.in);
             for(int i = 0; i < 500; i += 10){
                 model = BiDirectionalRNN.Builder()
                         .useCorpus(false)
-                        .setCharacterIterator(Seq2Seq.IteratorType.CLASSIC, false)
+                        .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC, false)
                         .loadModel(String.format("data/models/modelBRNN_triple_NO_CORPUS%s.bin", i));
                 model.runTesting(false);
                 System.out.println("Nr:" + i);

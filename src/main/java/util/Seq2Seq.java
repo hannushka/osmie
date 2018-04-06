@@ -1,5 +1,6 @@
 package util;
 
+import neural_nets.CharacterIterator;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
@@ -8,7 +9,7 @@ import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import spellchecker.neural_net.CharacterIterator;
+import neural_nets.spellchecker.SpellCheckIterator;
 import java.io.IOException;
 
 public abstract class Seq2Seq {
@@ -21,13 +22,15 @@ public abstract class Seq2Seq {
         CLASSIC,
         TRUEFALSE
     }
+
     protected int[] layerDimensions = new int[]{}; //Number of units in each GravesLSTM layer
     protected int miniBatchSize = 32, numEpochs = 50, epochSize = Integer.MAX_VALUE; //Size of mini batch to use when training
-    private int nCharactersToSample = 50;
     protected double learningRate = 0.01;
     protected String baseFilename = "models";
     protected MultiLayerNetwork net;
     protected CharacterIterator itr;
+
+    private int nCharactersToSample = 50;
     private int noChangeCorrect = 0, noChangeIncorrect = 0, changedCorrectly = 0, changedIncorrectly = 0, editDistOne = 0;
     private int wrongChangeType = 0;
     private boolean useCorpus = true;
@@ -67,14 +70,17 @@ public abstract class Seq2Seq {
         return this;
     }
 
-    public Seq2Seq setCharacterIterator(IteratorType type, boolean minimized) throws Exception {
+    public Seq2Seq setCharacterIterator(String fileLocation, String testFileLocation,
+                                        IteratorType type, boolean minimized) throws Exception {
         int exampleLength = 50;
         switch (type){
             case CLASSIC:
-                itr = CharacterIterator.getCharacterIterator(miniBatchSize, exampleLength, epochSize, minimized, useCorpus);
+                itr = SpellCheckIterator.getCharacterIterator(fileLocation, testFileLocation,
+                        miniBatchSize, exampleLength, epochSize, minimized, useCorpus);
                 break;
             case TRUEFALSE:
-                itr = CharacterIterator.getTrueFalseIterator(miniBatchSize, exampleLength, epochSize, minimized);
+                itr = SpellCheckIterator.getTrueFalseIterator(fileLocation, testFileLocation,
+                        miniBatchSize, exampleLength, epochSize, minimized);
                 break;
         }
         return this;

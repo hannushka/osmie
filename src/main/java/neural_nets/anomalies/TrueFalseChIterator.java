@@ -1,10 +1,10 @@
-package truefalse.neural_net;
+package neural_nets.anomalies;
 
+import neural_nets.CharacterIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
-import spellchecker.neural_net.CharacterIterator;
-import util.ArrayUtils;
+import neural_nets.spellchecker.SpellCheckIterator;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +15,13 @@ import java.util.*;
 import static util.StringUtils.getDanishCharacterSet;
 
 public class TrueFalseChIterator extends CharacterIterator {
+    char[] validCharacters;
+    Charset textFileEncoding; //Maps each character to an index in the input/output
+    Map<Character,Integer> charToIdxMap; //All characters of the input file (after filtering to only those that are valid)
+    LinkedList<char[]> inputLines, outputLines;
+    protected LinkedList<char[]> ogInput, ogOutput;
+    protected LinkedList<char[]> inputTest, outputTest; //Length of each example/minibatch (number of characters)
+    protected int exampleLength, miniBatchSize, numExamples, pointer = 0, epochSize;
     List<Boolean> outputTF, testOutputTF;
     List<List<String>> inputTF, testTF;
 
@@ -108,7 +115,77 @@ public class TrueFalseChIterator extends CharacterIterator {
     }
 
     @Override
+    public DataSet next(int num) {
+        return null;
+    }
+
+    @Override
+    public int totalExamples() {
+        return 0;
+    }
+
+    @Override
+    public int inputColumns() {
+        return 0;
+    }
+
+    @Override
     public int totalOutcomes() {
         return 1;
+    }
+
+    @Override
+    public char convertIndexToCharacter(int idx) {
+        return 0;
+    }
+
+    @Override
+    public int getNbrClasses() {
+        return 0;
+    }
+
+    @Override
+    public boolean hasNextTest() {
+        return false;
+    }
+
+    @Override
+    public DataSet nextTest() {
+        return null;
+    }
+
+    @Override
+    public boolean resetSupported() {
+        return false;
+    }
+
+    @Override
+    public void reset() {
+
+    }
+
+    @Override
+    public int batch() {
+        return 0;
+    }
+
+    @Override
+    public int cursor() {
+        return 0;
+    }
+
+    @Override
+    public int numExamples() {
+        return 0;
+    }
+
+    @Override
+    public boolean hasNext() {
+        return false;
+    }
+
+    @Override
+    public DataSet next() {
+        return null;
     }
 }
