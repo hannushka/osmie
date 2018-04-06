@@ -1,12 +1,8 @@
 package neural_nets;
 
-import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.DataSetPreProcessor;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
-import neural_nets.spellchecker.SpellCheckIterator;
-import neural_nets.anomalies.TrueFalseChIterator;
 
-import java.nio.charset.Charset;
 import java.util.List;
 
 public abstract class CharacterIterator implements DataSetIterator {

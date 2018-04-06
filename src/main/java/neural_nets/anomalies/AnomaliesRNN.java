@@ -13,10 +13,10 @@ import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import neural_nets.spellchecker.RNN;
 
-public class TrueFalseRNN extends RNN {
+public class AnomaliesRNN extends RNN {
 
     public static Seq2Seq Builder(){
-        return new TrueFalseRNN();
+        return new AnomaliesRNN();
     }
 
     @Override

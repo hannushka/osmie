@@ -1,6 +1,6 @@
 package neural_nets;
 
-import neural_nets.anomalies.TrueFalseChIterator;
+import neural_nets.anomalies.AnomaliesIterator;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
@@ -78,9 +78,9 @@ public abstract class Seq2Seq {
                         miniBatchSize, exampleLength, epochSize);
                 break;
             case ANOMALIES:
-                trainItr = new TrueFalseChIterator(fileLocation, Charset.forName("UTF-8"),
+                trainItr = new AnomaliesIterator(fileLocation, Charset.forName("UTF-8"),
                         miniBatchSize, exampleLength, epochSize, true);
-                testItr = new TrueFalseChIterator(testFileLocation, Charset.forName("UTF-8"),
+                testItr = new AnomaliesIterator(testFileLocation, Charset.forName("UTF-8"),
                         miniBatchSize, exampleLength, epochSize, true);
                 break;
         }

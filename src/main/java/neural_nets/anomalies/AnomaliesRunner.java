@@ -3,11 +3,11 @@ package neural_nets.anomalies;
 import neural_nets.Seq2Seq;
 import neural_nets.spellchecker.BiDirectionalRNN;
 
-public class TrueFalseRunner {
+public class AnomaliesRunner {
     public static void main(String[] args) {
         try {
-            String fileLocation = "data/autoNameData.csv";
-            String testFileLocation = "";
+            String fileLocation = "data/superDataUnique.csv.noised";
+            String testFileLocation = "data/superDataUniqueTest.csv.noised";
             Seq2Seq model = BiDirectionalRNN.Builder()
                     .setFilename("modelBRNN_")
                     .setBatchSize(32)

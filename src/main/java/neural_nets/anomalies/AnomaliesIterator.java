@@ -14,7 +14,7 @@ import java.util.*;
 
 import static util.StringUtils.getDanishCharacterSet;
 
-public class TrueFalseChIterator extends CharacterIterator {
+public class AnomaliesIterator extends CharacterIterator {
     char[] validCharacters;
     Charset textFileEncoding; //Maps each character to an index in the input/output
     Map<Character,Integer> charToIdxMap; //All characters of the input file (after filtering to only those that are valid)
@@ -25,8 +25,8 @@ public class TrueFalseChIterator extends CharacterIterator {
     List<Boolean> outputTF, testOutputTF;
     List<List<String>> inputTF, testTF;
 
-    public TrueFalseChIterator(String file, Charset encoding, int miniBatchSize, int sequenceLength, int epochSize,
-                               boolean minimized) throws IOException {
+    public AnomaliesIterator(String file, Charset encoding, int miniBatchSize, int sequenceLength, int epochSize,
+                             boolean minimized) throws IOException {
             if(!new File(file).exists()) throw new IOException("Could not access file (does not exist): " + file);
             if(miniBatchSize <= 0) throw new IllegalArgumentException("Invalid miniBatchSize (must be > 0)");
             this.outputTF = new ArrayList<>();
