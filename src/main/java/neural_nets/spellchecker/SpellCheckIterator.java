@@ -58,99 +58,115 @@ public class SpellCheckIterator extends CharacterIterator {
         // Train-Data (streets)
         int limit = Integer.MAX_VALUE;
         if(minimized) limit = 1000;
-        generateDataFromFile(textFilePath, inputLines, outputLines, limit, before, after);
+        generateDataFromFile(textFilePath, limit, before, after, true);
 
         // Test-Data
         limit = Integer.MAX_VALUE;
-        generateDataFromFile(testFilePath, inputTest, outputTest, limit, before, after);
-
-        // Train-Data (corpus)
-        if(useCorpus){
-            LinkedList<char []> inputToMerge = new LinkedList<>(), outputToMerge = new LinkedList<>();
-            generateDataFromFile(testFilePath, inputToMerge, outputToMerge, limit, "", "");
-            addCorpusToData(inputToMerge, outputToMerge, before, after);
-        }
+        generateDataFromFile(testFilePath, limit, before, after, false);
 
         ogInput = new LinkedList<>(inputLines);
         ogOutput = new LinkedList<>(outputLines);
-
         numExamples = inputLines.size();
     }
 
-    public int getNbrClasses(){
-        return validCharacters.length;
+
+    private void generateDataFromFile(String textFilePath, int limit, String before, String after, boolean train) throws IOException {
+
+        List<String> lines = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
+        int j = 0;
+        for (String s : lines){
+            if (s.isEmpty() || (j > limit)) continue;
+            j++;
+            String[] inputOutput = s.split(",,,");
+
+            if (inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
+
+            char[] inputLine = ArrayUtils.mergeArrays(before, after, inputOutput[0].toLowerCase().toCharArray());
+            char[] outputLine = ArrayUtils.mergeArrays(before, after, inputOutput[1].toLowerCase().toCharArray());
+
+            for (int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
+            for (int i = 0; i < outputLine.length; i++) if(!charToIdxMap.containsKey(outputLine[i])) outputLine[i] = '!';
+
+            if (train) {
+                inputLines.add(inputLine);
+                outputLines.add(outputLine);
+            } else {
+                inputTest.add(inputLine);
+                outputTest.add(outputLine);
+            }
+        }
     }
 
-    public char convertIndexToCharacter( int idx ){
-        return validCharacters[idx];
-    }
+    // dimension 0 = number of examples in minibatch
+    // dimension 1 = size of each vector (i.e., number of characters)
+    // dimension 2 = length of each time series/example
+    // 'f' (fortran) ordering = must for optimized custom iterator.
+    protected DataSet createDataSet(int num, boolean train) {
+        int currMinibatchSize;
+        if (train) {
+            if (inputLines.isEmpty()) throw new NoSuchElementException();
+            currMinibatchSize = Math.min(num, inputLines.size());
+            currMinibatchSize = Math.min(currMinibatchSize, outputLines.size());
+        } else {
+            if (inputTest.isEmpty()) throw new NoSuchElementException();
+            currMinibatchSize = Math.min(num, inputTest.size());
+            currMinibatchSize = Math.min(currMinibatchSize, outputTest.size());
+        }
 
-    public int convertCharacterToIndex( char c ){
-        return charToIdxMap.getOrDefault(c, 0);
-    }
-
-    public boolean hasNext() {
-        return !inputLines.isEmpty() && !outputTest.isEmpty() && pointer < epochSize;
-    }
-
-    public boolean hasNextTest() {
-        return !inputTest.isEmpty() && !outputTest.isEmpty();
-    }
-
-    public DataSet next() {
-        return createDataSet(miniBatchSize, inputLines, outputLines);
-    }
-
-    public DataSet next(int num) {
-        return createDataSet(num, inputLines, outputLines);
-    }
-
-    protected DataSet createDataSet(int num, LinkedList<char[]> in, LinkedList<char[]> out){
-        if(in.isEmpty()) throw new NoSuchElementException();
-        int currMinibatchSize = Math.min(num, in.size());
-        currMinibatchSize = Math.min(currMinibatchSize, out.size());
-        // dimension 0 = number of examples in minibatch
-        // dimension 1 = size of each vector (i.e., number of characters)
-        // dimension 2 = length of each time series/example
-        // 'f' (fortran) ordering = must for optimized custom iterator.
         INDArray input = Nd4j.create(new int[]{currMinibatchSize, validCharacters.length, exampleLength}, 'f');
         INDArray labels = Nd4j.create(new int[]{currMinibatchSize, validCharacters.length, exampleLength}, 'f');
-//        INDArray labels = Nd4j.create(new int[]{currMinibatchSize, validCharacters.length, exampleLength*2}, 'f');
 
+        // 1 = exist, 0 = should be masked
         INDArray inputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
         INDArray outputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
-//        INDArray outputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength*2}, 'f');
 
-        for(int i=0; i < currMinibatchSize; i++) {  // Iterating each line
-            char[] inputChars = in.removeFirst();
-            char[] outputChars = out.removeFirst();
+        for (int i = 0; i < currMinibatchSize; i++) {
+            char[] inputChars;
+            char[] outputChars;
+            if (train) {
+               inputChars = inputLines.removeFirst();
+               outputChars = outputLines.removeFirst();
+            } else {
+                inputChars = inputTest.removeFirst();
+                outputChars = outputTest.removeFirst();
+            }
+
             if(inputChars == null) continue;
             pointer++;
 
-            // 1 = exist, 0 = should be masked. INDArray should init with zeros?
             for(int j = 0; j < inputChars.length + 1; j++)
                 inputMask.putScalar(new int[]{i,j}, 1f);
             for(int j = 0; j < outputChars.length + 1; j++)
                 outputMask.putScalar(new int[]{i,j}, 1f);
-//            for(int j = inputChars.length; j < (inputChars.length+outputChars.length + 1); j++)
-//                outputMask.putScalar(new int[]{i,j}, 1f);
-
-
             for(int j = 0; j < exampleLength; j++){
                 int currCharIdx = charToIdxMap.get('\n'), corrCharIdx = charToIdxMap.get('\n');
                 if(inputChars.length > j) currCharIdx = charToIdxMap.get(inputChars[j]);
                 if(outputChars.length > j) corrCharIdx = charToIdxMap.get(outputChars[j]);
                 input.putScalar(new int[]{i,currCharIdx,j}, 1.0);
                 labels.putScalar(new int[]{i,corrCharIdx,j}, 1.0);
-                //labels.putScalar(new int[]{i,corrCharIdx,(j+inputChars.length)}, 1.0);
             }
         }
+        return new DataSet(input, labels, inputMask, outputMask);
+    }
 
-        return new DataSet(input,labels, inputMask, outputMask);
+    public boolean hasNext() {
+        return !inputLines.isEmpty() && !outputTest.isEmpty() && pointer < epochSize;
+    }
+
+    public DataSet next() {
+        return createDataSet(miniBatchSize, true);
+    }
+
+    public DataSet next(int num) {
+        return createDataSet(num, true);
+    }
+
+    public boolean hasNextTest() {
+        return !inputTest.isEmpty() && !outputTest.isEmpty();
     }
 
     public DataSet nextTest() {
-        return createDataSet(miniBatchSize, inputTest, outputTest);
+        return createDataSet(miniBatchSize, false);
     }
 
     public int totalExamples() {
@@ -162,7 +178,7 @@ public class SpellCheckIterator extends CharacterIterator {
     }
 
     public void reset() {
-        if(!inputLines.isEmpty() && !outputLines.isEmpty()){
+        if (!inputLines.isEmpty() && !outputLines.isEmpty()) {
             pointer = 0;
             return;
         }
@@ -187,51 +203,15 @@ public class SpellCheckIterator extends CharacterIterator {
         return totalExamples();
     }
 
-    private void addCorpusToData(LinkedList<char[]> inputToMerge, LinkedList<char[]> outputToMerge,
-                                 String before, String after) {
-        char[] in, out;
-        boolean added;
-        while (!inputToMerge.isEmpty()) {
-            in = inputToMerge.remove(0);
-            out = outputToMerge.remove(0);
-            added = false;
-
-            for (int i = 0; i < inputToMerge.size(); i++) {
-                if (in.length + 5 + inputToMerge.get(i).length < exampleLength) {
-                    inputLines.add(ArrayUtils.mergeArrays(before, after, in, inputToMerge.remove(i)));
-                    outputLines.add(ArrayUtils.mergeArrays(before, after, out, outputToMerge.remove(i)));
-                    added = true;
-                    break;
-                }
-            }
-            if (!added) {
-                inputLines.add(ArrayUtils.mergeArrays(before, after, in));
-                outputLines.add(ArrayUtils.mergeArrays(before, after, out));
-            }
-        }
+    public int getNbrClasses(){
+        return validCharacters.length;
     }
 
-    private void generateDataFromFile(String textFilePath, LinkedList<char[]> in, LinkedList<char[]> out, int limit,
-                                      String before, String after) throws IOException {
-
-        List<String> lines = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
-        int j = 0;
-        for(String s : lines){
-            if(s.isEmpty() || (j > limit)) continue;
-            j++;
-            String[] inputOutput = s.split(",,,");
-
-            if(inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
-
-            char[] inputLine = ArrayUtils.mergeArrays(before, after, inputOutput[0].toLowerCase().toCharArray());
-            char[] outputLine = ArrayUtils.mergeArrays(before, after, inputOutput[1].toLowerCase().toCharArray());
-
-            for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
-            for(int i = 0; i < outputLine.length; i++) if(!charToIdxMap.containsKey(outputLine[i])) outputLine[i] = '!';
-
-            in.add(inputLine);
-            out.add(outputLine);
-        }
+    public char convertIndexToCharacter( int idx ){
+        return validCharacters[idx];
     }
 
+    public int convertCharacterToIndex( char c ){
+        return charToIdxMap.getOrDefault(c, 0);
+    }
 }

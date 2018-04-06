@@ -1,5 +1,6 @@
 package neural_nets.spellchecker;
 
+import neural_nets.Seq2Seq;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
@@ -10,7 +11,6 @@ import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
-import util.Seq2Seq;
 
 public class BiDirectionalRNN extends RNN {
 

@@ -1,6 +1,5 @@
-package neural_nets.spellchecker;
+package neural_nets;
 
-import neural_nets.Seq2Seq;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.BackpropType;

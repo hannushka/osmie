@@ -1,6 +1,5 @@
-package util;
+package neural_nets;
 
-import neural_nets.CharacterIterator;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
@@ -10,6 +9,9 @@ import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import neural_nets.spellchecker.SpellCheckIterator;
+import util.Helper;
+import util.StringUtils;
+
 import java.io.IOException;
 
 public abstract class Seq2Seq {
@@ -20,7 +22,7 @@ public abstract class Seq2Seq {
     }
     public enum IteratorType{
         CLASSIC,
-        TRUEFALSE
+        ANOMALIES
     }
 
     protected int[] layerDimensions = new int[]{}; //Number of units in each GravesLSTM layer
@@ -30,7 +32,6 @@ public abstract class Seq2Seq {
     protected MultiLayerNetwork net;
     protected CharacterIterator itr;
 
-    private int nCharactersToSample = 50;
     private int noChangeCorrect = 0, noChangeIncorrect = 0, changedCorrectly = 0, changedIncorrectly = 0, editDistOne = 0;
     private int wrongChangeType = 0;
     private boolean useCorpus = true;
@@ -78,7 +79,7 @@ public abstract class Seq2Seq {
                 itr = SpellCheckIterator.getCharacterIterator(fileLocation, testFileLocation,
                         miniBatchSize, exampleLength, epochSize, minimized, useCorpus);
                 break;
-            case TRUEFALSE:
+            case ANOMALIES:
                 itr = SpellCheckIterator.getTrueFalseIterator(fileLocation, testFileLocation,
                         miniBatchSize, exampleLength, epochSize, minimized);
                 break;
