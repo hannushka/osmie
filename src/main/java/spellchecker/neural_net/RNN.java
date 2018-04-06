@@ -1,5 +1,7 @@
 package spellchecker.neural_net;
 
+import SymSpell.SymSpell;
+import SymSpell.SuggestItem;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.BackpropType;
@@ -17,9 +19,9 @@ import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import util.*;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class RNN extends Seq2Seq {
 
@@ -56,7 +58,7 @@ public class RNN extends Seq2Seq {
             net.rnnClearPreviousState();
             INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
             eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
-            spellObjects.addAll(Helper.getSpellObjectsFromUncertainTensors(output, ds.getLabels(), itr));
+            spellObjects.addAll(Helper.getSpellObjectsFromUncertainTensors(ds.getFeatureMatrix(), output, ds.getLabels(), itr));
             createReadableStatistics(ds.getFeatures(), output, ds.getLabels(), print);
         }
         printStats();
@@ -65,6 +67,29 @@ public class RNN extends Seq2Seq {
 
         System.out.println(correct + " / " + spellObjects.size() + " (unsure guesses that are correct)");
         System.out.println(StringUtils.reduceEvalStats(eval.stats()));
+
+        SymSpell symSpell = new SymSpell(-1, 2, -1, 10);
+        if(!symSpell.loadDictionary("data/korpus_freq_dict.txt", 0, 1)) try {
+            throw new FileNotFoundException();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        int j = 0, i = 0,k = 0, l=0;
+        for(DeepSpellObject obj : spellObjects){
+            String word = obj.currentName.orElse("");
+            if(word.contains(" ")) continue;
+            List<SuggestItem> items = symSpell.lookupSpecialized(word, SymSpell.Verbosity.Closest);
+            items.addAll(symSpell.lookupSpecialized(obj.inputName, SymSpell.Verbosity.Closest));
+            Collections.sort(items);
+            if(!items.isEmpty() && items.get(0).distance <= 1) {
+                if(items.get(0).term.equals(obj.correctName)) j++;
+                if(obj.correctName.equals(word)) k++;
+                if(obj.correctName.equals(word) && !items.get(0).term.equals(obj.correctName)) l++;
+                i++;
+            }
+        }
+        System.out.println("Symspell introduces " + (j-k) + " corrections extra from the unsure ones.");
+        System.out.println(j + " corrections out of " + i + " where " + k + " already correct, " + l + " ruined (SymSpell)");
 //        for(DeepSpellObject obj: spellObjects){
 //            obj.generateNewWordsFromGuess();
 //            DataSet ds = itr.createDataSetFromDSO(obj);

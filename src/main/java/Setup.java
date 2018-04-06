@@ -185,6 +185,22 @@ public class Setup {
         }
     }
 
+    private static void filterManual(String file) throws IOException {
+        StringJoiner joiner = new StringJoiner("\n");
+        String[] split;
+        try (BufferedReader br = Files.newBufferedReader(Paths.get(file))) {
+            for(String line; (line = br.readLine()) != null;){
+                split = line.split(",,,");
+                if(new EditDistance(split[0]).DamerauLevenshteinDistance(split[1],3) != -1)
+                    joiner.add(line);
+            }
+        }
+        BufferedWriter writer = new BufferedWriter(new FileWriter("data/filteredManualNameData.csv"));
+        writer.write(joiner.toString());
+        writer.flush();
+        writer.close();
+    }
+
     public static void main(String[] args) throws IOException {
         String OSM_PBF_15 = "http://download.geofabrik.de/europe/denmark-150101.osm.pbf";
         String OSM_PBF_LATEST = "http://download.geofabrik.de/europe/denmark-latest.osm.pbf";
@@ -201,8 +217,7 @@ public class Setup {
 //        download(OSM_PBF_LATEST, OSM_PBF_LOCAL_LATEST);
         // TODO introduce atlas generation here
 //        extractDataFromAtlasFiles(ATLAS_FOLDER, ATLAS_OLD_FOLDER, DATA_FILE);
-        filterSuperData(DATA_FILE, DATA_UNIQUE_FILE);
-
+//        filterSuperData(DATA_FILE, DATA_UNIQUE_FILE);
 //        SymSpell symSpell = new SymSpell(-1, 3, 0,-1);
 //        if(!symSpell.loadAddress(NAMEDATA_FILE)) throw new IOException("File does not exist!");
 //        removeLargeChanges(NAMEDATA_FILE, NAMEDATA_FIXED_FILE);

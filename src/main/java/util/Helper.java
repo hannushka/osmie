@@ -1,10 +1,12 @@
 package util;
 
+import SymSpell.SymSpell;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.nd4j.linalg.api.iter.NdIndexIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import spellchecker.neural_net.CharacterIterator;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -62,18 +64,19 @@ public class Helper {
 
 
 
-    public static List<DeepSpellObject> getSpellObjectsFromUncertainTensors(INDArray output, INDArray labels,
+    public static List<DeepSpellObject> getSpellObjectsFromUncertainTensors(INDArray input, INDArray output, INDArray labels,
                                                                             CharacterIterator itr){
         List<DeepSpellObject> objects = new ArrayList<>();
-        double[][] wordMatrix, labelMatrix;
+        double[][] wordMatrix, labelMatrix, inputMatrix;
         // inp: [a,b,c] -- tensorAlongDimension(i,1,2) returns tensors of shape [b,c].
 
         for(int i = 0; i < output.shape()[0]; i++){
             wordMatrix = getDoubleMatrixDistr(output.tensorAlongDimension(i,1,2));
             if(Arrays.stream(wordMatrix).anyMatch(array -> getMaxDbl(array) < 0.5 && getMaxDbl(array) > 0)){
                 labelMatrix = getDoubleMatrixDistr(labels.tensorAlongDimension(i, 1,2));
+                inputMatrix = getDoubleMatrixDistr(input.tensorAlongDimension(i, 1,2));
                 DeepSpellObject deepSpellObject = new DeepSpellObject(wordMatrix, getWordFromDistr(wordMatrix, itr).trim(),
-                        getWordFromDistr(labelMatrix, itr).trim());
+                        getWordFromDistr(labelMatrix, itr).trim(), getWordFromDistr(inputMatrix, itr).trim());
                 objects.add(deepSpellObject);
             }
         }
@@ -84,8 +87,11 @@ public class Helper {
         return Arrays.stream(distribution).max().getAsDouble();
     }
 
-    public static void main(String[] args) {
-//        System.out.println("hej".substring(0,0));
-//        System.out.println("hej".substring(1));
+    public static void main(String[] args) throws FileNotFoundException {
+        SymSpell symSpell = new SymSpell(-1, 2, -1, 10);
+        if(!symSpell.loadDictionary("data/korpus_freq_dict.txt", 0, 1)) throw new FileNotFoundException();
+
+        symSpell.lookupSpecialized("brokbjerghøs", SymSpell.Verbosity.Closest).forEach(System.out::println);
+
     }
 }
