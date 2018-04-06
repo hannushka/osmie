@@ -65,13 +65,16 @@ public class RNN extends Seq2Seq {
 
         System.out.println(correct + " / " + spellObjects.size() + " (unsure guesses that are correct)");
         System.out.println(StringUtils.reduceEvalStats(eval.stats()));
-        spellObjects.get(0).generateNewWordsFromGuess();
-        DataSet ds = itr.createDataSetFromDSO(spellObjects.get(0));
-        net.rnnClearPreviousState();
-        INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
-        double[][] distr = Helper.getBestGuess(output);
-        System.out.println(Helper.getWordFromDistr(distr, itr));
-        System.out.println(spellObjects.get(0).currentName.orElse("") + ",,," + spellObjects.get(0).correctName);
+//        for(DeepSpellObject obj: spellObjects){
+//            obj.generateNewWordsFromGuess();
+//            DataSet ds = itr.createDataSetFromDSO(obj);
+//            net.rnnClearPreviousState();
+//            INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
+//            double[][] distr = Helper.getBestGuess(output);
+//            System.out.println(Helper.getWordFromDistr(distr, itr));
+//            System.out.println(obj.currentName.orElse("") + ",,," + obj.correctName);
+//        }
+
 //        eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
 
     }

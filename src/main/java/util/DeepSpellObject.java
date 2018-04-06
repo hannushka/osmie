@@ -51,6 +51,7 @@ public class DeepSpellObject extends SpellObject{
         String suggestedWord = currentName.orElse("");
         StringBuilder sb = new StringBuilder(suggestedWord);
         charIndex = charIndex + 1;
+        if(charIndex >= suggestedWord.length()) return;
         for(char c : alphabet.alphabetChars){   // Case: Replace
             sb.setCharAt(charIndex, c);
             addSuggestion(sb.toString());
@@ -70,11 +71,12 @@ public class DeepSpellObject extends SpellObject{
         sb.setCharAt(charIndex-1, suggestedWord.charAt(charIndex));
         sb.setCharAt(charIndex, suggestedWord.charAt(charIndex-1));
         addSuggestion(sb.toString());
-
-        sb = new StringBuilder(suggestedWord);
-        sb.setCharAt(charIndex+1, suggestedWord.charAt(charIndex));
-        sb.setCharAt(charIndex, suggestedWord.charAt(charIndex+1));
-        addSuggestion(sb.toString());
+        if(charIndex < suggestedWord.length() - 1){
+            sb = new StringBuilder(suggestedWord);
+            sb.setCharAt(charIndex+1, suggestedWord.charAt(charIndex));
+            sb.setCharAt(charIndex, suggestedWord.charAt(charIndex+1));
+            addSuggestion(sb.toString());
+        }
     }
 
     public static void main(String[] args) {
