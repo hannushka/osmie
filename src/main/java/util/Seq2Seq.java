@@ -1,5 +1,7 @@
 package util;
 
+import SymSpell.SymSpell;
+import SymSpell.SuggestItem;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
@@ -10,6 +12,8 @@ import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import spellchecker.neural_net.CharacterIterator;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 public abstract class Seq2Seq {
     public enum ScoreListener{
@@ -108,10 +112,22 @@ public abstract class Seq2Seq {
         return this;
     }
 
-    public void createReadableStatistics(INDArray input, INDArray result, INDArray labels, boolean print){
+    public void createReadableStatistics(INDArray input, INDArray result, INDArray labels, boolean print,
+                                         List<DeepSpellObject> deepSpellObjects, SymSpell symSpell){
         String[] inputStr = Helper.convertTensorsToWords(input, itr);
         String[] resultStr = Helper.convertTensorsToWords(result, itr);
         String[] labelStr = Helper.convertTensorsToWords(labels, itr);
+        for(DeepSpellObject obj : deepSpellObjects){
+            String word = obj.currentName.orElse("");
+            if(word.contains(" ")) continue;
+            List<SuggestItem> items = symSpell.lookupSpecialized(word, SymSpell.Verbosity.Closest);
+            items.addAll(symSpell.lookupSpecialized(obj.inputName, SymSpell.Verbosity.Closest));
+            Collections.sort(items);
+            if(!items.isEmpty() && items.get(0).distance <= 1) {
+                resultStr[obj.index] = items.get(0).term;
+            }
+        }
+
         String inp, out, label;
         for(int i = 0; i < inputStr.length; i++){
             inp = inputStr[i];

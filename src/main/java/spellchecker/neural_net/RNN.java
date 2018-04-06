@@ -53,31 +53,35 @@ public class RNN extends Seq2Seq {
     public void runTesting(boolean print){
         Evaluation eval = new Evaluation(itr.getNbrClasses());
         List<DeepSpellObject> spellObjects = new ArrayList<>();
-        while(itr.hasNextTest()){
-            DataSet ds = itr.nextTest();
-            net.rnnClearPreviousState();
-            INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
-            eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
-            spellObjects.addAll(Helper.getSpellObjectsFromUncertainTensors(ds.getFeatureMatrix(), output, ds.getLabels(), itr));
-            createReadableStatistics(ds.getFeatures(), output, ds.getLabels(), print);
-        }
-        printStats();
-        int correct = 0, destroy = 0;
-        for(DeepSpellObject obj : spellObjects){
-            if(obj.guessCorrect()) correct++;
-            if(!obj.guessCorrect() && obj.inputName.equals(obj.correctName)) destroy++;
-        }
-
-        System.out.println(correct + " / " + spellObjects.size() + " (unsure guesses that are correct & "
-                + destroy + " good->bad)");
-        System.out.println(StringUtils.reduceEvalStats(eval.stats()));
-
         SymSpell symSpell = new SymSpell(-1, 2, -1, 10);
         if(!symSpell.loadDictionary("data/korpus_freq_dict.txt", 0, 1)) try {
             throw new FileNotFoundException();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+
+        while(itr.hasNextTest()){
+            DataSet ds = itr.nextTest();
+            net.rnnClearPreviousState();
+            INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
+            eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
+            List<DeepSpellObject> objects = Helper.getSpellObjectsFromUncertainTensors(ds.getFeatureMatrix(), output, ds.getLabels(), itr);
+            spellObjects.addAll(objects);
+
+            createReadableStatistics(ds.getFeatures(), output, ds.getLabels(), print, objects, symSpell);
+        }
+
+        printStats();
+        int correct = 0, destroy = 0;
+        for(DeepSpellObject obj : spellObjects){
+            if(obj.guessCorrect()) correct++;
+            if(!obj.guessCorrect() && obj.inputName.equals(obj.correctName)) destroy++;
+        }
+        System.out.println(correct + " / " + spellObjects.size() + " (unsure guesses that are correct & "
+                + destroy + " good->bad)");
+        System.out.println(StringUtils.reduceEvalStats(eval.stats()));
+
+
         int j = 0, i = 0, k = 0, l=0;
         for(DeepSpellObject obj : spellObjects){
             String word = obj.currentName.orElse("");
@@ -94,6 +98,7 @@ public class RNN extends Seq2Seq {
         }
         System.out.println("Symspell introduces " + (j-k) + " corrections extra from the unsure ones.");
         System.out.println(j + " corrections out of " + i + " where " + k + " already correct, " + l + " ruined (SymSpell)");
+
 //        for(DeepSpellObject obj: spellObjects){
 //            obj.generateNewWordsFromGuess();
 //            DataSet ds = itr.createDataSetFromDSO(obj);
@@ -103,7 +108,6 @@ public class RNN extends Seq2Seq {
 //            System.out.println(Helper.getWordFromDistr(distr, itr));
 //            System.out.println(obj.currentName.orElse("") + ",,," + obj.correctName);
 //        }
-
 //        eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
 
     }

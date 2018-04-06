@@ -76,7 +76,7 @@ public class Helper {
                 labelMatrix = getDoubleMatrixDistr(labels.tensorAlongDimension(i, 1,2));
                 inputMatrix = getDoubleMatrixDistr(input.tensorAlongDimension(i, 1,2));
                 DeepSpellObject deepSpellObject = new DeepSpellObject(wordMatrix, getWordFromDistr(wordMatrix, itr).trim(),
-                        getWordFromDistr(labelMatrix, itr).trim(), getWordFromDistr(inputMatrix, itr).trim());
+                        getWordFromDistr(labelMatrix, itr).trim(), getWordFromDistr(inputMatrix, itr).trim(), i);
                 objects.add(deepSpellObject);
             }
         }

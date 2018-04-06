@@ -7,14 +7,16 @@ public class DeepSpellObject extends SpellObject{
     private Alphabet alphabet;
     public String correctName;
     public String inputName;
+    public int index;
 
-    public DeepSpellObject(double[][] distribution, String guessedWord, String correctWord, String inputName) {
+    public DeepSpellObject(double[][] distribution, String guessedWord, String correctWord, String inputName, int index) {
         super(-1);
         super.addName(guessedWord);
         this.distribution = distribution;
         this.correctName = correctWord;
         this.inputName = inputName;
         this.alphabet = Alphabet.getInstance();
+        this.index = index;
     }
 
     public boolean guessCorrect(){
