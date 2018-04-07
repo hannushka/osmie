@@ -1,4 +1,4 @@
-package SymSpell;
+package symspell;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -42,7 +42,7 @@ public class SpellCheckerMain {
 
             System.out.println("Enter input:");
             inputTerm = br.readLine();
-//            SymSpell.SuggestItem suggestions = symSpell.lookupCompound(inputTerm);
+//            symspell.SuggestItem suggestions = symSpell.lookupCompound(inputTerm);
             List<SuggestItem> suggestions = symSpell.lookup(inputTerm);
             SuggestItem compound = symSpell.lookupCompound(inputTerm);
 //            System.out.println(suggestions.term);

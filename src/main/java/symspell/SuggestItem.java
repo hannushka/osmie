@@ -1,4 +1,4 @@
-package SymSpell;
+package symspell;
 
 import org.jetbrains.annotations.NotNull;
 

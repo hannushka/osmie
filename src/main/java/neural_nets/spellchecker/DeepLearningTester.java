@@ -48,7 +48,7 @@ public class DeepLearningTester {
  *
  * Test to remove if uncertain and just return inputclass. (Don't forget to test this)
  * Create stats for edit-dist = 1 also (?)
- * SymSpell. Testa att remove framifrån/bakifrån och enbart ändra char i fråga. OpenAddress check.
+ * symspell. Testa att remove framifrån/bakifrån och enbart ändra char i fråga. OpenAddress check.
  *
  * Hastighet
  * Underlag

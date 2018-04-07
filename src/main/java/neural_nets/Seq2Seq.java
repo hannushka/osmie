@@ -1,7 +1,7 @@
 package neural_nets;
 
-import SymSpell.SymSpell;
-import SymSpell.SuggestItem;
+import symspell.SymSpell;
+import symspell.SuggestItem;
 import neural_nets.anomalies.AnomaliesIterator;
 import neural_nets.spellchecker.SpellCheckIterator;
 import org.deeplearning4j.api.storage.StatsStorage;

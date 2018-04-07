@@ -1,6 +1,6 @@
-package SymSpell;
+package symspell;
 
-import SymSpell.SymSpell.SuggestionStage.Node;
+import symspell.SymSpell.SuggestionStage.Node;
 
 import java.util.Arrays;
 

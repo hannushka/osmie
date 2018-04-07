@@ -1,7 +1,7 @@
 package neural_nets;
 
-import SymSpell.SymSpell;
-import SymSpell.SuggestItem;
+import symspell.SymSpell;
+import symspell.SuggestItem;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.BackpropType;
@@ -98,7 +98,7 @@ public class RNN extends Seq2Seq {
             }
         }
         System.out.println("Symspell introduces " + (j-k) + " corrections extra from the unsure ones.");
-        System.out.println(j + " corrections out of " + i + " where " + k + " already correct, " + l + " ruined (SymSpell)");
+        System.out.println(j + " corrections out of " + i + " where " + k + " already correct, " + l + " ruined (symspell)");
 
 //        for(DeepSpellObject obj: spellObjects){
 //            obj.generateNewWordsFromGuess();

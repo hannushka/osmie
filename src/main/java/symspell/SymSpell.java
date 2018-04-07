@@ -1,4 +1,4 @@
-package SymSpell;
+package symspell;
 
 import util.EditDistance;
 
@@ -36,7 +36,7 @@ public class SymSpell {
     private Map<String, Long> belowThresholdWords = new HashMap<>();
     /// <summary>Spelling suggestion returned from lookup.</summary>
 
-    /// <summary>Create a new instanc of SymSpell.</summary>
+    /// <summary>Create a new instanc of symspell.</summary>
     /// <remarks>Specifying ann accurate initialCapacity is not essential,
     /// but it can help speed up processing by aleviating the need for
     /// data restructuring as the size grows.</remarks>
@@ -261,7 +261,7 @@ public class SymSpell {
     }
 
     /// <summary>Find suggested spellings for a given input word, using the maximum
-    /// edit distance specified during construction of the SymSpell dictionary.</summary>
+    /// edit distance specified during construction of the symspell dictionary.</summary>
     /// <param name="input">The word being spell checked.</param>
     /// <param name="verbosity">The value controlling the quantity/closeness of the retuned suggestions.</param>
     /// <returns>A List of SuggestItem object representing suggested correct spellings for the input word,

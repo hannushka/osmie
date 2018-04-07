@@ -218,7 +218,7 @@ public class Setup {
         // TODO introduce atlas generation here
 //        extractDataFromAtlasFiles(ATLAS_FOLDER, ATLAS_OLD_FOLDER, DATA_FILE);
 //        filterSuperData(DATA_FILE, DATA_UNIQUE_FILE);
-//        SymSpell symSpell = new SymSpell(-1, 3, 0,-1);
+//        symspell symSpell = new symspell(-1, 3, 0,-1);
 //        if(!symSpell.loadAddress(NAMEDATA_FILE)) throw new IOException("File does not exist!");
 //        removeLargeChanges(NAMEDATA_FILE, NAMEDATA_FIXED_FILE);
 //        filterNameDataToUnique(NAMEDATA_FIXED_FILE, NAMEDATA_UNIQUE_FILE);

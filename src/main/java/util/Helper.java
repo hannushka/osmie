@@ -1,8 +1,7 @@
 package util;
 
-import SymSpell.SymSpell;
+import symspell.SymSpell;
 import neural_nets.CharacterIterator;
-import neural_nets.spellchecker.SpellCheckIterator;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.nd4j.linalg.api.iter.NdIndexIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
