@@ -2,7 +2,6 @@ package util;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -29,7 +28,6 @@ public class EncoderHelper {
             }
         }
     }
-
 
     public static String getHighwayClass(String highway) {
         switch (highway) {
@@ -69,11 +67,10 @@ public class EncoderHelper {
         return validChars;
     }
 
-    public static Map<String, Integer> getHighwayMap() {
-            Map<String, Integer> validChars = new HashMap<>();
-            int counter = 0;
-                        for (int i = 0 ; i < ways.length ; i++) validChars.put(ways[i], counter++);
-            return validChars;
+    public static Map<String, Integer> getHighwayMap(int counter) {
+        Map<String, Integer> validChars = new HashMap<>();
+        for (int i = 0 ; i < ways.length ; i++) validChars.put(ways[i], counter++);
+        return validChars;
     }
 
     public static Map<Character, Integer> getDanishCharacterSet(){
