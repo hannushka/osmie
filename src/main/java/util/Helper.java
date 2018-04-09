@@ -49,17 +49,13 @@ public class Helper {
     }
 
     public static String getWordFromDistr(double[][] wordDistr, CharacterIterator itr){
-
-        List<Integer> list = Arrays.stream(wordDistr).map(Helper::getIndexOfMax).collect(Collectors.toList());
-        List<Character> chars = new LinkedList<>();
-        for ( int idx : list) {
-            Optional<Character> c = Optional.ofNullable(itr.convertIndexToCharacter(idx));
-            if (c.isPresent()) chars.add(c.get());
-        }
-        return Arrays.stream(chars.toArray())
+        return Arrays.stream(wordDistr)
+                .map(Helper::getIndexOfMax)
+                .map(itr::convertIndexToCharacter)
                 .map(String::valueOf)
                 .collect(Collectors.joining())
                 .replaceAll("ü", "").trim();       // ü will be chosen if none is bigger supposedly.. TODO
+
     }
 
     public static int getIndexOfMax(double[] array){

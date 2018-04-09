@@ -20,12 +20,12 @@ public class AnomaliesIterator extends CharacterIterator {
     protected LinkedList<DataContainer> ogInput;
     LinkedList<Integer> ogOutput;
     protected int exampleLength, miniBatchSize, numExamples, pointer = 0, epochSize;
+    protected int alphabetSize;
 
     Map<Character,Integer> charToIdxMap; //All characters of the input file (after filtering to only those that are valid)
-    Map<String, Integer> maxSpeedToIdxMap;
-    Map<String, Integer> surfaceToIdxMap;
-    Map<String, Integer> sidewalkToIdxMap;
-    Map<String, Integer> highwayToIdxMap;
+    Map<String, Integer> speedToIdxMap;
+
+    private static int nbrOfTags = 1;
 
     public AnomaliesIterator(String file, Charset encoding, int miniBatchSize, int sequenceLength, int epochSize) throws IOException {
             if(!new File(file).exists()) throw new IOException("Could not access file (does not exist): " + file);
@@ -33,13 +33,16 @@ public class AnomaliesIterator extends CharacterIterator {
             this.inputLines     = new LinkedList<>();
             this.outputLines    = new LinkedList<>();
             this.charToIdxMap   = new HashMap<>();
-            this.exampleLength  = sequenceLength;
+            this.exampleLength  = sequenceLength + nbrOfTags;
             this.miniBatchSize  = miniBatchSize;
             this.epochSize      = epochSize;
             this.textFileEncoding = encoding;
-            String before = "\t", after = "\n";
+
             charToIdxMap = EncoderHelper.getDanishCharacterSet();
-            maxSpeedToIdxMap = EncoderHelper.getMaxSpeedMap();
+            speedToIdxMap = EncoderHelper.getMaxSpeedMap(charToIdxMap.size());
+            alphabetSize = charToIdxMap.size() + speedToIdxMap.size();
+
+            String before = "\t", after = "\n";
             generateDataFromFile(file, before, after);
         }
 
@@ -52,14 +55,11 @@ public class AnomaliesIterator extends CharacterIterator {
                 //name,,,maxspeed,,,surface,,sidewalk,,,highway,,,oneway,,,0/1
 
                 char[] name = ArrayUtils.mergeArrays(before, after, values[0].toLowerCase().toCharArray());
-                Optional<Integer> maxSpeed = Optional.ofNullable(maxSpeedToIdxMap.get(values[1]));
+                int maxSpeedNumerical = speedToIdxMap.get(EncoderHelper.getSpeedClass(values[1]));
                 Integer result = Integer.parseInt(values[values.length-1]);
 
-                if (!maxSpeed.isPresent())
-                     throw new IOException("Value " + values[1] + " not present when parsing.");
-
                 for (int i = 0; i < name.length; i++) if(!charToIdxMap.containsKey(name[i])) name[i] = '!';
-                inputLines.add(new DataContainer(name, maxSpeed.get()));
+                inputLines.add(new DataContainer(name, maxSpeedNumerical));
                 outputLines.add(result);
             }
             ogInput = new LinkedList<>(inputLines);
@@ -75,7 +75,7 @@ public class AnomaliesIterator extends CharacterIterator {
         // dimension 1 = size of each vector (i.e., number of characters)
         // dimension 2 = length of each time series/example
         // 'f' (fortran) ordering = must for optimized custom iterator.
-        INDArray input = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength}, 'f');
+        INDArray input = Nd4j.create(new int[]{currMinibatchSize, alphabetSize, exampleLength}, 'f');
         INDArray labels = Nd4j.create(new int[]{currMinibatchSize, 2, exampleLength}, 'f');
         INDArray inputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
         INDArray outputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
@@ -94,11 +94,15 @@ public class AnomaliesIterator extends CharacterIterator {
             outputMask.putScalar(new int[]{i, exampleLength-1}, 1f);
             labels.putScalar(new int[]{i, outputClass, exampleLength-1}, 1f);
 
+            //Add name
             for(int j = 0; j < exampleLength; j++){
                 int currCharIdx = charToIdxMap.get('\n');
                 if(inputChars.length > j) currCharIdx = charToIdxMap.get(inputChars[j]);
                 input.putScalar(new int[]{i,currCharIdx,j}, 1f);
             }
+
+            //Add tags
+            input.putScalar(new int[]{i, cont.maxSpeed, exampleLength-1}, 1f);
         }
         return new DataSet(input, labels, inputMask, outputMask);
     }
@@ -120,7 +124,7 @@ public class AnomaliesIterator extends CharacterIterator {
     }
 
     public int inputColumns() {
-        return charToIdxMap.size();
+        return alphabetSize;
     }
 
     public void reset() {
@@ -146,16 +150,16 @@ public class AnomaliesIterator extends CharacterIterator {
         return totalExamples();
     }
 
-    public Character convertIndexToCharacter(int idx) {
+    public char convertIndexToCharacter(int idx) {
         for (Character c : charToIdxMap.keySet()) {
             if (charToIdxMap.get(c) == idx)
                 return c;
         }
-        return null;
+        return '!';
     }
 
     public int getNbrClasses(){
-        return charToIdxMap.size();
+        return alphabetSize;
     }
 
     @Override

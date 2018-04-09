@@ -186,11 +186,11 @@ public class SpellCheckIterator extends CharacterIterator {
         return charToIdxMap.size();
     }
 
-    public Character convertIndexToCharacter(int idx) {
+    public char convertIndexToCharacter(int idx) {
         for (Character c : charToIdxMap.keySet()) {
             if (charToIdxMap.get(c) == idx)
                 return c;
         }
-        return null;
+        return '!';
     }
 }

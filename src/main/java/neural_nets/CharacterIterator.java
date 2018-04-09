@@ -28,7 +28,7 @@ public abstract class CharacterIterator implements DataSetIterator {
         throw new UnsupportedOperationException("Not implemented");
     }
 
-    public abstract Character convertIndexToCharacter(int idx);
+    public abstract char convertIndexToCharacter(int idx);
 
     public abstract int getNbrClasses();
 

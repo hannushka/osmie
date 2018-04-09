@@ -7,7 +7,7 @@ public class AnomaliesRunner {
     public static void main(String[] args) {
         try {
             String fileLocation = "data/dataAnomalies.csv";
-            String testFileLocation = "data/superDataUniqueTest.csv.noised";
+            String testFileLocation = "data/dataAnomaliesTest.csv";
             Seq2Seq model = BiDirectionalRNN.Builder()
                     .setFilename("modelBRNN_")
                     .setBatchSize(32)
