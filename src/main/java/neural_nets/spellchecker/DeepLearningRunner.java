@@ -10,11 +10,11 @@ public class DeepLearningRunner {
             String fileLocation = "data/autoNameData.csv";
             String testFileLocation = "data/manualNameData.csv";
             Seq2Seq model = BiDirectionalRNN.Builder()
-                    .setFilename("modelBRNN_")
+                    .setFilename("modelBRNN_tripple")
                     .setBatchSize(32)
                     .setNbrEpochs(500)
                     .setEpochSize(10000)
-                    .setNbrLayers(10, 6) // params Integer int... (Size, Size)
+                    .setNbrLayers(16, 8, 4) // params Integer int... (Size, Size)
                     .setLearningRate(.1)
                     .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC)
                     .buildNetwork()
