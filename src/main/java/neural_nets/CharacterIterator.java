@@ -3,6 +3,7 @@ package neural_nets;
 import org.nd4j.linalg.dataset.api.DataSetPreProcessor;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 
+import java.io.IOException;
 import java.util.List;
 
 public abstract class CharacterIterator implements DataSetIterator {
@@ -27,7 +28,7 @@ public abstract class CharacterIterator implements DataSetIterator {
         throw new UnsupportedOperationException("Not implemented");
     }
 
-    public abstract char convertIndexToCharacter(int idx);
+    public abstract Character convertIndexToCharacter(int idx);
 
     public abstract int getNbrClasses();
 

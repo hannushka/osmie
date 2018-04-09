@@ -6,10 +6,12 @@ import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.nd4j.linalg.api.iter.NdIndexIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -47,12 +49,17 @@ public class Helper {
     }
 
     public static String getWordFromDistr(double[][] wordDistr, CharacterIterator itr){
-        return Arrays.stream(wordDistr)
-                     .map(Helper::getIndexOfMax)
-                     .map(itr::convertIndexToCharacter)
-                     .map(String::valueOf)
-                     .collect(Collectors.joining())
-                     .replaceAll("ü", "").trim();       // ü will be chosen if none is bigger supposedly.. TODO
+
+        List<Integer> list = Arrays.stream(wordDistr).map(Helper::getIndexOfMax).collect(Collectors.toList());
+        List<Character> chars = new LinkedList<>();
+        for ( int idx : list) {
+            Optional<Character> c = Optional.ofNullable(itr.convertIndexToCharacter(idx));
+            if (c.isPresent()) chars.add(c.get());
+        }
+        return Arrays.stream(chars.toArray())
+                .map(String::valueOf)
+                .collect(Collectors.joining())
+                .replaceAll("ü", "").trim();       // ü will be chosen if none is bigger supposedly.. TODO
     }
 
     public static int getIndexOfMax(double[] array){

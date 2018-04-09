@@ -6,6 +6,7 @@ import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
 import util.ArrayUtils;
 import util.DeepSpellObject;
+import util.EncoderHelper;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,15 +14,12 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.*;
 
-import static util.StringUtils.getDanishCharacterSet;
-
 /*
  * @author Alex Black
  * @author Hampus Londögård
  * @author Hannah Lindblad
  */
 public class SpellCheckIterator extends CharacterIterator {
-    protected char[] validCharacters;
     protected Charset textFileEncoding; //Maps each character to an index in the input/output
     protected Map<Character,Integer> charToIdxMap; //All characters of the input file (after filtering to only those that are valid)
     protected LinkedList<char[]> inputLines, outputLines;
@@ -45,12 +43,11 @@ public class SpellCheckIterator extends CharacterIterator {
         this.ogInput        = new LinkedList<>();
         this.ogOutput       = new LinkedList<>();
         this.charToIdxMap   = new HashMap<>();
-        this.validCharacters= getDanishCharacterSet();
         this.exampleLength  = exampleLength;
         this.miniBatchSize  = miniBatchSize;
         this.epochSize      = epochSize;
         this.textFileEncoding = textFileEncoding;
-        for(int i = 0; i < validCharacters.length; i++) charToIdxMap.put(validCharacters[i], i);
+        charToIdxMap = EncoderHelper.getDanishCharacterSet();
         String before = "\t", after = "\n";
         generateDataFromFile(textFilePath, before, after);
     }
@@ -92,8 +89,8 @@ public class SpellCheckIterator extends CharacterIterator {
         currMinibatchSize = Math.min(currMinibatchSize, outputLines.size());
 
 
-        INDArray input = Nd4j.create(new int[]{currMinibatchSize, validCharacters.length, exampleLength}, 'f');
-        INDArray labels = Nd4j.create(new int[]{currMinibatchSize, validCharacters.length, exampleLength}, 'f');
+        INDArray input = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength}, 'f');
+        INDArray labels = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength}, 'f');
 
         // 1 = exist, 0 = should be masked
         INDArray inputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
@@ -152,7 +149,7 @@ public class SpellCheckIterator extends CharacterIterator {
     }
 
     public int inputColumns() {
-        return validCharacters.length;
+        return charToIdxMap.size();
     }
 
     public int totalOutcomes() {
@@ -186,10 +183,14 @@ public class SpellCheckIterator extends CharacterIterator {
     }
 
     public int getNbrClasses(){
-        return validCharacters.length;
+        return charToIdxMap.size();
     }
 
-    public char convertIndexToCharacter( int idx ){
-        return validCharacters[idx];
+    public Character convertIndexToCharacter(int idx) {
+        for (Character c : charToIdxMap.keySet()) {
+            if (charToIdxMap.get(c) == idx)
+                return c;
+        }
+        return null;
     }
 }

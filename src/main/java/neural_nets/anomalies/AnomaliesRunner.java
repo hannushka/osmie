@@ -6,7 +6,7 @@ import neural_nets.Seq2Seq;
 public class AnomaliesRunner {
     public static void main(String[] args) {
         try {
-            String fileLocation = "data/superDataUnique.csv.noised";
+            String fileLocation = "data/dataAnomalies.csv";
             String testFileLocation = "data/superDataUniqueTest.csv.noised";
             Seq2Seq model = BiDirectionalRNN.Builder()
                     .setFilename("modelBRNN_")
@@ -19,7 +19,7 @@ public class AnomaliesRunner {
                     .buildNetwork()
                     .setScoreListener(Seq2Seq.ScoreListener.VISUALIZE);
             model.runTraining();
-            model.runTesting(false);
+//            model.runTesting(false);
         } catch (Exception e) {
             e.printStackTrace();
         }
