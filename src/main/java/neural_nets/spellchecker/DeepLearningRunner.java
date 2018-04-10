@@ -7,7 +7,7 @@ import neural_nets.Seq2Seq;
 public class DeepLearningRunner {
     public static void main(String[] args) {
         try {
-            String fileLocation = "data/autoNameData.csv";
+            String fileLocation = "data/shuffledTrainData.csv";
             String testFileLocation = "data/manualNameData.csv";
             Seq2Seq model = BiDirectionalRNN.Builder()
                     .setFilename("modelBRNN_tripple")
@@ -16,9 +16,9 @@ public class DeepLearningRunner {
                     .setEpochSize(10000)
                     .setNbrLayers(16, 8, 4) // params Integer int... (Size, Size)
                     .setLearningRate(.1)
-                    .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC)
+                    .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC, true)
                     .buildNetwork()
-                    .setScoreListener(Seq2Seq.ScoreListener.VISUALIZE);
+                    .setScoreListener(Seq2Seq.ScoreListener.TERMINAL);
             model.runTraining();
             model.runTesting(false);
         } catch (Exception e) {

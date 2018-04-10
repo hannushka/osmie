@@ -35,7 +35,7 @@ public class SpellCheckIterator extends CharacterIterator {
      */
 
     public SpellCheckIterator(String textFilePath, Charset textFileEncoding, int miniBatchSize, int exampleLength,
-                              int epochSize) throws IOException {
+                              int epochSize, boolean merge) throws IOException {
         if(!new File(textFilePath).exists()) throw new IOException("Could not access file (does not exist): " + textFilePath);
         if(miniBatchSize <= 0) throw new IllegalArgumentException("Invalid miniBatchSize (must be > 0)");
         this.inputLines     = new LinkedList<>();
@@ -49,25 +49,40 @@ public class SpellCheckIterator extends CharacterIterator {
         this.textFileEncoding = textFileEncoding;
         charToIdxMap = EncoderHelper.getDanishCharacterSet();
         String before = "\t", after = "\n";
-        generateDataFromFile(textFilePath, before, after);
+        generateDataFromFile(textFilePath, before, after, merge);
     }
 
-    public SpellCheckIterator() {}
-
-    private void generateDataFromFile(String textFilePath, String before, String after) throws IOException {
-
+    private void generateDataFromFile(String textFilePath, String before, String after, boolean merge) throws IOException {
         List<String> lines = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
+        String savedInp = "", savedOut = "";
+
         for (String s : lines){
             if (s.isEmpty()) continue;
+            s = s.toLowerCase();
             String[] inputOutput = s.split(",,,");
-
             if (inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
 
-            char[] inputLine = ArrayUtils.mergeArrays(before, after, inputOutput[0].toLowerCase().toCharArray());
-            char[] outputLine = ArrayUtils.mergeArrays(before, after, inputOutput[1].toLowerCase().toCharArray());
+            char[] inputLine = ArrayUtils.mergeArrays(before, after, inputOutput[0].toCharArray());
+            char[] outputLine = ArrayUtils.mergeArrays(before, after, inputOutput[1].toCharArray());
 
-            for (int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
-            for (int i = 0; i < outputLine.length; i++) if(!charToIdxMap.containsKey(outputLine[i])) outputLine[i] = '!';
+            if(merge){
+                if(!savedInp.isEmpty() && inputOutput[0].length() < 25){
+                    inputLine = ArrayUtils.mergeArrays(before, after, savedInp.toCharArray(),
+                            inputOutput[0].toCharArray());
+                    outputLine = ArrayUtils.mergeArrays(before, after, savedOut.toCharArray(),
+                            inputOutput[1].toCharArray());
+                    savedInp = "";
+                    savedOut = "";
+                }
+                if(savedInp.isEmpty() && inputOutput[0].length() < 25){
+                    savedInp = inputOutput[0];
+                    savedOut = inputOutput[1];
+                    continue;
+                }
+            }
+
+            for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
+            for(int i = 0; i < outputLine.length; i++) if(!charToIdxMap.containsKey(outputLine[i])) outputLine[i] = '!';
 
             inputLines.add(inputLine);
             outputLines.add(outputLine);
@@ -77,6 +92,8 @@ public class SpellCheckIterator extends CharacterIterator {
         ogOutput = new LinkedList<>(outputLines);
         numExamples = inputLines.size();
     }
+
+
 
     // dimension 0 = number of examples in minibatch
     // dimension 1 = size of each vector (i.e., number of characters)
