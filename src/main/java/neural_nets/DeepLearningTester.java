@@ -17,7 +17,8 @@ public class DeepLearningTester {
 
     private static void testAnomalies() throws Exception {
         Seq2Seq model = AnomaliesRNN.Builder()
-                        .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.ANOMALIES, false);
+                        .setCharacterIterator(fileLocation, testFileLocation,
+                                        Seq2Seq.IteratorType.ANOMALIES, false);
         runTest(model, String.format("%sARNN_", modelFilePathPrefix));
     }
 
@@ -35,7 +36,7 @@ public class DeepLearningTester {
                 model.loadModel(String.format("%s%s.bin", path, i));
                 model.runTesting(false);
                 System.out.println("Nr:" + i);
-                String a = keyboard.nextLine();
+                keyboard.nextLine();
             }
     }
 
