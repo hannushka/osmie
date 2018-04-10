@@ -64,7 +64,6 @@ public class SpellCheckIterator extends CharacterIterator {
 
             char[] inputLine = ArrayUtils.mergeArrays(before, after, inputOutput[0].toCharArray());
             char[] outputLine = ArrayUtils.mergeArrays(before, after, inputOutput[1].toCharArray());
-
             if(merge){
                 if(!savedInp.isEmpty() && inputOutput[0].length() < 25){
                     inputLine = ArrayUtils.mergeArrays(before, after, savedInp.toCharArray(),
@@ -81,7 +80,7 @@ public class SpellCheckIterator extends CharacterIterator {
                 }
             }
 
-            for(int i = 0; i < inputLine.length; i++) if(!charToIdxMap.containsKey(inputLine[i])) inputLine[i] = '!';
+            for(int i = 0; i < inputLine.length; i++)  if(!charToIdxMap.containsKey(inputLine[i]))   inputLine[i] = '!';
             for(int i = 0; i < outputLine.length; i++) if(!charToIdxMap.containsKey(outputLine[i])) outputLine[i] = '!';
 
             inputLines.add(inputLine);
