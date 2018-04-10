@@ -1,4 +1,4 @@
-package util;
+package neural_nets.anomalies;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -127,9 +127,13 @@ public class EncoderHelper {
             char[] temp = {'!', '&', '-', '\'', '"', ',', '.', ' ', '\n', '\t', 'ü', 'ë', 'é'};
             int counter = 0;
             while (scan.hasNext()) {
-                if (!validChars.containsKey(scan.next().charAt(0))) validChars.put(scan.next().charAt(0), counter++);
+                String s = scan.next();
+                if (!validChars.containsKey(s.charAt(0))) {
+                    validChars.put(s.charAt(0), counter++);
+                }
             }
-            for(char c : temp) validChars.put(c, counter++);       // ^ Adding these here as they are not common to misspell
+            // ^ Adding these here as they are not common to misspell
+            for(char c : temp) if (!validChars.containsKey(c)) validChars.put(c, counter++);
             scan.close();
             return validChars;
         } catch (FileNotFoundException e) {

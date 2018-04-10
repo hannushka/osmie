@@ -5,7 +5,6 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
 import util.ArrayUtils;
-import util.EncoderHelper;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,7 +16,7 @@ public class AnomaliesIterator extends CharacterIterator {
     Charset textFileEncoding; //Maps each character to an index in the input/output
     LinkedList<DataContainer> inputLines;
     LinkedList<Integer> outputLines;
-    protected LinkedList<DataContainer> ogInput;
+        protected LinkedList<DataContainer> ogInput;
     LinkedList<Integer> ogOutput;
     protected int exampleLength, miniBatchSize, numExamples, pointer = 0, epochSize;
     protected int alphabetSize;
@@ -85,7 +84,7 @@ public class AnomaliesIterator extends CharacterIterator {
         // dimension 1 = size of each vector (i.e., number of characters)
         // dimension 2 = length of each time series/example
         // 'f' (fortran) ordering = must for optimized custom iterator.
-        INDArray input = Nd4j.create(new int[]{currMinibatchSize, alphabetSize, exampleLength}, 'f');
+        INDArray input = Nd4j.create(new int[]{currMinibatchSize, 1, exampleLength}, 'f');
         INDArray labels = Nd4j.create(new int[]{currMinibatchSize, 2, exampleLength}, 'f');
         INDArray inputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
         INDArray outputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
@@ -108,13 +107,13 @@ public class AnomaliesIterator extends CharacterIterator {
             for(int j = 0; j < exampleLength; j++){
                 int currCharIdx = charToIdxMap.get('\n');
                 if(inputChars.length > j) currCharIdx = charToIdxMap.get(inputChars[j]);
-                input.putScalar(new int[]{i,currCharIdx,j}, 1f);
+                input.putScalar(new int[]{i,0,j}, currCharIdx);
             }
 
             //Add tags
-            input.putScalar(new int[]{i, cont.maxSpeedClass, exampleLength-3}, 1f);
-            input.putScalar(new int[]{i, cont.highwayClass, exampleLength-2}, 1f);
-            input.putScalar(new int[]{i, cont.surfaceClass, exampleLength-1}, 1f);
+            input.putScalar(new int[]{i, 0, exampleLength-3}, cont.maxSpeedClass);
+            input.putScalar(new int[]{i, 0, exampleLength-2}, cont.highwayClass);
+            input.putScalar(new int[]{i, 0, exampleLength-1}, cont.surfaceClass);
         }
         return new DataSet(input, labels, inputMask, outputMask);
     }
@@ -193,6 +192,15 @@ public class AnomaliesIterator extends CharacterIterator {
             this.maxSpeedClass = maxSpeedClass;
             this.highwayClass = highwayClass;
             this.surfaceClass = surfaceClass;
+        }
+
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("name: ").append(new String(inputLine).trim()).append(", ");
+            sb.append("maxspeed: ").append(maxSpeedClass).append(", ");
+            sb.append("surface: ").append(surfaceClass).append(", ");
+            sb.append("highway: ").append(highwayClass).append("\n");
+            return sb.toString();
         }
     }
 
