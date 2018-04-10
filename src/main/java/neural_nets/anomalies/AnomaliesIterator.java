@@ -25,6 +25,7 @@ public class AnomaliesIterator extends CharacterIterator {
     Map<Character,Integer> charToIdxMap; //All characters of the input file (after filtering to only those that are valid)
     Map<String, Integer> speedToIdxMap;
     Map<String, Integer> highwayToIdxMap;
+    Map<String, Integer> surfaceToIdxMap;
 
     private static int nbrOfTags = 1;
 
@@ -40,9 +41,13 @@ public class AnomaliesIterator extends CharacterIterator {
             this.textFileEncoding = encoding;
 
             charToIdxMap = EncoderHelper.getDanishCharacterSet();
-            speedToIdxMap = EncoderHelper.getMaxSpeedMap(charToIdxMap.size());
-            highwayToIdxMap = EncoderHelper.getHighwayMap(charToIdxMap.size());
-            alphabetSize = charToIdxMap.size() + speedToIdxMap.size() + highwayToIdxMap.size();
+            alphabetSize = charToIdxMap.size();
+            speedToIdxMap = EncoderHelper.getMaxSpeedMap(alphabetSize);
+            alphabetSize += speedToIdxMap.size();
+            highwayToIdxMap = EncoderHelper.getHighwayMap(alphabetSize);
+            alphabetSize += highwayToIdxMap.size();
+            surfaceToIdxMap = EncoderHelper.getSurfaceMap(alphabetSize);
+            alphabetSize += surfaceToIdxMap.size();
 
             String before = "\t", after = "\n";
             generateDataFromFile(file, before, after);
@@ -58,12 +63,13 @@ public class AnomaliesIterator extends CharacterIterator {
 
                 char[] name = ArrayUtils.mergeArrays(before, after, values[0].toLowerCase().toCharArray());
                 int maxSpeedClass = speedToIdxMap.get(EncoderHelper.getSpeedClass(values[1]));
-                int highwayClass = speedToIdxMap.get(EncoderHelper.getHighwayClass(values[4]));
+                int surfaceClass =surfaceToIdxMap.get(EncoderHelper.getSurfaceClass(values[2]));
+                int highwayClass = highwayToIdxMap.get(EncoderHelper.getHighwayClass(values[4]));
 
                 Integer result = Integer.parseInt(values[values.length-1]);
 
                 for (int i = 0; i < name.length; i++) if(!charToIdxMap.containsKey(name[i])) name[i] = '!';
-                inputLines.add(new DataContainer(name, maxSpeedClass, highwayClass));
+                inputLines.add(new DataContainer(name, maxSpeedClass, highwayClass, surfaceClass));
                 outputLines.add(result);
             }
             ogInput = new LinkedList<>(inputLines);
@@ -106,8 +112,9 @@ public class AnomaliesIterator extends CharacterIterator {
             }
 
             //Add tags
-            input.putScalar(new int[]{i, cont.maxSpeedClass, exampleLength-2}, 1f);
-            input.putScalar(new int[]{i, cont.highwayClass, exampleLength-1}, 1f);
+            input.putScalar(new int[]{i, cont.maxSpeedClass, exampleLength-3}, 1f);
+            input.putScalar(new int[]{i, cont.highwayClass, exampleLength-2}, 1f);
+            input.putScalar(new int[]{i, cont.surfaceClass, exampleLength-1}, 1f);
         }
         return new DataSet(input, labels, inputMask, outputMask);
     }
@@ -179,12 +186,13 @@ public class AnomaliesIterator extends CharacterIterator {
 
     private class DataContainer {
         char[] inputLine;
-        int maxSpeedClass, highwayClass;
+        int maxSpeedClass, highwayClass, surfaceClass;
 
-        public DataContainer(char[] inputLine, int maxSpeedClass, int highwayClass) {
+        public DataContainer(char[] inputLine, int maxSpeedClass, int highwayClass, int surfaceClass) {
             this.inputLine = inputLine;
             this.maxSpeedClass = maxSpeedClass;
             this.highwayClass = highwayClass;
+            this.surfaceClass = surfaceClass;
         }
     }
 

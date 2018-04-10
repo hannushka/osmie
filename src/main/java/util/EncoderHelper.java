@@ -7,9 +7,55 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class EncoderHelper {
-
     private static String[] maxSpeed = {"numeric-0", "numeric-30", "numeric-70", "missing", "other"};
     private static String[] ways = {"motorway", "primary", "residential", "pedestrian", "paths", "cycleway", "other"};
+    private static String[] surfaces = {"paved", "paving_stones", "metal", "wood", "unpaved", "other"};
+
+    private enum TagType {
+        SPEED,
+        SURFACE,
+        HIGHWAY
+    }
+
+    public static String getSurfaceClass(String surface) {
+        switch (surface) {
+            case "paved":
+            case "asphalt":
+            case "concrete":
+            case "concrete:lanes":
+            case "concrete:plates":
+                return surfaces[0];
+            case "paving_stones":
+            case "sett":
+            case "unhewn_cobblestone":
+            case "cobblestone":
+                return surfaces[1];
+            case "metal":
+                return surfaces[2];
+            case "wood":
+                return surfaces[3];
+            case "unpaved":
+            case "compacted":
+            case "fine_gravel":
+            case "gravel":
+            case "pebblestone":
+            case "dirt":
+            case "earth":
+            case "grass":
+            case "grass_paver":
+            case "gravel_turf":
+            case "ground":
+            case "mud":
+            case "sand":
+            case "woodchips":
+            case "salt":
+            case "snow":
+            case "ice":
+                return surfaces[4];
+            default:
+                return surfaces[5];
+        }
+    }
 
     public static String getSpeedClass(String speed) {
         try {
@@ -62,15 +108,15 @@ public class EncoderHelper {
     }
 
     public static Map<String, Integer> getMaxSpeedMap(int counter) {
-        Map<String, Integer> validChars = new HashMap<>();
-        for (int i = 0 ; i < maxSpeed.length ; i++) validChars.put(maxSpeed[i], counter++);
-        return validChars;
+        return getMapFromArray(TagType.SPEED, counter);
     }
 
     public static Map<String, Integer> getHighwayMap(int counter) {
-        Map<String, Integer> validChars = new HashMap<>();
-        for (int i = 0 ; i < ways.length ; i++) validChars.put(ways[i], counter++);
-        return validChars;
+        return getMapFromArray(TagType.HIGHWAY, counter);
+    }
+
+    public static Map<String, Integer> getSurfaceMap(int counter) {
+        return getMapFromArray(TagType.SURFACE, counter);
     }
 
     public static Map<Character, Integer> getDanishCharacterSet(){
@@ -99,6 +145,21 @@ public class EncoderHelper {
         for(char c='a'; c<='z'; c++) validChars.put(c, counter++);
         char[] temp = {'!', '&', '(', ')', '?', '-', '\'', '"', ',', '.', ':', ';', ' ', '\n', '\t'};
         for(char c : temp) validChars.put(c, counter++);
+        return validChars;
+    }
+
+    private static Map<String, Integer> getMapFromArray(TagType type, int counter) {
+        String[] array = null;
+        switch (type) {
+            case SPEED: array = maxSpeed;
+                break;
+            case SURFACE: array = surfaces;
+                break;
+            case HIGHWAY: array = ways;
+                break;
+        }
+        Map<String, Integer> validChars = new HashMap<>();
+        for (int i = 0 ; i < array.length ; i++) validChars.put(array[i], counter++);
         return validChars;
     }
 }
