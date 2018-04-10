@@ -5,12 +5,7 @@ import neural_nets.CharacterIterator;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.nd4j.linalg.api.iter.NdIndexIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
-
-import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -54,7 +49,7 @@ public class Helper {
                 .map(itr::convertIndexToCharacter)
                 .map(String::valueOf)
                 .collect(Collectors.joining())      // TODO this method might be erronous now?
-                .replaceAll("ü", "").trim();       // ü will be chosen if none is bigger supposedly.. TODO
+                .replaceAll("é", "").trim();       // é will be chosen if none is bigger supposedly..
 
     }
 
