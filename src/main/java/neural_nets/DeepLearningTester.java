@@ -14,26 +14,33 @@ public class DeepLearningTester {
     private static String fileLocationRNN = "data/shuffledTrainData.csv";
     private static String testFileLocationRNN = "data/manualNameData.csv";
     private static String modelFilePathPrefix = "data/models/";
-
-    private static void testAnomalies() throws Exception {
-        Seq2Seq model = AnomaliesRNN.Builder()
-                        .setCharacterIterator(fileLocation, testFileLocation,
-                                        Seq2Seq.IteratorType.ANOMALIES, false);
-        runTest(model, String.format("%sARNN_", modelFilePathPrefix));
+    private enum ModelType {
+        SPELLCHECKER,
+        ANOMALY
     }
 
-    private static void testSpellChecker() throws Exception {
-        Seq2Seq model = BiDirectionalRNN.Builder()
-                        .setCharacterIterator(fileLocationRNN, testFileLocationRNN,
-                                        Seq2Seq.IteratorType.CLASSIC, false);
-        runTest(model, String.format("%sBRNN_", modelFilePathPrefix));
+    public static Seq2Seq anomalyModel() throws Exception {
+        return AnomaliesRNN.Builder()
+                        .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.ANOMALIES, false);
+    }
+
+    public static Seq2Seq spellCheckerModel() throws Exception {
+        return BiDirectionalRNN.Builder()
+                .setCharacterIterator(fileLocationRNN, testFileLocationRNN, Seq2Seq.IteratorType.CLASSIC, false);
 
     }
 
-    private static void runTest(Seq2Seq model, String path) throws IOException {
+    private static void runTest(ModelType type) throws Exception {
             Scanner keyboard = new Scanner(System.in);
+            Seq2Seq model = null;
             for(int i = 0; i < 500; i += 10){
-                model.loadModel(String.format("%s%s.bin", path, i));
+                switch (type) {
+                    case ANOMALY:
+                        model = anomalyModel().loadModel(String.format("%sARNN_%s.bin", modelFilePathPrefix, i));
+                        break;
+                    case SPELLCHECKER:
+                        model = spellCheckerModel().loadModel(String.format("%sBRNN_%s.bin", modelFilePathPrefix, i));
+                }
                 model.runTesting(false);
                 System.out.println("Nr:" + i);
                 keyboard.nextLine();
@@ -42,8 +49,7 @@ public class DeepLearningTester {
 
     public static void main(String[] args) {
         try {
-            testSpellChecker();
-//            testAnomalies();
+            runTest(ModelType.SPELLCHECKER);
         } catch (Exception e) {
             e.printStackTrace();
         }
