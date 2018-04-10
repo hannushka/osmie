@@ -169,10 +169,6 @@ public class AnomaliesIterator extends CharacterIterator {
         return '!';
     }
 
-    public int getNbrClasses(){
-        return alphabetSize;
-    }
-
     @Override
     public int totalOutcomes() {
         return 2;

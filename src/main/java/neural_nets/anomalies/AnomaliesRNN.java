@@ -12,6 +12,7 @@ import org.deeplearning4j.nn.conf.layers.RnnOutputLayer;
 import org.deeplearning4j.nn.conf.preprocessor.FeedForwardToRnnPreProcessor;
 import org.deeplearning4j.nn.conf.preprocessor.RnnToFeedForwardPreProcessor;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.deeplearning4j.nn.weights.WeightInit;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.DataSet;
@@ -31,14 +32,17 @@ public class AnomaliesRNN extends Seq2Seq {
                 .seed(1234)
                 .iterations(1)
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                .regularization(true)
-                .l2(1e-5)
                 .learningRate(learningRate)
+                .weightInit(WeightInit.RELU)
                 .updater(Updater.ADAM)
                 .list()
-                .layer(0, new EmbeddingLayer.Builder().nIn(nIn).nOut(10).build())
-                .layer(1, new GravesBidirectionalLSTM.Builder().nIn(10).nOut(5).activation(Activation.SOFTSIGN).build())
-                .layer(2, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT).nIn(5).nOut(nOut).build())
+                .layer(0, new EmbeddingLayer.Builder().nIn(nIn).nOut(20).build())
+                .layer(1, new GravesBidirectionalLSTM.Builder().weightInit(WeightInit.RELU)
+                        .nIn(20).nOut(10).activation(Activation.SOFTSIGN).build())
+                .layer(2, new GravesBidirectionalLSTM.Builder().weightInit(WeightInit.RELU)
+                        .nIn(10).nOut(5).activation(Activation.SOFTSIGN).build())
+                .layer(3, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT).activation(Activation.SOFTMAX)
+                        .nIn(5).nOut(nOut).build())
                 .inputPreProcessor(0, new RnnToFeedForwardPreProcessor())
                 .inputPreProcessor(1, new FeedForwardToRnnPreProcessor())
                 .build();
@@ -47,15 +51,13 @@ public class AnomaliesRNN extends Seq2Seq {
     }
 
     public void runTesting(boolean print){
-        Evaluation eval = new Evaluation(testItr.getNbrClasses());
+        Evaluation eval = new Evaluation(testItr.totalOutcomes());
         while(testItr.hasNext()){
             DataSet ds = testItr.next();
             net.rnnClearPreviousState();
             INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
             eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
-            createReadableStatistics(ds.getFeatures(), output, ds.getLabels(), print);
         }
-        printStats();
-        System.out.println(StringUtils.reduceEvalStats(eval.stats()));
+        System.out.println(eval.stats());
     }
 }

@@ -57,7 +57,7 @@ public class BiDirectionalRNN extends Seq2Seq {
     }
 
     public void runTesting(boolean print){
-        Evaluation eval = new Evaluation(testItr.getNbrClasses());
+        Evaluation eval = new Evaluation(testItr.totalOutcomes());
         List<DeepSpellObject> spellObjects = new ArrayList<>();
         SymSpell symSpell = new SymSpell(-1, 2, -1, 10);
         if(!symSpell.loadDictionary("data/korpus_freq_dict.txt", 0, 1)) try {

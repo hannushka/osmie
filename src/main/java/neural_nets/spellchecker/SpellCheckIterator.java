@@ -198,10 +198,6 @@ public class SpellCheckIterator extends CharacterIterator {
         return totalExamples();
     }
 
-    public int getNbrClasses(){
-        return charToIdxMap.size();
-    }
-
     public char convertIndexToCharacter(int idx) {
         for (Character c : charToIdxMap.keySet()) {
             if (charToIdxMap.get(c) == idx)
