@@ -1,5 +1,6 @@
 package neural_nets;
 
+import org.nd4j.linalg.dataset.api.DataSet;
 import symspell.SymSpell;
 import symspell.SuggestItem;
 import neural_nets.anomalies.AnomaliesIterator;
@@ -39,8 +40,8 @@ public abstract class Seq2Seq {
     protected MultiLayerNetwork net;
     protected CharacterIterator trainItr, testItr;
 
-    private int noChangeCorrect = 0, noChangeIncorrect = 0, changedCorrectly = 0, changedIncorrectly = 0, editDistOne = 0;
-    private int wrongChangeType = 0;
+    protected int noChangeCorrect = 0, noChangeIncorrect = 0, changedCorrectly = 0, changedIncorrectly = 0,
+            editDistOne = 0, wrongChangeType = 0;
 
     public Seq2Seq setFilename(String name){
         this.baseFilename = name;
@@ -120,21 +121,10 @@ public abstract class Seq2Seq {
         return this;
     }
 
-    public void createReadableStatistics(INDArray input, INDArray result, INDArray labels, boolean print,
-                                         List<DeepSpellObject> deepSpellObjects, SymSpell symSpell){
+    public void createReadableStatistics(INDArray input, INDArray result, INDArray labels, boolean print){
         String[] inputStr = Helper.convertTensorsToWords(input, trainItr);
         String[] resultStr = Helper.convertTensorsToWords(result, trainItr);
         String[] labelStr = Helper.convertTensorsToWords(labels, trainItr);
-//        for(DeepSpellObject obj : deepSpellObjects){
-//            String word = obj.currentName.orElse("");
-//            if(word.contains(" ")) continue;
-//            List<SuggestItem> items = symSpell.lookupSpecialized(word, SymSpell.Verbosity.Closest);
-//            items.addAll(symSpell.lookupSpecialized(obj.inputName, SymSpell.Verbosity.Closest));
-//            Collections.sort(items);
-//            if(!items.isEmpty() && items.get(0).distance <= 1) {
-//                resultStr[obj.index] = items.get(0).term;
-//            }
-//        }
         String inp, out, label;
         for(int i = 0; i < inputStr.length; i++){
             inp = inputStr[i];
@@ -165,7 +155,26 @@ public abstract class Seq2Seq {
         System.out.println("Edits within one: \t\t\t" + editDistOne);
     }
 
-    public abstract void runTraining() throws IOException;
+    public void runTraining() throws IOException {
+        int miniBatchNumber = 0, generateSamplesEveryNMinibatches = 100;
+        for (int i = 0; i < numEpochs; i++) {
+            while (trainItr.hasNext()) {
+                DataSet ds = trainItr.next();
+                net.rnnClearPreviousState();
+                net.fit(ds);
+
+                if (++miniBatchNumber % generateSamplesEveryNMinibatches == 0) {
+                    System.out.println("--------------------");
+                    System.out.println("Completed " + miniBatchNumber + " minibatches of size "
+                            + miniBatchSize + " words");
+                }
+            }
+            if(i % 5 == 0) System.out.println("Finished EPOCH #" + i);
+            if(i % 10 == 0)  ModelSerializer.writeModel(net, String.format("data/models/%s%s.bin", baseFilename, i), true);
+            trainItr.reset();
+        }
+        ModelSerializer.writeModel(net, "model.bin", true);
+    }
 
     public abstract void runTesting(boolean print);
 

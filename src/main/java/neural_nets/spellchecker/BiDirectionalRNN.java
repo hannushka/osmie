@@ -1,54 +1,59 @@
-package neural_nets;
+package neural_nets.spellchecker;
 
-import symspell.SymSpell;
-import symspell.SuggestItem;
+import neural_nets.Seq2Seq;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
-import org.deeplearning4j.nn.conf.BackpropType;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.Updater;
-import org.deeplearning4j.nn.conf.layers.GravesLSTM;
+import org.deeplearning4j.nn.conf.layers.GravesBidirectionalLSTM;
 import org.deeplearning4j.nn.conf.layers.RnnOutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
-import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
-import util.*;
+import symspell.SuggestItem;
+import symspell.SymSpell;
+import util.DeepSpellObject;
+import util.Helper;
 import util.StringUtils;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-public class RNN extends Seq2Seq {
+public class BiDirectionalRNN extends Seq2Seq {
 
     public static Seq2Seq Builder(){
-        return new RNN();
+        return new BiDirectionalRNN();
     }
 
-    public void runTraining() throws IOException {
-        int miniBatchNumber = 0, generateSamplesEveryNMinibatches = 100;
-        for (int i = 0; i < numEpochs; i++) {
-            while (trainItr.hasNext()) {
-                DataSet ds = trainItr.next();
-                net.rnnClearPreviousState();
-                net.fit(ds);
+    @Override
+    public Seq2Seq buildNetwork() throws Exception {
+        int nOut = trainItr.totalOutcomes(), idx = 1, nIn = trainItr.inputColumns();
+        NeuralNetConfiguration.ListBuilder builder = new NeuralNetConfiguration.Builder()
+                .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).iterations(1)
+                .learningRate(learningRate)
+                .seed(12345)
+                .weightInit(WeightInit.XAVIER)
+                .updater(Updater.RMSPROP)
+                .list()
+                .layer(0, new GravesBidirectionalLSTM.Builder().nIn(nIn).nOut(layerDimensions[0]).activation(Activation.SOFTSIGN).build());
 
-                if (++miniBatchNumber % generateSamplesEveryNMinibatches == 0) {
-                    System.out.println("--------------------");
-                    System.out.println("Completed " + miniBatchNumber + " minibatches of size "
-                            + miniBatchSize + " words");
-                }
-            }
-            if(i % 5 == 0) System.out.println("Finished EPOCH #" + i);
-            if(i % 10 == 0)  ModelSerializer.writeModel(net, String.format("data/models/%s%s.bin", baseFilename, i), true);
-            trainItr.reset();
-        }
-        ModelSerializer.writeModel(net, "model.bin", true);
+        for(int i = 1; i < layerDimensions.length; i++, idx++)
+            builder.layer(idx, new GravesBidirectionalLSTM.Builder().nIn(layerDimensions[i-1]).nOut(layerDimensions[i]).activation(Activation.SOFTSIGN).build());
+
+        for(int i = layerDimensions.length - 1; i > 0; i--, idx++)
+            builder.layer(idx, new GravesBidirectionalLSTM.Builder().nIn(layerDimensions[i]).nOut(layerDimensions[i-1]).activation(Activation.SOFTSIGN).build());
+
+        MultiLayerConfiguration config =  builder.layer(idx, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT).activation(Activation.SOFTMAX)
+                .nIn(layerDimensions[0]).nOut(nOut).build())
+                .build();
+        net = new MultiLayerNetwork(config);
+        return this;
     }
 
     public void runTesting(boolean print){
@@ -112,33 +117,34 @@ public class RNN extends Seq2Seq {
 //        eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
     }
 
-    @Override
-    public Seq2Seq buildNetwork() throws Exception{
-        int tbpttLength = 50, idx = 1, nOut = trainItr.totalOutcomes(), nIn = trainItr.inputColumns();
-        NeuralNetConfiguration.ListBuilder builder = new NeuralNetConfiguration.Builder()
-                .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).iterations(1)
-                .learningRate(learningRate)
-                .seed(12345)
-                .regularization(true).l2(1e-4)
-                .weightInit(WeightInit.XAVIER)
-                .updater(Updater.ADAM)
-                .list()
-                .layer(0, new GravesLSTM.Builder().nIn(nIn).nOut(layerDimensions[0])
-                        .activation(Activation.SOFTSIGN).build());
-
-        for(int i = 1; i < layerDimensions.length; i++, idx++)
-            builder.layer(idx, new GravesLSTM.Builder().nIn(layerDimensions[i-1]).nOut(layerDimensions[i]).activation(Activation.SOFTSIGN).build());  //10->5,5->2
-
-        for(int i = layerDimensions.length - 1; i > 0; i--, idx++)
-            builder.layer(idx, new GravesLSTM.Builder().nIn(layerDimensions[i]).nOut(layerDimensions[i-1]).activation(Activation.SOFTSIGN).build());
-
-        MultiLayerConfiguration config = builder.layer(idx, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT).activation(Activation.SOFTMAX)
-                .nIn(layerDimensions[0]).nOut(nOut).build())
-                .backpropType(BackpropType.TruncatedBPTT).tBPTTForwardLength(tbpttLength).tBPTTBackwardLength(tbpttLength)
-                .pretrain(false).backprop(true)
-                .build();
-        net = new MultiLayerNetwork(config);
-        return this;
-
+    public void createReadableStatistics(INDArray input, INDArray result, INDArray labels, boolean print,
+                                         List<DeepSpellObject> deepSpellObjects, SymSpell symSpell){
+        String[] inputStr = Helper.convertTensorsToWords(input, trainItr);
+        String[] resultStr = Helper.convertTensorsToWords(result, trainItr);
+        String[] labelStr = Helper.convertTensorsToWords(labels, trainItr);
+//        for(DeepSpellObject obj : deepSpellObjects){
+//            String word = obj.currentName.orElse("");
+//            if(word.contains(" ")) continue;
+//            List<SuggestItem> items = symSpell.lookupSpecialized(word, SymSpell.Verbosity.Closest);
+//            items.addAll(symSpell.lookupSpecialized(obj.inputName, SymSpell.Verbosity.Closest));
+//            Collections.sort(items);
+//            if(!items.isEmpty() && items.get(0).distance <= 1) {
+//                resultStr[obj.index] = items.get(0).term;
+//            }
+//        }
+        String inp, out, label;
+        for(int i = 0; i < inputStr.length; i++){
+            inp = inputStr[i];
+            out = resultStr[i];
+            label = labelStr[i];
+            if(print) System.out.println(inp + ",,," + out + ",,," + label);
+            if(StringUtils.oneEditDist(inp, label)) editDistOne++;
+            if(inp.equals(out) && inp.equals(label)) noChangeCorrect++;
+            if(inp.equals(out) && !inp.equals(label)) noChangeIncorrect++;
+            if(!inp.equals(label) && out.equals(label)) changedCorrectly++;
+            if(inp.equals(label) && !inp.equals(out)) changedIncorrectly++;
+            if(!inp.equals(label) && !inp.equals(out) && !out.equals(label))  wrongChangeType++;
+        }
     }
+
 }

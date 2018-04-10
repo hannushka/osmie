@@ -1,7 +1,6 @@
 package neural_nets.spellchecker;
 
 
-import neural_nets.BiDirectionalRNN;
 import neural_nets.Seq2Seq;
 
 public class DeepLearningRunner {
@@ -10,7 +9,7 @@ public class DeepLearningRunner {
             String fileLocation = "data/shuffledTrainData.csv";
             String testFileLocation = "data/manualNameData.csv";
             Seq2Seq model = BiDirectionalRNN.Builder()
-                    .setFilename("modelBRNN_tripple")
+                    .setFilename("BRNN_")
                     .setBatchSize(32)
                     .setNbrEpochs(500)
                     .setEpochSize(10000)
@@ -18,7 +17,7 @@ public class DeepLearningRunner {
                     .setLearningRate(.1)
                     .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC, true)
                     .buildNetwork()
-                    .setScoreListener(Seq2Seq.ScoreListener.TERMINAL);
+                    .setScoreListener(Seq2Seq.ScoreListener.VISUALIZE);
             model.runTraining();
             model.runTesting(false);
         } catch (Exception e) {

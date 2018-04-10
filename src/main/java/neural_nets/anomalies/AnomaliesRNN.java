@@ -1,7 +1,7 @@
 package neural_nets.anomalies;
 
-import neural_nets.RNN;
 import neural_nets.Seq2Seq;
+import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
@@ -12,11 +12,13 @@ import org.deeplearning4j.nn.conf.layers.RnnOutputLayer;
 import org.deeplearning4j.nn.conf.preprocessor.FeedForwardToRnnPreProcessor;
 import org.deeplearning4j.nn.conf.preprocessor.RnnToFeedForwardPreProcessor;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
-import org.deeplearning4j.nn.weights.WeightInit;
 import org.nd4j.linalg.activations.Activation;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.dataset.api.DataSet;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
+import util.StringUtils;
 
-public class AnomaliesRNN extends RNN {
+public class AnomaliesRNN extends Seq2Seq {
 
     public static Seq2Seq Builder(){
         return new AnomaliesRNN();
@@ -30,7 +32,7 @@ public class AnomaliesRNN extends RNN {
                 .iterations(1)
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .regularization(true)
-                .l2(1e-3)
+                .l2(1e-5)
                 .learningRate(learningRate)
                 .updater(Updater.ADAM)
                 .list()
@@ -42,5 +44,18 @@ public class AnomaliesRNN extends RNN {
                 .build();
         net = new MultiLayerNetwork(config);
         return this;
+    }
+
+    public void runTesting(boolean print){
+        Evaluation eval = new Evaluation(testItr.getNbrClasses());
+        while(testItr.hasNext()){
+            DataSet ds = testItr.next();
+            net.rnnClearPreviousState();
+            INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
+            eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
+            createReadableStatistics(ds.getFeatures(), output, ds.getLabels(), print);
+        }
+        printStats();
+        System.out.println(StringUtils.reduceEvalStats(eval.stats()));
     }
 }
