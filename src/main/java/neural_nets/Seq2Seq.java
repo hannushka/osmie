@@ -73,14 +73,14 @@ public abstract class Seq2Seq {
     }
 
     public Seq2Seq setCharacterIterator(String fileLocation, String testFileLocation,
-                                        IteratorType type) throws Exception {
+                                        IteratorType type, boolean merge) throws Exception {
         int exampleLength = 50;
         switch (type){
             case CLASSIC:
                 trainItr = new SpellCheckIterator(fileLocation, Charset.forName("UTF-8"),
-                        miniBatchSize, exampleLength, epochSize);
+                        miniBatchSize, exampleLength, epochSize, merge);
                 testItr = new SpellCheckIterator(testFileLocation, Charset.forName("UTF-8"),
-                        miniBatchSize, exampleLength, epochSize);
+                        miniBatchSize, exampleLength, epochSize, merge);
                 break;
             case ANOMALIES:
                 trainItr = new AnomaliesIterator(fileLocation, Charset.forName("UTF-8"),
@@ -125,16 +125,16 @@ public abstract class Seq2Seq {
         String[] inputStr = Helper.convertTensorsToWords(input, trainItr);
         String[] resultStr = Helper.convertTensorsToWords(result, trainItr);
         String[] labelStr = Helper.convertTensorsToWords(labels, trainItr);
-        for(DeepSpellObject obj : deepSpellObjects){
-            String word = obj.currentName.orElse("");
-            if(word.contains(" ")) continue;
-            List<SuggestItem> items = symSpell.lookupSpecialized(word, SymSpell.Verbosity.Closest);
-            items.addAll(symSpell.lookupSpecialized(obj.inputName, SymSpell.Verbosity.Closest));
-            Collections.sort(items);
-            if(!items.isEmpty() && items.get(0).distance <= 1) {
-                resultStr[obj.index] = items.get(0).term;
-            }
-        }
+//        for(DeepSpellObject obj : deepSpellObjects){
+//            String word = obj.currentName.orElse("");
+//            if(word.contains(" ")) continue;
+//            List<SuggestItem> items = symSpell.lookupSpecialized(word, SymSpell.Verbosity.Closest);
+//            items.addAll(symSpell.lookupSpecialized(obj.inputName, SymSpell.Verbosity.Closest));
+//            Collections.sort(items);
+//            if(!items.isEmpty() && items.get(0).distance <= 1) {
+//                resultStr[obj.index] = items.get(0).term;
+//            }
+//        }
         String inp, out, label;
         for(int i = 0; i < inputStr.length; i++){
             inp = inputStr[i];

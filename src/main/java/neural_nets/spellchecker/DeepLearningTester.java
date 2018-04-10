@@ -13,10 +13,10 @@ public class DeepLearningTester {
         Seq2Seq model;
         try {
             Scanner keyboard = new Scanner(System.in);
-            for(int i = 370; i < 500; i += 10){
+            for(int i = 350; i < 500; i += 10){
                 model = BiDirectionalRNN.Builder()
-                        .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC)
-                        .loadModel(String.format("data/models/modelBRNN_%s.bin", i));
+                        .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC, false)
+                        .loadModel(String.format("data/models/modelBRNN_tripple%s.bin", i));
                 model.runTesting(false);
                 System.out.println("Nr:" + i);
                 String a = keyboard.nextLine();
