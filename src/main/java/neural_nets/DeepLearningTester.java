@@ -15,23 +15,33 @@ public class DeepLearningTester {
     private static String testFileLocation = "data/dataAnomaliesTest.csv";
     private static String modelFilePathPrefix = "data/models/";
 
-    public static void testAnomalies() throws Exception {
-        Seq2Seq model = AnomaliesRNN.Builder()
+    private enum ModelType {
+        SPELLCHECKER,
+        ANOMALY
+    }
+
+    public static Seq2Seq anomalyModel() throws Exception {
+        return AnomaliesRNN.Builder()
                         .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.ANOMALIES, false);
-        runTest(model, String.format("%sARNN_", modelFilePathPrefix));
     }
 
-    public static void testSpellChecker() throws Exception {
-        Seq2Seq model = BiDirectionalRNN.Builder()
+    public static Seq2Seq spellCheckerModel() throws Exception {
+        return BiDirectionalRNN.Builder()
                 .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC, false);
-        runTest(model, String.format("%sBRNN_", modelFilePathPrefix));
 
     }
 
-    private static void runTest(Seq2Seq model, String path) throws IOException {
+    private static void runTest(ModelType type) throws Exception {
             Scanner keyboard = new Scanner(System.in);
+            Seq2Seq model = null;
             for(int i = 0; i < 500; i += 10){
-                model.loadModel(String.format("%s%s.bin", path, i));
+                switch (type) {
+                    case ANOMALY:
+                        model = anomalyModel().loadModel(String.format("%sARNN_%s.bin", modelFilePathPrefix, i));
+                        break;
+                    case SPELLCHECKER:
+                        model = spellCheckerModel().loadModel(String.format("%sBRNN_%s.bin", modelFilePathPrefix, i));
+                }
                 model.runTesting(false);
                 System.out.println("Nr:" + i);
                 String a = keyboard.nextLine();
@@ -40,8 +50,7 @@ public class DeepLearningTester {
 
     public static void main(String[] args) {
         try {
-//            testSpellChecker();
-            testAnomalies();
+            runTest(ModelType.ANOMALY);
         } catch (Exception e) {
             e.printStackTrace();
         }
