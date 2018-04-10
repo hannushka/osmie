@@ -53,7 +53,7 @@ public class Helper {
                 .map(Helper::getIndexOfMax)
                 .map(itr::convertIndexToCharacter)
                 .map(String::valueOf)
-                .collect(Collectors.joining())
+                .collect(Collectors.joining())      // TODO this method might be erronous now?
                 .replaceAll("ü", "").trim();       // ü will be chosen if none is bigger supposedly.. TODO
 
     }
