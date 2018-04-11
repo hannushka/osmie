@@ -75,7 +75,7 @@ public abstract class Seq2Seq {
 
     public Seq2Seq setCharacterIterator(String fileLocation, String testFileLocation,
                                         IteratorType type, boolean merge) throws Exception {
-        int exampleLength = 50;
+        int exampleLength = 5;
         switch (type){
             case CLASSIC:
                 trainItr = new SpellCheckIterator(fileLocation, Charset.forName("UTF-8"),

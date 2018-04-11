@@ -26,7 +26,7 @@ public class AnomaliesIterator extends CharacterIterator {
     Map<String, Integer> highwayToIdxMap;
     Map<String, Integer> surfaceToIdxMap;
 
-    private static int nbrOfTags = 1;
+    private static int nbrOfTags = 3;
 
     public AnomaliesIterator(String file, Charset encoding, int miniBatchSize, int sequenceLength, int epochSize) throws IOException {
             if(!new File(file).exists()) throw new IOException("Could not access file (does not exist): " + file);
@@ -47,6 +47,8 @@ public class AnomaliesIterator extends CharacterIterator {
             alphabetSize += highwayToIdxMap.size();
             surfaceToIdxMap = EncoderHelper.getSurfaceMap(alphabetSize);
             alphabetSize += surfaceToIdxMap.size();
+
+            System.out.println("Alphabet size is " + alphabetSize);
 
             String before = "\t", after = "\n";
             generateDataFromFile(file, before, after);
@@ -97,16 +99,17 @@ public class AnomaliesIterator extends CharacterIterator {
             pointer++;
 
             // 1 = exist, 0 = should be masked. INDArray should init with zeros?
-            for(int j = 0; j < inputChars.length + 1; j++)
+            for(int j = 0; j < Math.min(exampleLength, inputChars.length + 1); j++)
                 inputMask.putScalar(new int[]{i,j}, 1f);
 
             outputMask.putScalar(new int[]{i, exampleLength-1}, 1f);
+
             labels.putScalar(new int[]{i, outputClass, exampleLength-1}, 1f);
 
             //Add name
-            for(int j = 0; j < exampleLength; j++){
+            for(int j = 1; j < Math.min(inputChars.length, exampleLength - nbrOfTags); j++){
                 int currCharIdx = charToIdxMap.get('\n');
-                if(inputChars.length > j) currCharIdx = charToIdxMap.get(inputChars[j]);
+                if(inputChars.length > j) currCharIdx = charToIdxMap.get(inputChars[inputChars.length-j]);
                 input.putScalar(new int[]{i,0,j}, currCharIdx);
             }
 

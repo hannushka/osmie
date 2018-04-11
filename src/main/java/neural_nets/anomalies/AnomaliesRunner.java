@@ -12,7 +12,7 @@ public class AnomaliesRunner {
                     .setBatchSize(32)
                     .setNbrEpochs(500)
                     .setEpochSize(5000)
-                    .setLearningRate(.1)
+                    .setLearningRate(1e-3)
                     .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.ANOMALIES, false)
                     .buildNetwork()
                     .setScoreListener(Seq2Seq.ScoreListener.VISUALIZE);

@@ -8,6 +8,7 @@ import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.conf.layers.EmbeddingLayer;
 import org.deeplearning4j.nn.conf.layers.GravesBidirectionalLSTM;
+import org.deeplearning4j.nn.conf.layers.LSTM;
 import org.deeplearning4j.nn.conf.layers.RnnOutputLayer;
 import org.deeplearning4j.nn.conf.preprocessor.FeedForwardToRnnPreProcessor;
 import org.deeplearning4j.nn.conf.preprocessor.RnnToFeedForwardPreProcessor;
@@ -35,11 +36,13 @@ public class AnomaliesRNN extends Seq2Seq {
                 .learningRate(learningRate)
                 .weightInit(WeightInit.RELU)
                 .updater(Updater.ADAM)
+                .regularization(true)//.l2(1e-1)
+                .dropOut(0.2)
                 .list()
                 .layer(0, new EmbeddingLayer.Builder().nIn(nIn).nOut(20).build())
-                .layer(1, new GravesBidirectionalLSTM.Builder().weightInit(WeightInit.RELU)
+                .layer(1, new LSTM.Builder().weightInit(WeightInit.RELU)
                         .nIn(20).nOut(10).activation(Activation.SOFTSIGN).build())
-                .layer(2, new GravesBidirectionalLSTM.Builder().weightInit(WeightInit.RELU)
+                .layer(2, new LSTM.Builder().weightInit(WeightInit.RELU)
                         .nIn(10).nOut(5).activation(Activation.SOFTSIGN).build())
                 .layer(3, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT).activation(Activation.SOFTMAX)
                         .nIn(5).nOut(nOut).build())

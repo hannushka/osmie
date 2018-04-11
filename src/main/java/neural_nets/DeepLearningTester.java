@@ -15,6 +15,8 @@ public class DeepLearningTester {
     private static String testFileLocation = "data/dataAnomaliesTest.csv";
     private static String modelFilePathPrefix = "data/models/";
 
+    private static ModelType testType = ModelType.ANOMALY;
+
     private enum ModelType {
         SPELLCHECKER,
         ANOMALY
@@ -50,7 +52,7 @@ public class DeepLearningTester {
 
     public static void main(String[] args) {
         try {
-            runTest(ModelType.ANOMALY);
+            runTest(testType);
         } catch (Exception e) {
             e.printStackTrace();
         }
