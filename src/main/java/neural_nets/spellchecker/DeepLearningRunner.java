@@ -12,7 +12,7 @@ public class DeepLearningRunner {
                     .setBatchSize(32)
                     .setNbrEpochs(500)
                     .setEpochSize(10000)
-                    .setNbrLayers(10, 6) // params Integer int... (Size, Size)
+                    .setNbrLayers(16, 8, 4) // params Integer int... (Size, Size)
                     .setLearningRate(.1)
                     .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC, false)
                     .buildNetwork()

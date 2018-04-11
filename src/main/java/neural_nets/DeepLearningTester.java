@@ -3,8 +3,6 @@ package neural_nets;
 
 import neural_nets.anomalies.AnomaliesRNN;
 import neural_nets.spellchecker.BiDirectionalRNN;
-import sun.awt.X11.AwtGraphicsConfigData;
-
 import java.io.IOException;
 import java.util.Scanner;
 
@@ -13,6 +11,8 @@ public class DeepLearningTester {
     //Configuration variables
     private static String fileLocation = "data/dataAnomalies.csv";
     private static String testFileLocation = "data/dataAnomaliesTest.csv";
+    private static String fileLocationRNN = "data/shuffledTrainData.csv";
+    private static String testFileLocationRNN = "data/manualNameData.csv";
     private static String modelFilePathPrefix = "data/models/";
 
     private static ModelType testType = ModelType.ANOMALY;
@@ -29,7 +29,7 @@ public class DeepLearningTester {
 
     public static Seq2Seq spellCheckerModel() throws Exception {
         return BiDirectionalRNN.Builder()
-                .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC, false);
+                .setCharacterIterator(fileLocationRNN, testFileLocationRNN, Seq2Seq.IteratorType.CLASSIC, false);
 
     }
 
@@ -46,7 +46,7 @@ public class DeepLearningTester {
                 }
                 model.runTesting(false);
                 System.out.println("Nr:" + i);
-                String a = keyboard.nextLine();
+                keyboard.nextLine();
             }
     }
 

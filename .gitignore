@@ -10,3 +10,4 @@ src/__init__.py
 src/main/__init__.py
 src/main/python/__init__.py
 model.bin
+src/main/java/neural_nets/DeepLearningTester.java
