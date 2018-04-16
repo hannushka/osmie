@@ -8,14 +8,15 @@ public class DeepLearningRunner {
             String fileLocation = "data/shuffledTrainData.csv";
             String testFileLocation = "data/manualNameData.csv";
             Seq2Seq model = BiDirectionalRNN.Builder()
-                    .setFilename("BRNN_")
+                    .setFilename("BRNN_d3_")
                     .setBatchSize(32)
                     .setNbrEpochs(500)
                     .setEpochSize(10000)
-                    .setNbrLayers(16, 8, 4) // params Integer int... (Size, Size)
+                    .setNbrLayers(20, 10, 6) // params Integer int... (Size, Size)
                     .setLearningRate(.1)
                     .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC, false)
                     .buildNetwork()
+                    //.loadModel("data/models/BRNN_240_490.bin")
                     .setScoreListener(Seq2Seq.ScoreListener.VISUALIZE);
             model.runTraining();
             model.runTesting(false);
@@ -23,4 +24,7 @@ public class DeepLearningRunner {
             e.printStackTrace();
         }
     }
+    // Activation kan fungera. Typ en Sigmoid.
+    // Graph har två outputs.
+    // Kolla på detta.
 }

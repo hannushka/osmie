@@ -105,12 +105,12 @@ public class SpellCheckIterator extends CharacterIterator {
         currMinibatchSize = Math.min(currMinibatchSize, outputLines.size());
 
 
-        INDArray input = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength}, 'f');
-        INDArray labels = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength}, 'f');
+        INDArray input = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength*2}, 'f');
+        INDArray labels = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength*2}, 'f');
 
         // 1 = exist, 0 = should be masked
-        INDArray inputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
-        INDArray outputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
+        INDArray inputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength*2}, 'f');
+        INDArray outputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength*2}, 'f');
 
         for (int i = 0; i < currMinibatchSize; i++) {
            char[] inputChars = inputLines.removeFirst();
@@ -121,14 +121,15 @@ public class SpellCheckIterator extends CharacterIterator {
 
             for(int j = 0; j < inputChars.length + 1; j++)
                 inputMask.putScalar(new int[]{i,j}, 1f);
-            for(int j = 0; j < outputChars.length + 1; j++)
+            for(int j = inputChars.length; j < (inputChars.length + outputChars.length + 1); j++)
                 outputMask.putScalar(new int[]{i,j}, 1f);
+
             for(int j = 0; j < exampleLength; j++){
                 int currCharIdx = charToIdxMap.get('\n'), corrCharIdx = charToIdxMap.get('\n');
                 if(inputChars.length > j) currCharIdx = charToIdxMap.get(inputChars[j]);
                 if(outputChars.length > j) corrCharIdx = charToIdxMap.get(outputChars[j]);
                 input.putScalar(new int[]{i,currCharIdx,j}, 1.0);
-                labels.putScalar(new int[]{i,corrCharIdx,j}, 1.0);
+                labels.putScalar(new int[]{i,corrCharIdx,j + inputChars.length}, 1.0);
             }
         }
         return new DataSet(input, labels, inputMask, outputMask);

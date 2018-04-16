@@ -122,16 +122,16 @@ public class BiDirectionalRNN extends Seq2Seq {
         String[] inputStr = Helper.convertTensorsToWords(input, trainItr);
         String[] resultStr = Helper.convertTensorsToWords(result, trainItr);
         String[] labelStr = Helper.convertTensorsToWords(labels, trainItr);
-//        for(DeepSpellObject obj : deepSpellObjects){
-//            String word = obj.currentName.orElse("");
-//            if(word.contains(" ")) continue;
-//            List<SuggestItem> items = symSpell.lookupSpecialized(word, SymSpell.Verbosity.Closest);
-//            items.addAll(symSpell.lookupSpecialized(obj.inputName, SymSpell.Verbosity.Closest));
-//            Collections.sort(items);
-//            if(!items.isEmpty() && items.get(0).distance <= 1) {
-//                resultStr[obj.index] = items.get(0).term;
-//            }
-//        }
+/**        for(DeepSpellObject obj : deepSpellObjects){
+            String word = obj.currentName.orElse("");
+            if(word.contains(" ")) continue;
+            List<SuggestItem> items = symSpell.lookupSpecialized(word, SymSpell.Verbosity.Closest);
+            items.addAll(symSpell.lookupSpecialized(obj.inputName, SymSpell.Verbosity.Closest));
+            Collections.sort(items);
+            if(!items.isEmpty() && items.get(0).distance <= 1) {
+                resultStr[obj.index] = items.get(0).term;
+            }
+        }**/
         String inp, out, label;
         for(int i = 0; i < inputStr.length; i++){
             inp = inputStr[i];

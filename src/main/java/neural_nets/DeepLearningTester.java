@@ -15,8 +15,6 @@ public class DeepLearningTester {
     private static String testFileLocationRNN = "data/manualNameData.csv";
     private static String modelFilePathPrefix = "data/models/";
 
-    private static ModelType testType = ModelType.ANOMALY;
-
     private enum ModelType {
         SPELLCHECKER,
         ANOMALY
@@ -36,13 +34,14 @@ public class DeepLearningTester {
     private static void runTest(ModelType type) throws Exception {
             Scanner keyboard = new Scanner(System.in);
             Seq2Seq model = null;
-            for(int i = 0; i < 500; i += 10){
+            for(int i = 10; i < 500; i += 10){
                 switch (type) {
                     case ANOMALY:
                         model = anomalyModel().loadModel(String.format("%sARNN_%s.bin", modelFilePathPrefix, i));
                         break;
                     case SPELLCHECKER:
-                        model = spellCheckerModel().loadModel(String.format("%sBRNN_%s.bin", modelFilePathPrefix, i));
+                        model = spellCheckerModel().loadModel(String.format("%sBRNN_780_%s.bin", modelFilePathPrefix, i));
+                        break;
                 }
                 model.runTesting(false);
                 System.out.println("Nr:" + i);
@@ -50,6 +49,7 @@ public class DeepLearningTester {
             }
     }
 
+    private static ModelType testType = ModelType.SPELLCHECKER;
     public static void main(String[] args) {
         try {
             runTest(testType);
