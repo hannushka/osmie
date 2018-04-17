@@ -21,9 +21,9 @@ public class NeuralNetDemo {
             e.printStackTrace();
         }
         Seq2Seq model = BiDirectionalRNN.Builder()
-                    .setCharacterIterator(fileLocationRNN, testFileLocationRNN, Seq2Seq.IteratorType.CLASSIC, false)
+                    .setCharacterIterator(fileLocationRNN, testFileLocationRNN, Seq2Seq.IteratorType.CLASSIC, false, false)
                     .loadModel(modelFilePathPrefix + "BRNN_d4_best.bin");
-//        model.runTesting(false);
+
         while(true){
             System.out.print("Enter input> ");
             line = keyboard.nextLine();

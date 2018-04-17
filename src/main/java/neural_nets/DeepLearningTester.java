@@ -22,12 +22,14 @@ public class DeepLearningTester {
 
     public static Seq2Seq anomalyModel() throws Exception {
         return AnomaliesRNN.Builder()
-                        .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.ANOMALIES, false);
+                        .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.ANOMALIES,
+                                false, false);
     }
 
     public static Seq2Seq spellCheckerModel() throws Exception {
         return BiDirectionalRNN.Builder()
-                .setCharacterIterator(fileLocationRNN, testFileLocationRNN, Seq2Seq.IteratorType.CLASSIC, false);
+                .setCharacterIterator(fileLocationRNN, testFileLocationRNN, Seq2Seq.IteratorType.CLASSIC,
+                        false, false);
 
     }
 

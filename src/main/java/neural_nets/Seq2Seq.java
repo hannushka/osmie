@@ -74,14 +74,14 @@ public abstract class Seq2Seq {
     }
 
     public Seq2Seq setCharacterIterator(String fileLocation, String testFileLocation,
-                                        IteratorType type, boolean merge) throws Exception {
+                                        IteratorType type, boolean merge, boolean offset) throws Exception {
         int exampleLength = 50;
         switch (type){
             case CLASSIC:
                 trainItr = new SpellCheckIterator(fileLocation, Charset.forName("UTF-8"),
-                        miniBatchSize, exampleLength, epochSize, merge);
+                        miniBatchSize, exampleLength, epochSize, merge, offset);
                 testItr = new SpellCheckIterator(testFileLocation, Charset.forName("UTF-8"),
-                        miniBatchSize, exampleLength, epochSize, merge);
+                        miniBatchSize, exampleLength, epochSize, merge, offset);
                 break;
             case ANOMALIES:
                 exampleLength = 5;

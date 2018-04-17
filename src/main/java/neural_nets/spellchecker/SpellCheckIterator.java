@@ -25,7 +25,7 @@ public class SpellCheckIterator extends CharacterIterator {
     protected LinkedList<char[]> inputLines, outputLines;
     protected LinkedList<char[]> ogInput, ogOutput;
     protected int exampleLength, miniBatchSize, numExamples, pointer = 0, epochSize;
-
+    protected boolean offset;
     /**
      * @param textFilePath Path to text file to use for generating samples
      * @param textFileEncoding Encoding of the text file. Can try Charset.defaultCharset()
@@ -35,7 +35,7 @@ public class SpellCheckIterator extends CharacterIterator {
      */
 
     public SpellCheckIterator(String textFilePath, Charset textFileEncoding, int miniBatchSize, int exampleLength,
-                              int epochSize, boolean merge) throws IOException {
+                              int epochSize, boolean merge, boolean offset) throws IOException {
         if(!new File(textFilePath).exists()) throw new IOException("Could not access file (does not exist): " + textFilePath);
         if(miniBatchSize <= 0) throw new IllegalArgumentException("Invalid miniBatchSize (must be > 0)");
         this.inputLines     = new LinkedList<>();
@@ -47,6 +47,7 @@ public class SpellCheckIterator extends CharacterIterator {
         this.miniBatchSize  = miniBatchSize;
         this.epochSize      = epochSize;
         this.textFileEncoding = textFileEncoding;
+        this.offset = offset;
         charToIdxMap = EncoderHelper.getDanishCharacterSet();
         String before = "\t", after = "\n";
         generateDataFromFile(textFilePath, before, after, merge);
@@ -103,20 +104,22 @@ public class SpellCheckIterator extends CharacterIterator {
         if (inputLines.isEmpty()) throw new NoSuchElementException();
         currMinibatchSize = Math.min(num, inputLines.size());
         currMinibatchSize = Math.min(currMinibatchSize, outputLines.size());
+        INDArray input, labels, inputMask, outputMask;
+        if(!offset){
+            input = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength}, 'f');
+            labels = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength}, 'f');
+
+            // 1 = exist, 0 = should be masked
+            inputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
+            outputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
+        }else{
+            input = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength*2}, 'f');
+            labels = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength*2}, 'f');
+            inputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength*2}, 'f');
+            outputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength*2}, 'f');
+        }
 
 
-        INDArray input = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength}, 'f');
-        INDArray labels = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength}, 'f');
-
-        // 1 = exist, 0 = should be masked
-        INDArray inputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
-        INDArray outputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
-//        INDArray input = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength*2}, 'f');
-//        INDArray labels = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength*2}, 'f');
-//
-//        // 1 = exist, 0 = should be masked
-//        INDArray inputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength*2}, 'f');
-//        INDArray outputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength*2}, 'f');
         for (int i = 0; i < currMinibatchSize; i++) {
            char[] inputChars = inputLines.removeFirst();
            char[] outputChars = outputLines.removeFirst();
@@ -126,17 +129,22 @@ public class SpellCheckIterator extends CharacterIterator {
 
             for(int j = 0; j < inputChars.length + 1; j++)
                 inputMask.putScalar(new int[]{i,j}, 1f);
-//            for(int j = inputChars.length; j < (inputChars.length + outputChars.length + 1); j++)
-            for(int j = 0; j < (outputChars.length + 1); j++)
-                outputMask.putScalar(new int[]{i,j}, 1f);
+
+            if(offset){
+                for(int j = inputChars.length; j < (inputChars.length + outputChars.length + 1); j++)
+                    outputMask.putScalar(new int[]{i,j}, 1f);
+            }else{
+                for(int j = 0; j < (outputChars.length + 1); j++)
+                    outputMask.putScalar(new int[]{i,j}, 1f);
+            }
 
             for(int j = 0; j < exampleLength; j++){
                 int currCharIdx = charToIdxMap.get('\n'), corrCharIdx = charToIdxMap.get('\n');
                 if(inputChars.length > j) currCharIdx = charToIdxMap.get(inputChars[j]);
                 if(outputChars.length > j) corrCharIdx = charToIdxMap.get(outputChars[j]);
                 input.putScalar(new int[]{i,currCharIdx,j}, 1.0);
-                labels.putScalar(new int[]{i,corrCharIdx,j}, 1.0);
-                //labels.putScalar(new int[]{i,corrCharIdx,j + inputChars.length}, 1.0);
+                if(!offset) labels.putScalar(new int[]{i,corrCharIdx,j}, 1.0);
+                else labels.putScalar(new int[]{i,corrCharIdx,j + inputChars.length}, 1.0);
             }
         }
         return new DataSet(input, labels, inputMask, outputMask);
