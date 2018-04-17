@@ -179,5 +179,7 @@ public abstract class Seq2Seq {
 
     public abstract void runTesting(boolean print);
 
+    public abstract void printSuggestion(String input, SymSpell symSpell);
+
     public abstract Seq2Seq buildNetwork() throws Exception;
 }

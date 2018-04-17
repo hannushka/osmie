@@ -34,13 +34,13 @@ public class DeepLearningTester {
     private static void runTest(ModelType type) throws Exception {
             Scanner keyboard = new Scanner(System.in);
             Seq2Seq model = null;
-            for(int i = 10; i < 500; i += 10){
+            for(int i = 250; i < 500; i += 10){
                 switch (type) {
                     case ANOMALY:
                         model = anomalyModel().loadModel(String.format("%sARNN_%s.bin", modelFilePathPrefix, i));
                         break;
                     case SPELLCHECKER:
-                        model = spellCheckerModel().loadModel(String.format("%sBRNN_780_%s.bin", modelFilePathPrefix, i));
+                        model = spellCheckerModel().loadModel(String.format("%sBRNN_d3_%s.bin", modelFilePathPrefix, i));
                         break;
                 }
                 model.runTesting(false);
@@ -53,6 +53,7 @@ public class DeepLearningTester {
     public static void main(String[] args) {
         try {
             runTest(testType);
+
         } catch (Exception e) {
             e.printStackTrace();
         }

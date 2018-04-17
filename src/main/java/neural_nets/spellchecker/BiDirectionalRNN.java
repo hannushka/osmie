@@ -26,7 +26,6 @@ import java.util.Collections;
 import java.util.List;
 
 public class BiDirectionalRNN extends Seq2Seq {
-
     public static Seq2Seq Builder(){
         return new BiDirectionalRNN();
     }
@@ -40,6 +39,7 @@ public class BiDirectionalRNN extends Seq2Seq {
                 .seed(12345)
                 .weightInit(WeightInit.XAVIER)
                 .updater(Updater.RMSPROP)
+                .regularization(true).l2(0.001)
                 .list()
                 .layer(0, new GravesBidirectionalLSTM.Builder().nIn(nIn).nOut(layerDimensions[0]).activation(Activation.SOFTSIGN).build());
 
@@ -115,6 +115,19 @@ public class BiDirectionalRNN extends Seq2Seq {
 //            System.out.println(obj.currentName.orElse("") + ",,," + obj.correctName);
 //        }
 //        eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
+    }
+
+    @Override
+    public void printSuggestion(String input, SymSpell symSpell) {
+        DataSet ds = ((SpellCheckIterator) trainItr).createDataSetForString(input, input);
+        net.rnnClearPreviousState();
+        INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
+        String[] words = Helper.convertTensorsToWords(output, trainItr);
+        System.out.println("System: " + words[0]);
+        List<SuggestItem> spellSugg = symSpell.lookupSpecialized(input, SymSpell.Verbosity.Closest);
+        if(!spellSugg.isEmpty()) System.out.println("SymSpell: " + spellSugg.get(0).term);
+        spellSugg = symSpell.lookupSpecialized(words[0], SymSpell.Verbosity.Closest);
+        if(!spellSugg.isEmpty()) System.out.println("System + SymSpell: " + spellSugg.get(0).term);
     }
 
     public void createReadableStatistics(INDArray input, INDArray result, INDArray labels, boolean print,

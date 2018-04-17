@@ -18,6 +18,7 @@ import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.DataSet;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
+import symspell.SymSpell;
 import util.StringUtils;
 
 public class AnomaliesRNN extends Seq2Seq {
@@ -62,5 +63,10 @@ public class AnomaliesRNN extends Seq2Seq {
             eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
         }
         System.out.println(eval.stats());
+    }
+
+    @Override
+    public void printSuggestion(String input, SymSpell symSpell) {
+        return;
     }
 }

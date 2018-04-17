@@ -105,13 +105,18 @@ public class SpellCheckIterator extends CharacterIterator {
         currMinibatchSize = Math.min(currMinibatchSize, outputLines.size());
 
 
-        INDArray input = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength*2}, 'f');
-        INDArray labels = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength*2}, 'f');
+        INDArray input = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength}, 'f');
+        INDArray labels = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength}, 'f');
 
         // 1 = exist, 0 = should be masked
-        INDArray inputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength*2}, 'f');
-        INDArray outputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength*2}, 'f');
-
+        INDArray inputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
+        INDArray outputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength}, 'f');
+//        INDArray input = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength*2}, 'f');
+//        INDArray labels = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength*2}, 'f');
+//
+//        // 1 = exist, 0 = should be masked
+//        INDArray inputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength*2}, 'f');
+//        INDArray outputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength*2}, 'f');
         for (int i = 0; i < currMinibatchSize; i++) {
            char[] inputChars = inputLines.removeFirst();
            char[] outputChars = outputLines.removeFirst();
@@ -121,7 +126,8 @@ public class SpellCheckIterator extends CharacterIterator {
 
             for(int j = 0; j < inputChars.length + 1; j++)
                 inputMask.putScalar(new int[]{i,j}, 1f);
-            for(int j = inputChars.length; j < (inputChars.length + outputChars.length + 1); j++)
+//            for(int j = inputChars.length; j < (inputChars.length + outputChars.length + 1); j++)
+            for(int j = 0; j < (outputChars.length + 1); j++)
                 outputMask.putScalar(new int[]{i,j}, 1f);
 
             for(int j = 0; j < exampleLength; j++){
@@ -129,7 +135,8 @@ public class SpellCheckIterator extends CharacterIterator {
                 if(inputChars.length > j) currCharIdx = charToIdxMap.get(inputChars[j]);
                 if(outputChars.length > j) corrCharIdx = charToIdxMap.get(outputChars[j]);
                 input.putScalar(new int[]{i,currCharIdx,j}, 1.0);
-                labels.putScalar(new int[]{i,corrCharIdx,j + inputChars.length}, 1.0);
+                labels.putScalar(new int[]{i,corrCharIdx,j}, 1.0);
+                //labels.putScalar(new int[]{i,corrCharIdx,j + inputChars.length}, 1.0);
             }
         }
         return new DataSet(input, labels, inputMask, outputMask);
@@ -146,6 +153,19 @@ public class SpellCheckIterator extends CharacterIterator {
             inputLines.add(inp);
             outputLines.add(label);
         }
+        return createDataSet(Integer.MAX_VALUE);
+    }
+
+    public DataSet createDataSetForString(String input, String out){
+        inputLines.clear();
+        outputLines.clear();
+        char[] label = ArrayUtils.mergeArrays("\t", "\n", out.toCharArray());
+        char[] inp;
+        for(int i = 0; i < label.length; i++) if(!charToIdxMap.containsKey(label[i])) label[i] = '!';
+        inp = ArrayUtils.mergeArrays("\t", "\n", input.toCharArray());
+        for(int i = 0; i < inp.length; i++) if(!charToIdxMap.containsKey(inp[i])) inp[i] = '!';
+        inputLines.add(inp);
+        outputLines.add(label);
         return createDataSet(Integer.MAX_VALUE);
     }
 

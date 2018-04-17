@@ -257,6 +257,7 @@ public class SymSpell {
                                 .collect(Collectors.toList()));
             }
         });
+        Collections.sort(specializedSuggestions);
         return specializedSuggestions;
     }
 
