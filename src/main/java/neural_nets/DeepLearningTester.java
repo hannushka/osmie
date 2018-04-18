@@ -12,7 +12,7 @@ public class DeepLearningTester {
     private static String fileLocation = "data/dataAnomalies.csv";
     private static String testFileLocation = "data/dataAnomaliesTest.csv";
     private static String fileLocationRNN = "data/shuffledTrainData.csv";
-    private static String testFileLocationRNN = "data/manualNameData.csv";
+    private static String testFileLocationRNN = "data/editDist1Data.csv";
     private static String modelFilePathPrefix = "data/models/";
 
     private enum ModelType {
@@ -42,10 +42,10 @@ public class DeepLearningTester {
                         model = anomalyModel().loadModel(String.format("%sARNN_%s.bin", modelFilePathPrefix, i));
                         break;
                     case SPELLCHECKER:
-                        model = spellCheckerModel().loadModel(String.format("%sBRNN_d3_%s.bin", modelFilePathPrefix, i));
+                        model = spellCheckerModel().loadModel("data/models/BRNN_d4_best.bin");
                         break;
                 }
-                model.runTesting(false);
+                model.runTesting(true);
                 System.out.println("Nr:" + i);
                 keyboard.nextLine();
             }

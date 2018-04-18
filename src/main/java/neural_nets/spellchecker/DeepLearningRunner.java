@@ -12,9 +12,9 @@ public class DeepLearningRunner {
                     .setBatchSize(32)
                     .setNbrEpochs(500)
                     .setEpochSize(1000)
-                    .setNbrLayers(512, 512) // params Integer int... (Size, Size)
+                    .setNbrLayers(64, 32, 16, 8, 4) // params Integer int... (Size, Size)
                     .setLearningRate(.1)
-                    .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC, false, true)
+                    .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC, false, false)
                     .buildNetwork()
                     //.loadModel("data/models/BRNN_240_490.bin")
                     .setScoreListener(Seq2Seq.ScoreListener.VISUALIZE);

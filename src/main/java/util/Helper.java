@@ -49,11 +49,13 @@ public class Helper {
                 .map(itr::convertIndexToCharacter)
                 .map(String::valueOf)
                 .collect(Collectors.joining())      // TODO this method might be erronous now?
-                .replaceAll("é", "").trim();       // é will be chosen if none is bigger supposedly..
+                .replaceAll("!", "").trim();       // é will be chosen if none is bigger supposedly..ü
 
     }
 
     public static int getIndexOfMax(double[] array){
+        double max = Arrays.stream(array).max().orElse(-1);
+        if(max == 0 || max == -1) return -1;
         return IntStream.range(0, array.length)
                         .reduce((i, j)-> array[i] > array[j] ? i : j)
                         .getAsInt();

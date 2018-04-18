@@ -150,7 +150,7 @@ public class BiDirectionalRNN extends Seq2Seq {
             inp = inputStr[i];
             out = resultStr[i];
             label = labelStr[i];
-            if(print && out.equals(label) && !out.equals(inp)) System.out.println(inp + ",,," + out + ",,," + label);
+            if(print) System.out.println(inp + ",,," + out + ",,," + label);
             if(StringUtils.oneEditDist(inp, label)) editDistOne++;
             if(inp.equals(out) && inp.equals(label)) noChangeCorrect++;
             if(inp.equals(out) && !inp.equals(label)) noChangeIncorrect++;
