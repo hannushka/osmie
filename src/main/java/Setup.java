@@ -216,7 +216,7 @@ public class Setup {
 //        download(OSM_PBF_15, OSM_PBF_LOCAL_15);
 //        download(OSM_PBF_LATEST, OSM_PBF_LOCAL_LATEST);
         // TODO introduce atlas generation here
-//        extractDataFromAtlasFiles(ATLAS_FOLDER, ATLAS_OLD_FOLDER, DATA_FILE);
+        extractDataFromAtlasFiles(ATLAS_FOLDER, ATLAS_OLD_FOLDER, DATA_FILE);
 //        filterSuperData(DATA_FILE, DATA_UNIQUE_FILE);
 //        symspell symSpell = new symspell(-1, 3, 0,-1);
 //        if(!symSpell.loadAddress(NAMEDATA_FILE)) throw new IOException("File does not exist!");

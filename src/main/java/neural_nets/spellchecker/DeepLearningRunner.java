@@ -11,13 +11,13 @@ public class DeepLearningRunner {
                     .setFilename("BRNN_d3_")
                     .setBatchSize(32)
                     .setNbrEpochs(500)
-                    .setEpochSize(10000)
-                    .setNbrLayers(50, 25) // params Integer int... (Size, Size)
-                    .setLearningRate(.01)
+                    .setEpochSize(1000)
+                    .setNbrLayers(512, 512) // params Integer int... (Size, Size)
+                    .setLearningRate(.1)
                     .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC, false, true)
                     .buildNetwork()
                     //.loadModel("data/models/BRNN_240_490.bin")
-                    .setScoreListener(Seq2Seq.ScoreListener.TERMINAL);
+                    .setScoreListener(Seq2Seq.ScoreListener.VISUALIZE);
             model.runTraining();
             model.runTesting(false);
         } catch (Exception e) {

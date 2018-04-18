@@ -39,7 +39,7 @@ public class BiDirectionalRNN extends Seq2Seq {
                 .seed(12345)
                 .weightInit(WeightInit.XAVIER)
                 .updater(Updater.RMSPROP)
-                .regularization(true).l2(0.001)
+//                .regularization(true).dropOut(0.2)
                 .list()
                 .layer(0, new GravesBidirectionalLSTM.Builder().nIn(nIn).nOut(layerDimensions[0]).activation(Activation.SOFTSIGN).build());
 
@@ -150,7 +150,7 @@ public class BiDirectionalRNN extends Seq2Seq {
             inp = inputStr[i];
             out = resultStr[i];
             label = labelStr[i];
-            if(print) System.out.println(inp + ",,," + out + ",,," + label);
+            if(print && out.equals(label) && !out.equals(inp)) System.out.println(inp + ",,," + out + ",,," + label);
             if(StringUtils.oneEditDist(inp, label)) editDistOne++;
             if(inp.equals(out) && inp.equals(label)) noChangeCorrect++;
             if(inp.equals(out) && !inp.equals(label)) noChangeIncorrect++;

@@ -103,8 +103,8 @@ public class SpellCheckIterator extends CharacterIterator {
         int currMinibatchSize;
         if (inputLines.isEmpty()) throw new NoSuchElementException();
         currMinibatchSize = Math.min(num, inputLines.size());
-        currMinibatchSize = Math.min(currMinibatchSize, outputLines.size());
         INDArray input, labels, inputMask, outputMask;
+
         if(!offset){
             input = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength}, 'f');
             labels = Nd4j.create(new int[]{currMinibatchSize, charToIdxMap.size(), exampleLength}, 'f');
@@ -119,7 +119,6 @@ public class SpellCheckIterator extends CharacterIterator {
             outputMask = Nd4j.zeros(new int[]{currMinibatchSize, exampleLength*2}, 'f');
         }
 
-
         for (int i = 0; i < currMinibatchSize; i++) {
            char[] inputChars = inputLines.removeFirst();
            char[] outputChars = outputLines.removeFirst();
@@ -130,11 +129,11 @@ public class SpellCheckIterator extends CharacterIterator {
             for(int j = 0; j < inputChars.length + 1; j++)
                 inputMask.putScalar(new int[]{i,j}, 1f);
 
-            if(offset){
-                for(int j = inputChars.length; j < (inputChars.length + outputChars.length + 1); j++)
+            if(!offset){
+                for(int j = 0; j < (outputChars.length + 1); j++)
                     outputMask.putScalar(new int[]{i,j}, 1f);
             }else{
-                for(int j = 0; j < (outputChars.length + 1); j++)
+                for(int j = inputChars.length; j < (inputChars.length + outputChars.length + 1); j++)
                     outputMask.putScalar(new int[]{i,j}, 1f);
             }
 
