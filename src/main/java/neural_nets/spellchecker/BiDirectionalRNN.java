@@ -119,7 +119,7 @@ public class BiDirectionalRNN extends Seq2Seq {
 
     @Override
     public void printSuggestion(String input, SymSpell symSpell) {
-        DataSet ds = ((SpellCheckIterator) trainItr).createDataSetForString(input, input);
+        DataSet ds = ((SpellCheckIterator) trainItr).createDataSetForString(input);
         net.rnnClearPreviousState();
         INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
         String[] words = Helper.convertTensorsToWords(output, trainItr);

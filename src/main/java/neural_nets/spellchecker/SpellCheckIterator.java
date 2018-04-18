@@ -56,13 +56,11 @@ public class SpellCheckIterator extends CharacterIterator {
     private void generateDataFromFile(String textFilePath, String before, String after, boolean merge) throws IOException {
         List<String> lines = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
         String savedInp = "", savedOut = "";
-
         for (String s : lines){
             if (s.isEmpty()) continue;
             s = s.toLowerCase();
             String[] inputOutput = s.split(",,,");
             if (inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
-
             char[] inputLine = ArrayUtils.mergeArrays(before, after, inputOutput[0].toCharArray());
             char[] outputLine = ArrayUtils.mergeArrays(before, after, inputOutput[1].toCharArray());
             if(merge){
@@ -80,10 +78,8 @@ public class SpellCheckIterator extends CharacterIterator {
                     continue;
                 }
             }
-
             for(int i = 0; i < inputLine.length; i++)  if(!charToIdxMap.containsKey(inputLine[i]))   inputLine[i] = '!';
             for(int i = 0; i < outputLine.length; i++) if(!charToIdxMap.containsKey(outputLine[i])) outputLine[i] = '!';
-
             inputLines.add(inputLine);
             outputLines.add(outputLine);
 
@@ -149,33 +145,6 @@ public class SpellCheckIterator extends CharacterIterator {
         return new DataSet(input, labels, inputMask, outputMask);
     }
 
-    public DataSet createDataSetFromDSO(DeepSpellObject obj){
-        String labelStr = obj.correctName;
-        char[] label = ArrayUtils.mergeArrays("\t", "\n", labelStr.toCharArray());
-        char[] inp;
-        for(int i = 0; i < label.length; i++) if(!charToIdxMap.containsKey(label[i])) label[i] = '!';
-        for(String suggestion : obj.corrections){
-            inp = ArrayUtils.mergeArrays("\t", "\n", suggestion.toCharArray());
-            for(int i = 0; i < inp.length; i++) if(!charToIdxMap.containsKey(inp[i])) inp[i] = '!';
-            inputLines.add(inp);
-            outputLines.add(label);
-        }
-        return createDataSet(Integer.MAX_VALUE);
-    }
-
-    public DataSet createDataSetForString(String input, String out){
-        inputLines.clear();
-        outputLines.clear();
-        char[] label = ArrayUtils.mergeArrays("\t", "\n", out.toCharArray());
-        char[] inp;
-        for(int i = 0; i < label.length; i++) if(!charToIdxMap.containsKey(label[i])) label[i] = '!';
-        inp = ArrayUtils.mergeArrays("\t", "\n", input.toCharArray());
-        for(int i = 0; i < inp.length; i++) if(!charToIdxMap.containsKey(inp[i])) inp[i] = '!';
-        inputLines.add(inp);
-        outputLines.add(label);
-        return createDataSet(Integer.MAX_VALUE);
-    }
-
     public boolean hasNext() {
         return !inputLines.isEmpty() && !outputLines.isEmpty() && pointer < epochSize;
     }
@@ -232,5 +201,36 @@ public class SpellCheckIterator extends CharacterIterator {
                 return c;
         }
         return '!';
+    }
+
+    public DataSet createDataSetFromDSO(DeepSpellObject obj){
+        String labelStr = obj.correctName;
+        char[] label = ArrayUtils.mergeArrays("\t", "\n", labelStr.toCharArray());
+        char[] inp;
+        for(int i = 0; i < label.length; i++) if(!charToIdxMap.containsKey(label[i])) label[i] = '!';
+        for(String suggestion : obj.corrections){
+            inp = ArrayUtils.mergeArrays("\t", "\n", suggestion.toCharArray());
+            for(int i = 0; i < inp.length; i++) if(!charToIdxMap.containsKey(inp[i])) inp[i] = '!';
+            inputLines.add(inp);
+            outputLines.add(label);
+        }
+        return createDataSet(Integer.MAX_VALUE);
+    }
+
+    public DataSet createDataSetForString(String name){
+        char[] inp = ArrayUtils.mergeArrays("\t", "\n", name.toCharArray());
+        for (int i = 0; i < inp.length; i++) if(!charToIdxMap.containsKey(inp[i])) inp[i] = '!';
+        INDArray input = Nd4j.create(new int[]{1, charToIdxMap.size(), exampleLength}, 'f');
+        INDArray inputMask = Nd4j.zeros(new int[]{1, exampleLength}, 'f');
+        INDArray outputMask = Nd4j.ones(new int[]{1, exampleLength});
+        char[] inputChars = inp;
+        for (int j = 0 ; j < inputChars.length + 1 ; j++)
+            inputMask.putScalar(new int[]{0,j}, 1f);
+        for (int j = 0 ; j < exampleLength ; j++){
+            int currCharIdx = charToIdxMap.get('\n');
+            if (inputChars.length > j) currCharIdx = charToIdxMap.get(inputChars[j]);
+            input.putScalar(new int[]{0,currCharIdx,j}, 1.0);
+        }
+        return new DataSet(input, null, inputMask, outputMask);
     }
 }
