@@ -24,6 +24,8 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class BiDirectionalRNN extends Seq2Seq {
     public static Seq2Seq Builder(){
@@ -146,10 +148,36 @@ public class BiDirectionalRNN extends Seq2Seq {
             }
         }**/
         String inp, out, label;
+        Pattern pattern = Pattern.compile("s+");
+        Matcher m, m2;
+        ArrayList<String> matches, matches2;
+
+        boolean equals;
         for(int i = 0; i < inputStr.length; i++){
             inp = inputStr[i];
             out = resultStr[i];
             label = labelStr[i];
+
+            matches = new ArrayList<>();
+            matches2 = new ArrayList<>();
+            m = pattern.matcher(out);
+            m2 = pattern.matcher(label);
+
+            while(m.find()){
+                matches.add(m.group());
+            }
+            while(m2.find()){
+                matches2.add(m2.group());
+            }
+
+            for(int j = 0; j < Math.min(matches.size(), matches2.size()); j++){
+                equals = matches.get(j).equals(matches2.get(j));
+                if(equals && matches.get(j).equals("s")) sCorr++;
+                else if(!equals && matches.get(j).equals("s")) sInc++;
+                else if(matches.get(j).equals(matches2.get(j))) ssCorr++;
+                else ssInc++;
+            }
+
             if(print) System.out.println(inp + ",,," + out + ",,," + label);
             if(StringUtils.oneEditDist(inp, label)) editDistOne++;
             if(inp.equals(out) && inp.equals(label)) noChangeCorrect++;

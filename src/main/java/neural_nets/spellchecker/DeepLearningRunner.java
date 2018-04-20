@@ -10,13 +10,14 @@ public class DeepLearningRunner {
             Seq2Seq model = BiDirectionalRNN.Builder()
                     .setFilename("BRNN_d3_")
                     .setBatchSize(32)
-                    .setNbrEpochs(500)
+                    .setNbrEpochs(2000)
                     .setEpochSize(1000)
-                    .setNbrLayers(64, 32, 16, 8, 4) // params Integer int... (Size, Size)
+                    .setNbrLayers(16, 8) // params Integer int... (Size, Size)
                     .setLearningRate(.1)
-                    .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC, false, false)
+                    .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC,
+                            false, false)
                     .buildNetwork()
-                    //.loadModel("data/models/BRNN_240_490.bin")
+//                    .loadModel("data/models/BRNN_d3_250.bin")
                     .setScoreListener(Seq2Seq.ScoreListener.VISUALIZE);
             model.runTraining();
             model.runTesting(false);

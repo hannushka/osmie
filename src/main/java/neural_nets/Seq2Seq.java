@@ -39,7 +39,7 @@ public abstract class Seq2Seq {
     protected String baseFilename = "models";
     protected MultiLayerNetwork net;
     protected CharacterIterator trainItr, testItr;
-
+    protected int sCorr = 0, ssCorr = 0, sInc = 0, ssInc = 0;
     protected int noChangeCorrect = 0, noChangeIncorrect = 0, changedCorrectly = 0, changedIncorrectly = 0,
             editDistOne = 0, wrongChangeType = 0;
 
@@ -154,6 +154,9 @@ public abstract class Seq2Seq {
         System.out.println("Total unchanged: \t\t\t" + (noChangeCorrect+noChangeIncorrect));
         System.out.println("----");
         System.out.println("Edits within one: \t\t\t" + editDistOne);
+        System.out.println("----");
+        System.out.println(ssCorr + "\t" + ssInc);
+        System.out.println(sCorr + "\t" + sInc);
     }
 
     public void runTraining() throws IOException {
