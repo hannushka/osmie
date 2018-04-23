@@ -24,10 +24,11 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class BiDirectionalRNN extends Seq2Seq {
+
+    private int zeroEditDist, oneEditDist, twoEditDist, threeEditDist;
+
     public static Seq2Seq Builder(){
         return new BiDirectionalRNN();
     }
@@ -106,17 +107,7 @@ public class BiDirectionalRNN extends Seq2Seq {
         }
         System.out.println("Symspell introduces " + (j-k) + " corrections extra from the unsure ones.");
         System.out.println(j + " corrections out of " + i + " where " + k + " already correct, " + l + " ruined (symspell)");
-
-//        for(DeepSpellObject obj: spellObjects){
-//            obj.generateNewWordsFromGuess();
-//            DataSet ds = itr.createDataSetFromDSO(obj);
-//            net.rnnClearPreviousState();
-//            INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
-//            double[][] distr = Helper.getBestGuess(output);
-//            System.out.println(Helper.getWordFromDistr(distr, itr));
-//            System.out.println(obj.currentName.orElse("") + ",,," + obj.correctName);
-//        }
-//        eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
+        System.out.println(String.format("{ 0: %d, 1: %d, 2: %d, 3: %d ", zeroEditDist, oneEditDist, twoEditDist, threeEditDist));
     }
 
     @Override
@@ -137,46 +128,11 @@ public class BiDirectionalRNN extends Seq2Seq {
         String[] inputStr = Helper.convertTensorsToWords(input, trainItr);
         String[] resultStr = Helper.convertTensorsToWords(result, trainItr);
         String[] labelStr = Helper.convertTensorsToWords(labels, trainItr);
-/**        for(DeepSpellObject obj : deepSpellObjects){
-            String word = obj.currentName.orElse("");
-            if(word.contains(" ")) continue;
-            List<SuggestItem> items = symSpell.lookupSpecialized(word, SymSpell.Verbosity.Closest);
-            items.addAll(symSpell.lookupSpecialized(obj.inputName, SymSpell.Verbosity.Closest));
-            Collections.sort(items);
-            if(!items.isEmpty() && items.get(0).distance <= 1) {
-                resultStr[obj.index] = items.get(0).term;
-            }
-        }**/
         String inp, out, label;
-        Pattern pattern = Pattern.compile("s+");
-        Matcher m, m2;
-        ArrayList<String> matches, matches2;
-
-        boolean equals;
         for(int i = 0; i < inputStr.length; i++){
             inp = inputStr[i];
             out = resultStr[i];
             label = labelStr[i];
-
-            matches = new ArrayList<>();
-            matches2 = new ArrayList<>();
-            m = pattern.matcher(out);
-            m2 = pattern.matcher(label);
-
-            while(m.find()){
-                matches.add(m.group());
-            }
-            while(m2.find()){
-                matches2.add(m2.group());
-            }
-
-            for(int j = 0; j < Math.min(matches.size(), matches2.size()); j++){
-                equals = matches.get(j).equals(matches2.get(j));
-                if(equals && matches.get(j).equals("s")) sCorr++;
-                else if(!equals && matches.get(j).equals("s")) sInc++;
-                else if(matches.get(j).equals(matches2.get(j))) ssCorr++;
-                else ssInc++;
-            }
 
             if(print) System.out.println(inp + ",,," + out + ",,," + label);
             if(StringUtils.oneEditDist(inp, label)) editDistOne++;
@@ -185,6 +141,18 @@ public class BiDirectionalRNN extends Seq2Seq {
             if(!inp.equals(label) && out.equals(label)) changedCorrectly++;
             if(inp.equals(label) && !inp.equals(out)) changedIncorrectly++;
             if(!inp.equals(label) && !inp.equals(out) && !out.equals(label))  wrongChangeType++;
+
+            switch(StringUtils.editDist(inp, label)) {
+                case 0: zeroEditDist++;
+                    break;
+                case 1: oneEditDist++;
+                    break;
+                case 2: twoEditDist++;
+                    break;
+                case 3:
+                    threeEditDist++;
+                default:
+            }
         }
     }
 
