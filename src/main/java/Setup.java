@@ -1,9 +1,15 @@
+import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.MultiPolygon;
+import org.openstreetmap.atlas.geography.Rectangle;
 import org.openstreetmap.atlas.geography.atlas.Atlas;
 import org.openstreetmap.atlas.geography.atlas.AtlasResourceLoader;
 import org.openstreetmap.atlas.geography.atlas.items.Edge;
+import org.openstreetmap.atlas.geography.atlas.pbf.AtlasLoadingOption;
+import org.openstreetmap.atlas.geography.atlas.pbf.OsmPbfLoader;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.tags.*;
 import org.openstreetmap.atlas.tags.names.NameTag;
+import symspell.SymSpell;
 import util.EditDistance;
 
 import java.io.*;
@@ -11,6 +17,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Setup {
     private static void download(String url, String fileName) {
@@ -57,11 +64,11 @@ public class Setup {
                     newEdge = newEdgeOpt.get();
 
                     joiner.add(oldEdge.getTag(NameTag.KEY).get());
-                    joiner.add(newEdge.getTag(MaxSpeedTag.KEY).orElse("-1"));
-                    joiner.add(newEdge.getTag(SurfaceTag.KEY).orElse("-1"));
-                    joiner.add(newEdge.getTag(HighwayTag.KEY).orElse("-1"));
-                    joiner.add(newEdge.getTag(SidewalkTag.KEY).orElse("-1"));
-                    joiner.add(newEdge.getTag(OneWayTag.KEY).orElse("-1"));
+//                    joiner.add(newEdge.getTag(MaxSpeedTag.KEY).orElse("-1"));
+//                    joiner.add(newEdge.getTag(SurfaceTag.KEY).orElse("-1"));
+//                    joiner.add(newEdge.getTag(HighwayTag.KEY).orElse("-1"));
+//                    joiner.add(newEdge.getTag(SidewalkTag.KEY).orElse("-1"));
+//                    joiner.add(newEdge.getTag(OneWayTag.KEY).orElse("-1"));
                     joiner.add(newEdge.getTag(NameTag.KEY).get());
 
                     writer.write(joiner.toString() + "\n");
@@ -96,7 +103,9 @@ public class Setup {
         BufferedWriter writer = new BufferedWriter(new FileWriter(to));
         try (BufferedReader br = Files.newBufferedReader(Paths.get(from))) {
             for(String line; (line = br.readLine()) != null;){
+//                if(line.isEmpty()) continue;
                 String[] split = line.split(",,,");
+//                if(split.length < 2) continue;
                 String newWord = split[1];
                 EditDistance editDistance = new EditDistance(newWord.toLowerCase().trim());
                 if(editDistance.DamerauLevenshteinDistance(split[0].toLowerCase().trim(), 3) != -1)
@@ -177,7 +186,7 @@ public class Setup {
                 System.out.println("Processing file " + i);
                 atlasFile = new File(ATLAS_FOLDER + "/" + filename);
                 atlasFileOld = new File(ATLAS_OLD_FOLDER + "/" + filename);
-                if (atlasFile.exists() && atlasFileOld.exists()) extractData(writer, atlasFile, atlasFileOld);
+                if (atlasFile.exists() && atlasFileOld.exists()) extractNameData(writer, atlasFile, atlasFileOld);
             }
             writer.close();
         } catch (IOException e) {
@@ -201,25 +210,68 @@ public class Setup {
         writer.close();
     }
 
+    private static ArrayList<Rectangle> getQuadrupleFromZone(Rectangle rec){
+        Location lowerLeft = rec.lowerLeft();
+        Location lowerRight = rec.lowerRight();
+        Location upperRight = rec.upperRight();
+        Location upperLeft = rec.upperLeft();
+        ArrayList<Rectangle> zones = new ArrayList<>(4);
+        zones.add(Rectangle.forCorners(lowerLeft, lowerLeft.midPoint(upperRight)));
+        zones.add(Rectangle.forCorners(lowerLeft.midPoint(lowerRight), lowerRight.midPoint(upperRight)));
+        zones.add(Rectangle.forCorners(lowerLeft.midPoint(upperLeft), upperLeft.midPoint(upperRight)));
+        zones.add(Rectangle.forCorners(lowerLeft.midPoint(upperRight), upperRight));
+        return zones;
+    }
+
+    private static void writeAtlas(String filename, String resultpath, List<MultiPolygon> zones,
+                                   AtlasLoadingOption option){
+        OsmPbfLoader loader;
+        Atlas atlas;
+        for(int i = 0; i < zones.size(); i++){
+            MultiPolygon zone = zones.get(i);
+            loader = new OsmPbfLoader(new File(filename), zone, option);
+            atlas = loader.read();
+            if(atlas != null && atlas.numberOfEdges() > 10) atlas.save(new File(String.format("%s/%s.atlas",
+                    resultpath, zone.bounds().center())));
+        }
+    }
+
+    private static ArrayList<Rectangle> getQuadrupleFromZones(List<Rectangle> rects){
+        ArrayList<Rectangle> quadruples = new ArrayList<>(rects.size() * 4);
+        rects.forEach(it -> quadruples.addAll(getQuadrupleFromZone(it)));
+        return quadruples;
+    }
+
     public static void main(String[] args) throws IOException {
         String OSM_PBF_15 = "http://download.geofabrik.de/europe/denmark-150101.osm.pbf";
         String OSM_PBF_LATEST = "http://download.geofabrik.de/europe/denmark-latest.osm.pbf";
         String OSM_PBF_LOCAL_15 = "data/denmark-150101.osm.pbf";
         String OSM_PBF_LOCAL_LATEST = "data/denmark-latest.osm.pbf";
-        String ATLAS_FOLDER = "data/atlas";
-        String ATLAS_OLD_FOLDER = "data/atlas_old";
-        String NAMEDATA_FILE = "data/nameData.csv";
-        String DATA_FILE = "data/SuperData.csv";
-        String DATA_UNIQUE_FILE = "data/SuperDataUnique.csv";
-        String NAMEDATA_FIXED_FILE = "data/nameDataNew.csv";
-        String NAMEDATA_UNIQUE_FILE = "data/nameDataUnique.csv";
+        String ATLAS_FOLDER = "data/et_atlas";
+        String ATLAS_OLD_FOLDER = "data/et_atlas_old";
+        String NAMEDATA_FILE = "data/et_nameData.csv";
+        String DATA_FILE = "data/et_SuperData.csv";
+        String DATA_UNIQUE_FILE = "data/et_SuperDataUnique.csv";
+        String NAMEDATA_FIXED_FILE = "data/et_nameDataNew.csv";
+        String NAMEDATA_UNIQUE_FILE = "data/et_nameDataUnique.csv";
 //        download(OSM_PBF_15, OSM_PBF_LOCAL_15);
 //        download(OSM_PBF_LATEST, OSM_PBF_LOCAL_LATEST);
         // TODO introduce atlas generation here
-        extractDataFromAtlasFiles(ATLAS_FOLDER, ATLAS_OLD_FOLDER, DATA_FILE);
+//        AtlasLoadingOption option = AtlasLoadingOption.withNoFilter();
+//        option
+//                .setLoadWaysSpanningCountryBoundaries(false)
+//                .setLoadAtlasPoint(false)
+//                .setLoadAtlasLine(false)
+//                .setLoadAtlasArea(false)
+//                .setLoadAtlasRelation(false)
+//                .setWaySectioning(false);
+//        Rectangle est = Rectangle.forString("57.494,21.377:59.946,28.229");
+//        List<MultiPolygon> est_mp = getQuadrupleFromZones(getQuadrupleFromZone(est)).stream()
+//                                        .map(MultiPolygon::forPolygon)
+//                                        .collect(Collectors.toList());
+//        writeAtlas("data/estonia-140101.osm.pbf", "data/et_atlas_old", est_mp, option);
+//        extractDataFromAtlasFiles(ATLAS_FOLDER, ATLAS_OLD_FOLDER, NAMEDATA_FILE);
 //        filterSuperData(DATA_FILE, DATA_UNIQUE_FILE);
-//        symspell symSpell = new symspell(-1, 3, 0,-1);
-//        if(!symSpell.loadAddress(NAMEDATA_FILE)) throw new IOException("File does not exist!");
 //        removeLargeChanges(NAMEDATA_FILE, NAMEDATA_FIXED_FILE);
 //        filterNameDataToUnique(NAMEDATA_FIXED_FILE, NAMEDATA_UNIQUE_FILE);
 //        introduceNoiseToNameData();
