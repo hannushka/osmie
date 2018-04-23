@@ -11,8 +11,8 @@ public class DeepLearningRunner {
                     .setFilename("BRNN_d3_")
                     .setBatchSize(32)
                     .setNbrEpochs(2000)
-                    .setEpochSize(1000)
-                    .setNbrLayers(16, 8) // params Integer int... (Size, Size)
+                    .setEpochSize(10000)
+                    .setNbrLayers(20, 10, 6) // params Integer int... (Size, Size)
                     .setLearningRate(.1)
                     .setCharacterIterator(fileLocation, testFileLocation, Seq2Seq.IteratorType.CLASSIC,
                             false, false)
