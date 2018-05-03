@@ -26,4 +26,9 @@ public class StringUtils {
         EditDistance dist = new EditDistance(label);
         return dist.DamerauLevenshteinDistance(in, 2) == 1;
     }
+
+    public static int editDist(String in, String label) {
+        EditDistance dist = new EditDistance(label);
+        return dist.DamerauLevenshteinDistance(in, 3);
+    }
 }

@@ -49,8 +49,7 @@ public class Helper {
                 .map(itr::convertIndexToCharacter)
                 .map(String::valueOf)
                 .collect(Collectors.joining())      // TODO this method might be erronous now?
-                .replaceAll("!", "").trim();       // é will be chosen if none is bigger supposedly..ü
-
+                .split("\n")[0].trim();       // é will be chosen if none is bigger supposedly..ü
     }
 
     public static int getIndexOfMax(double[] array){
