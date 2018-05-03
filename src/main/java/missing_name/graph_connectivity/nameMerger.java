@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 public class nameMerger {
 //    private static String ATLAS_FILE = "data/atlas/POINT.atlas";
-    private static String ATLAS_FILE = "data/atlas/POINT (8.194954 55.8843184).atlas";
+    private static String ATLAS_FILE = "data/atlas/POINT (7.9321289 55.4665832)=POINT (8.0998535 55.5783983).atlas";
     private static final boolean IN = true;
     private static final boolean OUT = false;
 

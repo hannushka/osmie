@@ -11,8 +11,10 @@ public class DeepLearningTester {
     //Configuration variables
     private static String fileLocation = "data/dataAnomalies.csv";
     private static String testFileLocation = "data/dataAnomaliesTest.csv";
-    private static String fileLocationRNN = "data/shuffledTrainData.csv";
-    private static String testFileLocationRNN = "data/manualNameData.csv";
+    private static String fileLocationRNN = "data/et_autoNameData.csv.merged";
+    private static String testFileLocationRNN = "data/et_autoNameData.csv.test";
+//    private static String fileLocationRNN = "data/shuffledTrainData.csv";
+//    private static String testFileLocationRNN = "data/nameDataUnique.csv";
     private static String modelFilePathPrefix = "data/models/";
 
     private enum ModelType {
@@ -36,19 +38,26 @@ public class DeepLearningTester {
     private static void runTest(ModelType type) throws Exception {
             Scanner keyboard = new Scanner(System.in);
             Seq2Seq model = null;
-            for(int i = 130; i < 500; i += 10){
+            double max = 0;
+            double temp;
+            int index = 0; // 670 atm!
+            for(int i = 670; i < 675; i += 10){
                 switch (type) {
                     case ANOMALY:
                         model = anomalyModel().loadModel(String.format("%sARNN_%s.bin", modelFilePathPrefix, i));
                         break;
                     case SPELLCHECKER:
-                        model = spellCheckerModel().loadModel(String.format("%sBRNN_d3_%s.bin", modelFilePathPrefix, i));
+                        model = spellCheckerModel().loadModel(String.format("%sBRNN_d3_et_2_%s.bin", modelFilePathPrefix, i));
                         break;
                 }
-                model.runTesting(false);
+                temp = model.runTesting(false);
+                if(temp > max){
+                    max = temp;
+                    index = i;
+                }
                 System.out.println("Nr:" + i);
-                keyboard.nextLine();
             }
+        System.out.println(index);
     }
 
     private static ModelType testType = ModelType.SPELLCHECKER;

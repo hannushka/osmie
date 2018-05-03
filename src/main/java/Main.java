@@ -34,10 +34,10 @@ public class Main {
             }
             processEdge(so, e);
         }
-        edges.values().forEach(spo -> spo.print());
+        edges.values().forEach(SpellObject::print);
     }
 
     public static void main(String[] args) {
-        new Main().run("data/POINT (7.9321289 55.4665832)=POINT (8.0998535 55.5783983).atlas");
+        new Main().run("data/atlas/POINT (7.9321289 55.4665832)=POINT (8.0998535 55.5783983).atlas");
     }
 }

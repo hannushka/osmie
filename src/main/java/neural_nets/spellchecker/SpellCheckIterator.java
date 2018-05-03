@@ -58,13 +58,14 @@ public class SpellCheckIterator extends CharacterIterator {
         String savedInp = "", savedOut = "";
         for (String s : lines){
             if (s.isEmpty()) continue;
-            s = s.toLowerCase();
+            s = s.toLowerCase().trim();
+            if(s.length() > 96) continue;
             String[] inputOutput = s.split(",,,");
             if (inputOutput.length < 2) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
             char[] inputLine = ArrayUtils.mergeArrays(before, after, inputOutput[0].toCharArray());
             char[] outputLine = ArrayUtils.mergeArrays(before, after, inputOutput[1].toCharArray());
             if(merge){
-                if(!savedInp.isEmpty() && inputOutput[0].length() < 25){
+                if(!savedInp.isEmpty() && inputOutput[0].length() < 24){
                     inputLine = ArrayUtils.mergeArrays(before, after, savedInp.toCharArray(),
                             inputOutput[0].toCharArray());
                     outputLine = ArrayUtils.mergeArrays(before, after, savedOut.toCharArray(),
@@ -72,7 +73,7 @@ public class SpellCheckIterator extends CharacterIterator {
                     savedInp = "";
                     savedOut = "";
                 }
-                if(savedInp.isEmpty() && inputOutput[0].length() < 25){
+                if(savedInp.isEmpty() && inputOutput[0].length() < 24){
                     savedInp = inputOutput[0];
                     savedOut = inputOutput[1];
                     continue;
