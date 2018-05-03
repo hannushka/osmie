@@ -5,6 +5,9 @@ import org.openstreetmap.atlas.geography.atlas.items.Edge;
 import org.openstreetmap.atlas.streaming.resource.File;
 import util.SpellObject;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,24 +23,33 @@ public class Main {
         GraphConnectivityCorrector.run(so, e);
     }
 
-    public void run(String filename) {
-        final File atlasFile = new File(filename);
-        final Atlas atlasLoad = new AtlasResourceLoader().load(atlasFile);
-        SpellObject so;
-        for (Edge e : atlasLoad.edges()) {
-            long id = Math.abs(e.getIdentifier());
-            if (edges.containsKey(id)) {
-                so = edges.get(id);
-            } else {
-                so = new SpellObject(id);
-                edges.put(id, so);
+    public void run() {
+        java.io.File folder = new java.io.File("/home/hannah/workspace/osm_masterthesis/data/atlas");
+        java.io.File[] listOfFiles = folder.listFiles();
+        assert listOfFiles != null;
+        String filename;
+        for (int i = 0; i < listOfFiles.length; i++) {
+            System.out.println("Processing file " + i);
+            filename = listOfFiles[i].getAbsolutePath();
+            final File atlasFile = new File(filename);
+            final Atlas atlasLoad = new AtlasResourceLoader().load(atlasFile);
+            SpellObject so;
+            for (Edge e : atlasLoad.edges()) {
+                long id = Math.abs(e.getIdentifier());
+                if (edges.containsKey(id)) {
+                    so = edges.get(id);
+                } else {
+                    so = new SpellObject(id);
+                    edges.put(id, so);
+                }
+                processEdge(so, e);
             }
-            processEdge(so, e);
+//        edges.values().forEach(spo -> spo.print())
+            System.out.println(edges.size());
         }
-        edges.values().forEach(spo -> spo.print());
     }
 
     public static void main(String[] args) {
-        new Main().run("data/POINT (7.9321289 55.4665832)=POINT (8.0998535 55.5783983).atlas");
+        new Main().run();
     }
 }
