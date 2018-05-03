@@ -121,7 +121,7 @@ public class EncoderHelper {
 
     public static Map<Character, Integer> getDanishCharacterSet(){
         try {
-            Scanner scan = new Scanner(new File("data/dk_alphabet.txt"));
+            Scanner scan = new Scanner(new File("data/et_alphabet.txt"));
             scan.useDelimiter(",,,");
             Map<Character, Integer> validChars = new HashMap<>();
             char[] temp = {'!', '&', '-', '\'', '"', ',', '.', ' ', '\n', '\t', 'ü', 'ë', 'é'};

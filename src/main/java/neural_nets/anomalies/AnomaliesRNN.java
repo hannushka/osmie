@@ -54,7 +54,7 @@ public class AnomaliesRNN extends Seq2Seq {
         return this;
     }
 
-    public void runTesting(boolean print){
+    public double runTesting(boolean print){
         Evaluation eval = new Evaluation(testItr.totalOutcomes());
         while(testItr.hasNext()){
             DataSet ds = testItr.next();
@@ -63,6 +63,7 @@ public class AnomaliesRNN extends Seq2Seq {
             eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
         }
         System.out.println(eval.stats());
+        return eval.f1();
     }
 
     @Override

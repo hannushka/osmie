@@ -59,7 +59,7 @@ public class BiDirectionalRNN extends Seq2Seq {
         return this;
     }
 
-    public void runTesting(boolean print){
+    public double runTesting(boolean print){
         Evaluation eval = new Evaluation(testItr.totalOutcomes());
         List<DeepSpellObject> spellObjects = new ArrayList<>();
         SymSpell symSpell = new SymSpell(-1, 2, -1, 10);
@@ -107,7 +107,20 @@ public class BiDirectionalRNN extends Seq2Seq {
         }
         System.out.println("Symspell introduces " + (j-k) + " corrections extra from the unsure ones.");
         System.out.println(j + " corrections out of " + i + " where " + k + " already correct, " + l + " ruined (symspell)");
+
+//        for(DeepSpellObject obj: spellObjects){
+//            obj.generateNewWordsFromGuess();
+//            DataSet ds = itr.createDataSetFromDSO(obj);
+//            net.rnnClearPreviousState();
+//            INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
+//            double[][] distr = Helper.getBestGuess(output);
+//            System.out.println(Helper.getWordFromDistr(distr, itr));
+//            System.out.println(obj.currentName.orElse("") + ",,," + obj.correctName);
+//        }
+//        eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
+
         System.out.println(String.format("{ 0: %d, 1: %d, 2: %d, 3: %d ", zeroEditDist, oneEditDist, twoEditDist, threeEditDist));
+        return eval.f1();
     }
 
     @Override

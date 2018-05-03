@@ -180,7 +180,7 @@ public abstract class Seq2Seq {
         ModelSerializer.writeModel(net, "model.bin", true);
     }
 
-    public abstract void runTesting(boolean print);
+    public abstract double runTesting(boolean print);
 
     public abstract void printSuggestion(String input, SymSpell symSpell);
 

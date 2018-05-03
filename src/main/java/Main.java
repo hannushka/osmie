@@ -44,12 +44,12 @@ public class Main {
                 }
                 processEdge(so, e);
             }
-//        edges.values().forEach(spo -> spo.print())
-            System.out.println(edges.size());
+            edges.values().forEach(SpellObject::print);
         }
     }
 
     public static void main(String[] args) {
         new Main().run();
     }
+
 }
