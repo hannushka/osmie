@@ -7,12 +7,15 @@ import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.conf.layers.GravesBidirectionalLSTM;
+import org.deeplearning4j.nn.conf.layers.GravesLSTM;
 import org.deeplearning4j.nn.conf.layers.RnnOutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
+import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
+import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import symspell.SuggestItem;
 import symspell.SymSpell;
@@ -21,16 +24,42 @@ import util.Helper;
 import util.StringUtils;
 
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
 
 public class BiDirectionalRNN extends Seq2Seq {
 
     private int zeroEditDist, oneEditDist, twoEditDist, threeEditDist;
+    private Random rng = new Random(12345);
 
     public static Seq2Seq Builder(){
         return new BiDirectionalRNN();
+    }
+
+    @Override
+    public void runTraining() throws IOException {
+//        super.runTraining();
+        int miniBatchNumber = 0, generateSamplesEveryNMinibatches = 100;
+
+        for (int i = 0; i < numEpochs; i++) {
+            while (trainItr.hasNext()) {
+                org.nd4j.linalg.dataset.api.DataSet ds = trainItr.next();
+                net.rnnClearPreviousState();
+                net.fit(ds);
+
+                if (++miniBatchNumber % generateSamplesEveryNMinibatches == 0) {
+                    System.out.println("--------------------");
+                    System.out.println("Completed " + miniBatchNumber + " minibatches of size "
+                            + miniBatchSize + " words");
+                    Arrays.stream(sampleCharactersFromNetwork("A", net, (ShakeSpeareIterator) trainItr,
+                            rng, 200, 3)).forEach(it -> System.out.println("==\n" + it));
+                }
+            }
+            if(i % 5 == 0) System.out.println("Finished EPOCH #" + i);
+            if(i % 10 == 0)  ModelSerializer.writeModel(net, String.format("data/models/%s%s.bin", baseFilename, i), true);
+            trainItr.reset();
+        }
+        ModelSerializer.writeModel(net, "model.bin", true);
     }
 
     @Override
@@ -44,13 +73,13 @@ public class BiDirectionalRNN extends Seq2Seq {
                 .updater(Updater.RMSPROP)
 //                .regularization(true).dropOut(0.2)
                 .list()
-                .layer(0, new GravesBidirectionalLSTM.Builder().nIn(nIn).nOut(layerDimensions[0]).activation(Activation.SOFTSIGN).build());
+                .layer(0, new GravesLSTM.Builder().nIn(nIn).nOut(layerDimensions[0]).activation(Activation.SOFTSIGN).build());
 
         for(int i = 1; i < layerDimensions.length; i++, idx++)
-            builder.layer(idx, new GravesBidirectionalLSTM.Builder().nIn(layerDimensions[i-1]).nOut(layerDimensions[i]).activation(Activation.SOFTSIGN).build());
+            builder.layer(idx, new GravesLSTM.Builder().nIn(layerDimensions[i-1]).nOut(layerDimensions[i]).activation(Activation.SOFTSIGN).build());
 
         for(int i = layerDimensions.length - 1; i > 0; i--, idx++)
-            builder.layer(idx, new GravesBidirectionalLSTM.Builder().nIn(layerDimensions[i]).nOut(layerDimensions[i-1]).activation(Activation.SOFTSIGN).build());
+            builder.layer(idx, new GravesLSTM.Builder().nIn(layerDimensions[i]).nOut(layerDimensions[i-1]).activation(Activation.SOFTSIGN).build());
 
         MultiLayerConfiguration config =  builder.layer(idx, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT).activation(Activation.SOFTMAX)
                 .nIn(layerDimensions[0]).nOut(nOut).build())
@@ -61,65 +90,17 @@ public class BiDirectionalRNN extends Seq2Seq {
 
     public double runTesting(boolean print){
         Evaluation eval = new Evaluation(testItr.totalOutcomes());
-        List<DeepSpellObject> spellObjects = new ArrayList<>();
-        SymSpell symSpell = new SymSpell(-1, 2, -1, 10);
-        if(!symSpell.loadDictionary("data/korpus_freq_dict.txt", 0, 1)) try {
-            throw new FileNotFoundException();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
 
         while(testItr.hasNext()){
             DataSet ds = testItr.next();
             net.rnnClearPreviousState();
             INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
             eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
-            List<DeepSpellObject> objects = Helper.getSpellObjectsFromUncertainTensors(ds.getFeatureMatrix(), output, ds.getLabels(), testItr);
-            spellObjects.addAll(objects);
-
-            createReadableStatistics(ds.getFeatures(), output, ds.getLabels(), print, objects, symSpell);
         }
 
         printStats();
-        int correct = 0, destroy = 0;
-        for(DeepSpellObject obj : spellObjects){
-            if(obj.guessCorrect()) correct++;
-            if(!obj.guessCorrect() && obj.inputName.equals(obj.correctName)) destroy++;
-        }
-        System.out.println(correct + " / " + spellObjects.size() + " (unsure guesses that are correct & "
-                + destroy + " good->bad)");
         System.out.println(StringUtils.reduceEvalStats(eval.stats()));
 
-
-        int j = 0, i = 0, k = 0, l=0;
-        for(DeepSpellObject obj : spellObjects){
-            String word = obj.currentName.orElse("");
-            if(word.contains(" ")) continue;
-            List<SuggestItem> items = symSpell.lookupSpecialized(word, SymSpell.Verbosity.Closest);
-            items.addAll(symSpell.lookupSpecialized(obj.inputName, SymSpell.Verbosity.Closest));
-            Collections.sort(items);
-            if(!items.isEmpty() && items.get(0).distance <= 1) {
-                if(items.get(0).term.equals(obj.correctName)) j++;
-                if(obj.correctName.equals(word)) k++;
-                if(obj.correctName.equals(word) && !items.get(0).term.equals(obj.correctName)) l++;
-                i++;
-            }
-        }
-        System.out.println("Symspell introduces " + (j-k) + " corrections extra from the unsure ones.");
-        System.out.println(j + " corrections out of " + i + " where " + k + " already correct, " + l + " ruined (symspell)");
-
-//        for(DeepSpellObject obj: spellObjects){
-//            obj.generateNewWordsFromGuess();
-//            DataSet ds = itr.createDataSetFromDSO(obj);
-//            net.rnnClearPreviousState();
-//            INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
-//            double[][] distr = Helper.getBestGuess(output);
-//            System.out.println(Helper.getWordFromDistr(distr, itr));
-//            System.out.println(obj.currentName.orElse("") + ",,," + obj.correctName);
-//        }
-//        eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
-
-        System.out.println(String.format("{ 0: %d, 1: %d, 2: %d, 3: %d ", zeroEditDist, oneEditDist, twoEditDist, threeEditDist));
         return eval.f1();
     }
 
@@ -167,6 +148,71 @@ public class BiDirectionalRNN extends Seq2Seq {
                 default:
             }
         }
+    }
+
+    private static String[] sampleCharactersFromNetwork(String initialization, MultiLayerNetwork net,
+                                                        ShakeSpeareIterator iter, Random rng, int charactersToSample, int numSamples ){
+        //Set up initialization. If no initialization: use a random character
+        //Create input for initialization
+        INDArray initializationInput = Nd4j.zeros(numSamples, iter.inputColumns(), initialization.length());
+        char[] init = initialization.toCharArray();
+        Map<Character, Integer> characterIntegerMap = iter.charToIdxMap;
+        for( int i=0; i<init.length; i++ ){
+            int idx = characterIntegerMap.get(init[i]);
+            for( int j=0; j<numSamples; j++ ){
+                initializationInput.putScalar(new int[]{j,idx,i}, 1.0f);
+            }
+        }
+
+        StringBuilder[] sb = new StringBuilder[numSamples];
+        for( int i=0; i<numSamples; i++ ) sb[i] = new StringBuilder(initialization);
+
+        //Sample from network (and feed samples back into input) one character at a time (for all samples)
+        //Sampling is done in parallel here
+        net.rnnClearPreviousState();
+        INDArray output = net.rnnTimeStep(initializationInput);
+        output = output.tensorAlongDimension(output.size(2)-1,1,0);	//Gets the last time step output
+
+        for( int i=0; i<charactersToSample; i++ ){
+            //Set up next input (single time step) by sampling from previous output
+            INDArray nextInput = Nd4j.zeros(numSamples, iter.inputColumns());
+            //Output is a probability distribution. Sample from this for each example we want to generate, and add it to the new input
+            for( int s=0; s<numSamples; s++ ){
+                double[] outputProbDistribution = new double[iter.totalOutcomes()];
+                for( int j=0; j<outputProbDistribution.length; j++ ) outputProbDistribution[j] = output.getDouble(s,j);
+                int sampledCharacterIdx = sampleFromDistribution(outputProbDistribution,rng);
+
+                nextInput.putScalar(new int[]{s,sampledCharacterIdx}, 1.0f);		//Prepare next time step input
+                sb[s].append(iter.convertIndexToCharacter(sampledCharacterIdx));	//Add sampled character to StringBuilder (human readable output)
+            }
+
+            output = net.rnnTimeStep(nextInput);	//Do one time step of forward pass
+        }
+
+        String[] out = new String[numSamples];
+        for( int i=0; i<numSamples; i++ ) out[i] = sb[i].toString();
+        return out;
+    }
+
+    /** Given a probability distribution over discrete classes, sample from the distribution
+     * and return the generated class index.
+     * @param distribution Probability distribution over classes. Must sum to 1.0
+     */
+    public static int sampleFromDistribution( double[] distribution, Random rng ){
+        double d = 0.0;
+        double sum = 0.0;
+        for( int t=0; t<10; t++ ) {
+            d = rng.nextDouble();
+            sum = 0.0;
+            for( int i=0; i<distribution.length; i++ ){
+                sum += distribution[i];
+                if( d <= sum ) return i;
+            }
+            //If we haven't found the right index yet, maybe the sum is slightly
+            //lower than 1 due to rounding error, so try again.
+        }
+        //Should be extremely unlikely to happen if distribution is a valid probability distribution
+        throw new IllegalArgumentException("Distribution is invalid? d="+d+", sum="+sum);
     }
 
 }

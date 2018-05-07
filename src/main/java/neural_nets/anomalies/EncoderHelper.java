@@ -121,19 +121,18 @@ public class EncoderHelper {
 
     public static Map<Character, Integer> getDanishCharacterSet(){
         try {
-            Scanner scan = new Scanner(new File("data/et_alphabet.txt"));
+            Scanner scan = new Scanner(new File("data/wiki_alph.txt"));
             scan.useDelimiter(",,,");
             Map<Character, Integer> validChars = new HashMap<>();
-            char[] temp = {'!', '&', '-', '\'', '"', ',', '.', ' ', '\n', '\t', 'ü', 'ë', 'é'};
             int counter = 0;
             while (scan.hasNext()) {
                 String s = scan.next();
-                if (!validChars.containsKey(s.charAt(0))) {
+                if (s.length() > 0 && !validChars.containsKey(s.charAt(0))) {
                     validChars.put(s.charAt(0), counter++);
                 }
             }
+            validChars.put('\n', counter);
             // ^ Adding these here as they are not common to misspell
-            for(char c : temp) if (!validChars.containsKey(c)) validChars.put(c, counter++);
             scan.close();
             return validChars;
         } catch (FileNotFoundException e) {

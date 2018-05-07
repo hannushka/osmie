@@ -1,5 +1,6 @@
 package neural_nets;
 
+import neural_nets.spellchecker.ShakeSpeareIterator;
 import org.nd4j.linalg.dataset.api.DataSet;
 import symspell.SymSpell;
 import symspell.SuggestItem;
@@ -30,7 +31,8 @@ public abstract class Seq2Seq {
     }
     public enum IteratorType{
         CLASSIC,
-        ANOMALIES
+        ANOMALIES,
+        SHAKESPEARE
     }
 
     protected int[] layerDimensions = new int[]{}; //Number of units in each GravesLSTM layer
@@ -88,6 +90,13 @@ public abstract class Seq2Seq {
                 trainItr = new AnomaliesIterator(fileLocation, Charset.forName("UTF-8"),
                         miniBatchSize, exampleLength, epochSize);
                 testItr = new AnomaliesIterator(testFileLocation, Charset.forName("UTF-8"),
+                        miniBatchSize, exampleLength, epochSize);
+                break;
+            case SHAKESPEARE:
+                exampleLength = 200;
+                trainItr = new ShakeSpeareIterator(fileLocation, Charset.forName("UTF-8"),
+                        miniBatchSize, exampleLength, epochSize);
+                testItr = new ShakeSpeareIterator(testFileLocation, Charset.forName("UTF-8"),
                         miniBatchSize, exampleLength, epochSize);
                 break;
         }
