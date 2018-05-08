@@ -41,7 +41,7 @@ public class AnomaliesRNN extends Seq2Seq {
                 .dropOut(0.2)
                 .list()
                 .layer(0, new EmbeddingLayer.Builder().nIn(nIn).nOut(20).build())
-                .layer(1, new LSTM.Builder().weightInit(WeightInit.RELU)
+                    .layer(1, new LSTM.Builder().weightInit(WeightInit.RELU)
                         .nIn(20).nOut(10).activation(Activation.SOFTSIGN).build())
                 .layer(2, new LSTM.Builder().weightInit(WeightInit.RELU)
                         .nIn(10).nOut(5).activation(Activation.SOFTSIGN).build())

@@ -2,10 +2,10 @@ import os
 import regex as re
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-dir_path = dir_path.rsplit('\\', 3)[0]
-WIKI_UNFILTERED = '%s\data\dk_wiki.txt' % dir_path
-WIKI_FILTERED = '%s\data\dk_wiki.filtered.txt' % dir_path
-WIKI_ALPH = "%s\data\wiki_alph.txt" % dir_path
+dir_path = dir_path.rsplit('/', 3)[0]
+WIKI_UNFILTERED = '%s/data/dk_wiki.txt' % dir_path
+WIKI_FILTERED = '%s/data/dk_wiki.filtered.txt' % dir_path
+WIKI_ALPH = "%s/data/wiki_alph.txt" % dir_path
 
 
 def replace_unwanted(line, char_dict):
@@ -25,8 +25,8 @@ def gen_alphabet():
         f.write(',,,'.join(list(chars)))
 
 if __name__ == '__main__':
-    gen_alphabet()
-    quit()
+
+    # quit()
     list_of_char = dict()
     with open(WIKI_UNFILTERED, 'r', encoding="UTF-8") as f:
         for line in f:
@@ -53,5 +53,6 @@ if __name__ == '__main__':
                 line = line.replace("\s+", " ")
                 line = line.strip()
 
-                if len(line) > 5 and len(line.split()) > 4:
+                if len(line.split("\s+")) > 8:
                     fWrite.write(line + '\n')
+    gen_alphabet()
