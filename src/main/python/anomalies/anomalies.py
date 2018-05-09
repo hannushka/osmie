@@ -30,12 +30,20 @@ if __name__ == '__main__':
                 inp = line.strip().split(',,,')
                 if len(inp) < 6:
                     continue
-                name = inp[1]
-                speed = inp[2]
-                surface = inp[3]
-                way = inp[4]
+                name = 0
+                if inp[1]:
+                    name = inp[1]
+                speed = 0
+                if inp[2]:
+                    speed = inp[2]
+                surface = 0
+                if inp[3]:
+                    surface = inp[3]
+                way = 0
+                if inp[4]:
+                    way = inp[4]
                 train_data.append([name, speed, surface, way])
-                train_y.append(inp[5])
+                train_y.append(inp[5].strip())
             clf = RandomForestClassifier(n_estimators=20,max_depth=10,n_jobs=-1)
             clf.fit(train_data, train_y)
             pickle.dump( clf, open( "anomalies_clf.p", "wb" ) )
@@ -51,7 +59,19 @@ if __name__ == '__main__':
                 if len(inp) < 6:
                     continue
                 test_ids.append(inp[0])
-                test_data.append([inp[1], inp[2], inp[3], inp[4]])
+                name = 0
+                if inp[1]:
+                    name = inp[1]
+                speed = 0
+                if inp[2]:
+                    speed = inp[2]
+                surface = 0
+                if inp[3]:
+                    surface = inp[3]
+                way = 0
+                if inp[4]:
+                    way = inp[4]
+                test_data.append([name, speed, surface, way])
                 test_y.append(inp[5].strip())
             clf = pickle.load( open( "anomalies_clf.p", "rb" ) )
             predicts = clf.predict(test_data)

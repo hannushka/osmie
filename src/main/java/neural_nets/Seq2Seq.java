@@ -1,5 +1,6 @@
 package neural_nets;
 
+import neural_nets.anomalies.AnomaliesPredictIterator;
 import org.nd4j.linalg.dataset.api.DataSet;
 import symspell.SymSpell;
 import symspell.SuggestItem;
@@ -30,7 +31,8 @@ public abstract class Seq2Seq {
     }
     public enum IteratorType{
         CLASSIC,
-        ANOMALIES
+        ANOMALIES,
+        ANOMALIES_PREDICT
     }
 
     protected int[] layerDimensions = new int[]{}; //Number of units in each GravesLSTM layer
@@ -90,6 +92,10 @@ public abstract class Seq2Seq {
                 testItr = new AnomaliesIterator(testFileLocation, Charset.forName("UTF-8"),
                         miniBatchSize, exampleLength, epochSize);
                 break;
+            case ANOMALIES_PREDICT:
+                exampleLength = 5;
+                testItr = new AnomaliesPredictIterator(testFileLocation, Charset.forName("UTF-8"),
+                        miniBatchSize, exampleLength, epochSize);
         }
         return this;
     }
@@ -185,4 +191,6 @@ public abstract class Seq2Seq {
     public abstract void printSuggestion(String input, SymSpell symSpell);
 
     public abstract Seq2Seq buildNetwork() throws Exception;
+
+    public abstract void predict() throws Exception;
 }

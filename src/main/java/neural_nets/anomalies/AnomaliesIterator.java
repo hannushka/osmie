@@ -1,5 +1,6 @@
 package neural_nets.anomalies;
 
+import com.typesafe.config.ConfigException;
 import neural_nets.CharacterIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
@@ -11,6 +12,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class AnomaliesIterator extends CharacterIterator {
@@ -29,7 +32,7 @@ public class AnomaliesIterator extends CharacterIterator {
 
     List<DataContainer> lastBatchContainers;
 
-    private static int nbrOfTags = 3;
+    protected static int nbrOfTags = 3;
 
     public AnomaliesIterator(String file, Charset encoding, int miniBatchSize, int sequenceLength, int epochSize) throws IOException {
             if(!new File(file).exists()) throw new IOException("Could not access file (does not exist): " + file);
@@ -58,29 +61,30 @@ public class AnomaliesIterator extends CharacterIterator {
             generateDataFromFile(file, before, after);
         }
 
-    private void generateDataFromFile(String textFilePath, String before, String after) throws IOException {
-            List<String> lines = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
-            for (String s : lines){
-                if (s.isEmpty()) continue;
-                String[] values = s.split(",,,");
-                if (values.length < 5) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
-                //name,,,maxspeed,,,surface,,highway,,,0/1
+    protected void generateDataFromFile(String textFilePath, String before, String after) throws IOException {
+        List<String> lines = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
+        for (String s : lines){
+            if (s.isEmpty()) continue;
+            String[] values = s.split(",,,");
+            if (values.length < 5) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
+            //name,,,maxspeed,,,surface,,highway,,,0/1
 
-                char[] name = ArrayUtils.mergeArrays(before, after, values[0].toLowerCase().toCharArray());
-                int maxSpeedClass = speedToIdxMap.get(EncoderHelper.getSpeedClass(values[1]));
-                int surfaceClass =surfaceToIdxMap.get(EncoderHelper.getSurfaceClass(values[2]));
-                int highwayClass = highwayToIdxMap.get(EncoderHelper.getHighwayClass(values[3]));
+            if (values[0].isEmpty() ) continue;
+            char[] name = ArrayUtils.mergeArrays(before, after, values[0].toLowerCase().toCharArray());
+            int maxSpeedClass = speedToIdxMap.get(EncoderHelper.getSpeedClass(values[1]));
+            int surfaceClass =surfaceToIdxMap.get(EncoderHelper.getSurfaceClass(values[2]));
+            int highwayClass = highwayToIdxMap.get(EncoderHelper.getHighwayClass(values[3]));
 
-                Integer result = Integer.parseInt(values[4]);
+            Integer result = Integer.parseInt(values[4]);
 
-                for (int i = 0; i < name.length; i++) if(!charToIdxMap.containsKey(name[i])) name[i] = '!';
-                inputLines.add(new DataContainer(name, maxSpeedClass, highwayClass, surfaceClass));
-                outputLines.add(result);
-            }
-            ogInput = new LinkedList<>(inputLines);
-            ogOutput = new LinkedList<>(outputLines);
-            numExamples = inputLines.size();
+            for (int i = 0; i < name.length; i++) if(!charToIdxMap.containsKey(name[i])) name[i] = '!';
+            inputLines.add(new DataContainer(-1, name, maxSpeedClass, highwayClass, surfaceClass));
+            outputLines.add(result);
         }
+        ogInput = new LinkedList<>(inputLines);
+        ogOutput = new LinkedList<>(outputLines);
+        numExamples = inputLines.size();
+    }
 
     protected DataSet createDataSet(int num) {
         if(inputLines.isEmpty()) throw new NoSuchElementException();
@@ -194,9 +198,11 @@ public class AnomaliesIterator extends CharacterIterator {
 
     public class DataContainer {
         char[] inputLine;
+        long id;
         int maxSpeedClass, highwayClass, surfaceClass;
 
-        public DataContainer(char[] inputLine, int maxSpeedClass, int highwayClass, int surfaceClass) {
+        public DataContainer(long id, char[] inputLine, int maxSpeedClass, int highwayClass, int surfaceClass) {
+            this.id = id;
             this.inputLine = inputLine;
             this.maxSpeedClass = maxSpeedClass;
             this.highwayClass = highwayClass;

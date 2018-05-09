@@ -29,5 +29,4 @@ public abstract class CharacterIterator implements DataSetIterator {
     }
 
     public abstract char convertIndexToCharacter(int idx);
-
 }

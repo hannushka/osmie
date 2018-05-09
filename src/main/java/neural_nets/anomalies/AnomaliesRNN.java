@@ -22,7 +22,7 @@ import symspell.SymSpell;
 import util.Helper;
 import util.StringUtils;
 
-import java.util.Arrays;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static util.Helper.getDoubleMatrixDistr;
@@ -78,6 +78,32 @@ public class AnomaliesRNN extends Seq2Seq {
         }
         System.out.println(eval.stats());
         return eval.f1();
+    }
+
+    public void predict() {
+        int nbr = 0;
+        while(testItr.hasNext()) {
+            DataSet ds = testItr.next();
+            net.rnnClearPreviousState();
+            INDArray output = net.output(ds.getFeatures(), false);
+            int[] results = new int[output.shape()[0]];
+            for (int i = 0; i < results.length; i++) {
+                double[][] res = getDoubleMatrixDistr(output.tensorAlongDimension(i, 1, 2));
+                double[] subRes = res[res.length - 1];
+                if(Math.abs(subRes[0]-subRes[1]) > 0.7){
+                    results[i] = Helper.getIndexOfMax(res[res.length - 1]);
+                }
+                else results[i] = 2;
+            }
+            List<AnomaliesIterator.DataContainer> conts = ((AnomaliesIterator) testItr).getLastBatchContainers();
+            for (int j = 0 ; j < results.length ; j++) {
+                if (results[j] == 1) {
+                    System.out.println(conts.get(j).id);
+                    nbr++;
+                }
+            }
+        }
+        System.out.println("Nbr of errors/Total number of edges" + nbr + "/" + testItr.numExamples());
     }
 
     @Override

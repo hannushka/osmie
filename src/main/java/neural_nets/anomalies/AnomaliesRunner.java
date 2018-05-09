@@ -3,6 +3,7 @@ package neural_nets.anomalies;
 import neural_nets.Seq2Seq;
 
 public class AnomaliesRunner {
+
     public static void main(String[] args) {
         try {
             String fileLocation = "data/anomaliesSpecialDataTrain.csv";

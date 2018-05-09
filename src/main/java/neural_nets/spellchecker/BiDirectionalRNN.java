@@ -173,4 +173,8 @@ public class BiDirectionalRNN extends Seq2Seq {
         }
     }
 
+    @Override
+    public void predict() throws Exception {
+    }
+
 }

@@ -118,7 +118,7 @@ def get_name_class(name):
     return 23
 
 if __name__ == '__main__':
-    final_test_data = []
+    final_data = []
     ways = {}
     #{way-name: {surface:set(surfaces shown), speed:set(speeds shown)...}, way-name2...}
     with open(ENC_FILENAME, 'w', encoding='utf-8') as f2:
@@ -152,31 +152,30 @@ if __name__ == '__main__':
             
             for name in ways.keys():
                 data = ways[name]
-                pos_speeds = []
+                pos_speeds = ['']
                 for i in range(5):
                     if i not in data['speed']:
                         pos_speeds.append(i)
-                pos_surf = []
+                pos_surf = ['']
                 for i in range(7):
                     if i not in data['surface']:
                         pos_surf.append(i)
-                pos_ways = []
+                pos_ways = ['']
                 for i in range(8):
                     if i not in data['way']:
                         pos_ways.append(i)
-                if len(pos_speeds) > 0 and len(pos_surf) > 0 and len(pos_ways) > 0:
-                    new_data = [data['id']]
-                    new_data += [get_name_class(name)]
-                    new_data += [pos_speeds[random.randint(0,len(pos_speeds)-1)]]
-                    new_data += [pos_surf[random.randint(0,len(pos_surf)-1)]]
-                    new_data += [pos_ways[random.randint(0,len(pos_ways)-1)]]
-                    new_data += [1]
-                    new_data = ',,,'.join(map(str, new_data))
-                    final_test_data.append(new_data)
-                    final_test_data.append(test_data.pop())
-        length = int((3/4)*len(final_test_data))
-        train_data = final_test_data[:length]
-        test_data = final_test_data[length+1:]
+                new_data = [data['id']]
+                new_data += [get_name_class(name)]
+                new_data += [pos_speeds[random.randint(0,len(pos_speeds)-1)]]
+                new_data += [pos_surf[random.randint(0,len(pos_surf)-1)]]
+                new_data += [pos_ways[random.randint(0,len(pos_ways)-1)]]
+                new_data += [1]
+                new_data = ',,,'.join(map(str, new_data))
+                final_data.append(new_data)
+                final_data.append(test_data.pop())
+        length = int((3/4)*len(final_data))
+        train_data = final_data[:length]
+        test_data = final_data[length+1:]
         train_data = '\n'.join(train_data)
         test_data = '\n'.join(test_data)
         with open(TRAIN_FILENAME,'w') as file:
