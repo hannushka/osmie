@@ -6,6 +6,7 @@ import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
 import util.ArrayUtils;
 
+import javax.xml.crypto.Data;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -26,6 +27,8 @@ public class AnomaliesIterator extends CharacterIterator {
     Map<String, Integer> highwayToIdxMap;
     Map<String, Integer> surfaceToIdxMap;
 
+    List<DataContainer> lastBatchContainers;
+
     private static int nbrOfTags = 3;
 
     public AnomaliesIterator(String file, Charset encoding, int miniBatchSize, int sequenceLength, int epochSize) throws IOException {
@@ -38,6 +41,7 @@ public class AnomaliesIterator extends CharacterIterator {
             this.miniBatchSize  = miniBatchSize;
             this.epochSize      = epochSize;
             this.textFileEncoding = encoding;
+            this.lastBatchContainers = new LinkedList<>();
 
             charToIdxMap = EncoderHelper.getDanishCharacterSet();
             alphabetSize = charToIdxMap.size();
@@ -54,20 +58,20 @@ public class AnomaliesIterator extends CharacterIterator {
             generateDataFromFile(file, before, after);
         }
 
-        private void generateDataFromFile(String textFilePath, String before, String after) throws IOException {
+    private void generateDataFromFile(String textFilePath, String before, String after) throws IOException {
             List<String> lines = Files.readAllLines(new File(textFilePath).toPath(), textFileEncoding);
             for (String s : lines){
                 if (s.isEmpty()) continue;
                 String[] values = s.split(",,,");
-                if (values.length < 7) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
-                //name,,,maxspeed,,,surface,,sidewalk,,,highway,,,oneway,,,0/1
+                if (values.length < 5) throw new IOException("Fileformat-error: can't split on ',,,' (str: " + s + ")");
+                //name,,,maxspeed,,,surface,,highway,,,0/1
 
                 char[] name = ArrayUtils.mergeArrays(before, after, values[0].toLowerCase().toCharArray());
                 int maxSpeedClass = speedToIdxMap.get(EncoderHelper.getSpeedClass(values[1]));
                 int surfaceClass =surfaceToIdxMap.get(EncoderHelper.getSurfaceClass(values[2]));
-                int highwayClass = highwayToIdxMap.get(EncoderHelper.getHighwayClass(values[4]));
+                int highwayClass = highwayToIdxMap.get(EncoderHelper.getHighwayClass(values[3]));
 
-                Integer result = Integer.parseInt(values[values.length-1]);
+                Integer result = Integer.parseInt(values[4]);
 
                 for (int i = 0; i < name.length; i++) if(!charToIdxMap.containsKey(name[i])) name[i] = '!';
                 inputLines.add(new DataContainer(name, maxSpeedClass, highwayClass, surfaceClass));
@@ -93,6 +97,7 @@ public class AnomaliesIterator extends CharacterIterator {
 
         for(int i=0; i < currMinibatchSize; i++) {  // Iterating each line
             DataContainer cont = inputLines.removeFirst();
+            lastBatchContainers.add(cont);
             char[] inputChars =  cont.inputLine;
             int outputClass = outputLines.removeFirst();
             if(inputChars == null) continue;
@@ -126,6 +131,7 @@ public class AnomaliesIterator extends CharacterIterator {
     }
 
     public DataSet next() {
+        lastBatchContainers.clear();
         return createDataSet(miniBatchSize);
     }
 
@@ -182,7 +188,11 @@ public class AnomaliesIterator extends CharacterIterator {
         return true;
     }
 
-    private class DataContainer {
+    public List<DataContainer> getLastBatchContainers() {
+        return lastBatchContainers;
+    }
+
+    public class DataContainer {
         char[] inputLine;
         int maxSpeedClass, highwayClass, surfaceClass;
 
@@ -196,9 +206,24 @@ public class AnomaliesIterator extends CharacterIterator {
         public String toString() {
             StringBuilder sb = new StringBuilder();
             sb.append("name: ").append(new String(inputLine).trim()).append(", ");
-            sb.append("maxspeed: ").append(maxSpeedClass).append(", ");
-            sb.append("surface: ").append(surfaceClass).append(", ");
-            sb.append("highway: ").append(highwayClass).append("\n");
+            for (String id : speedToIdxMap.keySet()) {
+                if (speedToIdxMap.get(id) == maxSpeedClass) {
+                    sb.append("maxspeed: ").append(id).append(", ");
+                    break;
+                }
+            }
+            for (String id : surfaceToIdxMap.keySet()) {
+                if (surfaceToIdxMap.get(id) == surfaceClass) {
+                    sb.append("surface: ").append(id).append(", ");
+                    break;
+                }
+            }
+            for (String id : highwayToIdxMap.keySet()) {
+                if (highwayToIdxMap.get(id) == highwayClass) {
+                    sb.append("highway: ").append(id).append(", ");
+                    break;
+                }
+            }
             return sb.toString();
         }
     }

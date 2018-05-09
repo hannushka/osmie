@@ -5,8 +5,8 @@ import neural_nets.Seq2Seq;
 public class AnomaliesRunner {
     public static void main(String[] args) {
         try {
-            String fileLocation = "data/dataAnomalies.csv";
-            String testFileLocation = "data/dataAnomaliesTest.csv";
+            String fileLocation = "data/anomaliesSpecialDataTrain.csv";
+            String testFileLocation = "data/anomaliesSpecialDataTest.csv";
             Seq2Seq model = AnomaliesRNN.Builder()
                     .setFilename("ARNN_")
                     .setBatchSize(32)

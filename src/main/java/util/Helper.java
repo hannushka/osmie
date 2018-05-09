@@ -35,7 +35,7 @@ public class Helper {
         return bestDistr;
     }
 
-    private static double[][] getDoubleMatrixDistr(INDArray array){
+    public static double[][] getDoubleMatrixDistr(INDArray array){
         if(array.shape().length != 2) throw new DimensionMismatchException(array.shape().length, 2);
         NdIndexIterator iter = new NdIndexIterator(array.shape());
         double[][] distr = new double[array.shape()[1]][array.shape()[0]];

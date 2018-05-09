@@ -19,7 +19,13 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.DataSet;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import symspell.SymSpell;
+import util.Helper;
 import util.StringUtils;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
+import static util.Helper.getDoubleMatrixDistr;
 
 public class AnomaliesRNN extends Seq2Seq {
 
@@ -61,6 +67,14 @@ public class AnomaliesRNN extends Seq2Seq {
             net.rnnClearPreviousState();
             INDArray output = net.output(ds.getFeatures(), false, ds.getFeaturesMaskArray(), ds.getLabelsMaskArray());
             eval.evalTimeSeries(ds.getLabels(), output, ds.getLabelsMaskArray());
+            for(int i = 0; i < output.shape()[0]; i++) {
+                double[][] wordMatrix = Helper.getDoubleMatrixDistr(output.tensorAlongDimension(i, 1, 2));
+                double[] tmp = wordMatrix[wordMatrix.length-1];
+                int classRes = Helper.getIndexOfMax(tmp);
+                if (classRes == 0) {
+                    System.out.println(((AnomaliesIterator)testItr).getLastBatchContainers().get(i).toString());
+                }
+            }
         }
         System.out.println(eval.stats());
         return eval.f1();

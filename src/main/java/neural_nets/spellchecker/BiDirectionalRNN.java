@@ -24,6 +24,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.StringJoiner;
 
 public class BiDirectionalRNN extends Seq2Seq {
 
@@ -104,9 +105,13 @@ public class BiDirectionalRNN extends Seq2Seq {
                 if(obj.correctName.equals(word) && !items.get(0).term.equals(obj.correctName)) l++;
                 i++;
             }
+            StringJoiner sb = new StringJoiner(", ");
+            items.forEach(it -> sb.add(it.term));
+            if (!word.equals(obj.correctName))
+                System.out.println(obj.correctName + "  " + word);//+ sb.toString());
         }
-        System.out.println("Symspell introduces " + (j-k) + " corrections extra from the unsure ones.");
-        System.out.println(j + " corrections out of " + i + " where " + k + " already correct, " + l + " ruined (symspell)");
+//        System.out.println("Symspell introduces " + (j-k) + " corrections extra from the unsure ones.");
+//        System.out.println(j + " corrections out of " + i + " where " + k + " already correct, " + l + " ruined (symspell)");
 
 //        for(DeepSpellObject obj: spellObjects){
 //            obj.generateNewWordsFromGuess();
@@ -123,7 +128,6 @@ public class BiDirectionalRNN extends Seq2Seq {
         return eval.f1();
     }
 
-    @Override
     public void printSuggestion(String input, SymSpell symSpell) {
         DataSet ds = ((SpellCheckIterator) trainItr).createDataSetForString(input);
         net.rnnClearPreviousState();
